@@ -15,6 +15,7 @@ Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zami
 - [Skrypty npm](#skrypty-npm)
 - [Struktura projektu](#struktura-projektu)
 - [Praca z agentami AI (Claude Code i Codex)](#praca-z-agentami-ai-claude-code-i-codex)
+- [Porównanie agentów](#porównanie-agentów)
 - [Konwencje](#konwencje)
 
 ## Założenia produktu
@@ -179,6 +180,19 @@ Projekt rozwijamy z pomocą **Claude Code** i **Codex**. Kilka zasad, które pom
 - **`.agents/skills/`** zawiera skille agentów. Ich wersje są przypięte w `skills-lock.json`.
 - Agenci uruchamiają polecenia w PowerShellu na Windowsie. W instrukcjach i skryptach wybieraj polecenia wieloplatformowe (`npm run ...`, `docker compose ...`) zamiast składni typowej tylko dla basha.
 - Przed oddaniem zmian agent powinien uruchomić `npm run lint` i `npm run build`.
+
+## Porównanie agentów
+
+Oba agenty dostały to samo zadanie: *„Dodaj na stronie głównej nagłówek DevMentor i krótki opis portalu”*.
+
+| | Claude Code | Codex |
+|---|-------------|-------|
+| **Zmienione pliki** | 1 | 2 |
+| **Treść** | Dłuższa i bardziej szczegółowa | Krótsza |
+| **Czy pytał** | Nie, działał bez dodatkowych pytań | Tak, pytał o preferowany styl |
+| **Czas** | _TODO_ | _TODO_ |
+
+**Wnioski:** _TODO: który agent sprawdził się lepiej i dlaczego._
 
 ## Konwencje
 
