@@ -2,7 +2,7 @@
 
 Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zamiast nauczycieli języków są tu doświadczeni developerzy. Prowadzą sesje 1:1, code review, przygotowanie do rozmów rekrutacyjnych i pomagają przy wyborze ścieżki kariery.
 
-> **Status:** wczesny etap. W repozytorium jest na razie szkielet aplikacji Next.js. Baza danych, uwierzytelnianie i logika marketplace'u są dopiero planowane.
+> **Status:** początkowy etap. W repozytorium jest na razie szkielet aplikacji Next.js. Baza danych, uwierzytelnianie i logika marketplace'u są dopiero planowane.
 
 ## Spis treści
 
