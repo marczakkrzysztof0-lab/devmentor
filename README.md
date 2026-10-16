@@ -67,7 +67,20 @@ Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zami
 
 ## Szybki start (Windows)
 
-Poniższe polecenia działają w PowerShellu:
+Zalecana ścieżka: jedno polecenie instalatora (wymaga działającego Docker Desktop).
+
+```powershell
+git clone <url-repozytorium> devmentor
+cd devmentor
+npm run setup
+npm run dev
+```
+
+`npm run setup` instaluje zależności, tworzy `docker-compose.yml` i `.env.example` (jeśli ich nie ma), uruchamia bazę i tworzy `.env.local` z szablonu. Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie działa, kończy się czytelnym komunikatem.
+
+### Kroki ręczne (alternatywa)
+
+Poniższe polecenia działają w PowerShellu. Pliki `docker-compose.yml` i `.env.example` utwórz wcześniej z treści w sekcjach [Baza danych (Docker)](#baza-danych-docker) i [Zmienne środowiskowe](#zmienne-środowiskowe).
 
 ```powershell
 # 1. Sklonuj repozytorium
@@ -91,7 +104,7 @@ Aplikacja będzie dostępna pod adresem [http://localhost:3000](http://localhost
 
 ## Baza danych (Docker)
 
-PostgreSQL uruchamiamy lokalnie przez Docker Compose. Plik `docker-compose.yml` jeszcze nie istnieje. Proponowana konfiguracja:
+PostgreSQL uruchamiamy lokalnie przez Docker Compose. Plik `docker-compose.yml` nie jest w repozytorium. Tworzy go `npm run setup` z tej konfiguracji:
 
 ```yaml
 services:
@@ -140,7 +153,7 @@ DATABASE_URL="postgresql://devmentor:devmentor@localhost:5432/devmentor"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-> `.gitignore` ignoruje teraz wszystkie pliki `.env*`. Żeby commitować szablon, dodaj do `.gitignore` regułę `!.env.example`.
+> `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon można commitować.
 
 Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.**
 
@@ -152,6 +165,8 @@ Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w n
 | `npm run build` | Build produkcyjny |
 | `npm run start` | Uruchomienie buildu produkcyjnego |
 | `npm run lint` | ESLint |
+| `npm test` | Testy (`node:test`) |
+| `npm run setup` | Instalator środowiska lokalnego (idempotentny) |
 
 ## Struktura projektu
 
