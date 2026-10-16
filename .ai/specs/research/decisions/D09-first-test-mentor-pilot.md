@@ -1,0 +1,7 @@
+# D09 — The first test of 1.0 is a pilot with the first batch of warm-contact mentors from the list of fifty; the owner sets its thresholds and window before invitations go out
+- Date, owner: 2026-10-16, Krzysztof Marczak; source: om-discover round 3, question 2; mentor list note 2026-09-04 (29 of 50 reachable with one message, nobody contacted, first batch of 20); interviews 2026-09-03 (Python mentor: "jak ludzie, których znam, to wchodzę"; staff engineer: a month without bookings and "zapomnę, że to istnieje"); survey 2026-09-04 (stated intention; 3 of 54 paid someone the last time they were stuck)
+- Question asked and options weighed: what tells us whether 1.0 works? (a) more interviews and surveys about willingness to pay; (b) a pilot: invite the first batch of mentors and observe who publishes a page and availability, who shares the link, which requests are paid, accepted and held, and which notes are written and approved.
+- Decision and why: (b). The survey and interviews already give stated intention; the open question is behaviour, and only a real paid request answers it. The pass / stop numbers and the observation window are not in the material and are left to the owner (Q03 in the brief); the staff engineer's "a month of silence" is one account to weigh, not a threshold.
+- Required path to change: a superseding record by Krzysztof Marczak.
+- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Status: active
