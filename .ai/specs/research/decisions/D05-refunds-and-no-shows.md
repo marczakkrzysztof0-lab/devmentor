@@ -4,5 +4,6 @@
 - No-show, as used here: a party who posts nothing in the session chat during the booked slot. No grace-period number is set, because the material gives no basis for one.
 - Decision and why: refunds without a support ticket follow the two interviews directly. For mentee cancellation, (b): sessions are short-notice, so a 12-hour window taken from a weekly-lesson product does not fit, and (c) leaves the mentor who blocked the slot unpaid. Tradeoff: a mentee whose problem solves itself after acceptance loses the money. Disputes outside these rules need an owner (Q in the brief).
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
+- Refined by D11 (2026-10-16): when neither party posts during the slot, it counts as the mentor's no-show and the mentee is refunded in full (R15 in the brief).
 - Status: active

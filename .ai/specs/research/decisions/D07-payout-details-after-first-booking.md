@@ -3,5 +3,5 @@
 - Question asked and options weighed: when does a mentor complete payout setup? (a) at sign-up, before the page goes live; (b) after the first paid request, before the first payout.
 - Decision and why: (b), because one mentor from our list named (a) as a reason to refuse, and the first invitations depend on mentors saying yes. Tradeoff: money for a first session is held by the platform until the mentor completes payout setup; who operates payouts and refunds is open (RACI note, Q in the brief).
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
 - Status: active

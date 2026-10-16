@@ -3,5 +3,6 @@
 - Question asked and options weighed: what happens to session content in 1.0? (a) nothing is kept beyond the chat; (b) the mentor may write a short note after the session; it is saved only once the mentee approves and is visible to the two of them; (c) approved notes are published publicly or into a vault.
 - Decision and why: (b). It starts the mentor's knowledge asset that the vision depends on while publishing nothing, which is the condition every mentor interviewed set. Notes are optional because one mentor will not write documentation for free. Tradeoff: two of the four developers interviewed said they would keep the answer themselves (the other two were not asked), so the note's value to mentees is unproven (A05 in the brief); publication is N04.
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
-- Status: active
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
+- Superseded by D10 (2026-10-16): notes move from 1.0 to Later to keep the 25-hour build. The rule above stays the intended design when notes return; bringing them back needs a superseding record by Krzysztof Marczak.
+- Status: superseded by D10

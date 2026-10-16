@@ -3,5 +3,5 @@
 - Question asked and options weighed: who sets the price, and how is it paid? Price: (a) one platform price; (b) the mentor's own price per 25 and per 50 minutes. Payment: prepayment by card at request time vs payment after the session; payer: the individual vs company invoicing.
 - Decision and why: (b), prepaid by the individual's card at request time. Mentors from our list want to set their own price (one as a filter for serious askers); the freelancer wants the price before writing; prepayment makes the mentee no-show rule (D05) possible. Company invoicing, team plans and session packs are Later. This answers the workshop's non-blocking question on pricing. The platform's commission rate and the currency stay open (Q01, Q02 in the brief).
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
 - Status: active

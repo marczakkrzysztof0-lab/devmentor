@@ -3,5 +3,5 @@
 - Question asked and options weighed: do we set usability targets for the two setup paths now, and from what? (a) no targets until the pilot; (b) the limits the interviewees named, as provisional targets.
 - Decision and why: (b), as provisional design targets for acceptance criteria. Each number comes from one or two accounts, not from a measured baseline; the pilot (D09) measures the real times.
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
 - Status: active

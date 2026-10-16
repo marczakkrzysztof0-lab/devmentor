@@ -4,5 +4,6 @@
 - Decision and why: (b). The developers interviewed asked for one answer from someone who has done it, fast, and did not want saved answers, subscriptions or a learning path; both mentors from our list want to see any "AI answers from my notes" layer before it is built; the 25-hour build limit cannot hold (a). Notes stay in 1.0 because both founders made mentee approval the trust rule (workshop) and the mentors call their notes "the value"; private notes start that asset without publishing anything. Tradeoff: 1.0 gives up the differentiator the board names (mentor-owned knowledge, recurring revenue) until the session model is proven.
 - Consequences, and what would make us revisit it: vault subscriptions, MCP, AI answers and Obsidian / markdown export move to Later (N03). Revisit after the pilot (D09): if mentors get paid bookings and write notes, plan the next layer; if not, the vision's premise needs new evidence.
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
-- Status: active
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
+- Superseded in part by D10 (2026-10-16): private session notes leave 1.0 and move to Later; the rest of this decision stands.
+- Status: active, superseded in part by D10

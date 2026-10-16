@@ -3,5 +3,5 @@
 - Question asked and options weighed: what tells us whether 1.0 works? (a) more interviews and surveys about willingness to pay; (b) a pilot: invite the first batch of mentors and observe who publishes a page and availability, who shares the link, which requests are paid, accepted and held, and which notes are written and approved.
 - Decision and why: (b). The survey and interviews already give stated intention; the open question is behaviour, and only a real paid request answers it. The pass / stop numbers and the observation window are not in the material and are left to the owner (Q03 in the brief); the staff engineer's "a month of silence" is one account to weigh, not a threshold.
 - Required path to change: a superseding record by Krzysztof Marczak.
-- Origin: Recorded from the agent's recommendation on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16); owner confirms or supersedes it.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
 - Status: active
