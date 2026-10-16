@@ -1,0 +1,9 @@
+# D05 — Refund and no-show rules: full automatic refund when the mentor declines, does not accept before the slot, or does not show; the mentor keeps the payment when the mentee does not show; the mentee can cancel with a full refund until the mentor accepts
+- Date, owner: 2026-10-16, Krzysztof Marczak; source: om-discover round 2, question 3; interviews 2026-09-02 freelancer ("jak nie przyjdzie to zwrot tego samego dnia a nie jakis ticket"), 2026-09-03 Python mentor ("to chcę tę kasę i tak. po to jest przedpłata"); benchmark Preply 2026-09-04 (free cancellation up to 12 hours before, full cost after)
+- Question asked and options weighed: what happens to the money when a session does not happen? For the mentee's own cancellation: (a) a fixed time window before the slot, as Preply does; (b) free until the mentor accepts, no refund after acceptance; (c) always free.
+- No-show, as used here: a party who posts nothing in the session chat during the booked slot. No grace-period number is set, because the material gives no basis for one.
+- Decision and why: refunds without a support ticket follow the two interviews directly. For mentee cancellation, (b): sessions are short-notice, so a 12-hour window taken from a weekly-lesson product does not fit, and (c) leaves the mentor who blocked the slot unpaid. Tradeoff: a mentee whose problem solves itself after acceptance loses the money. Disputes outside these rules need an owner (Q in the brief).
+- Required path to change: a superseding record by Krzysztof Marczak.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
+- Refined by D11 (2026-10-16): when neither party posts during the slot, it counts as the mentor's no-show and the mentee is refunded in full (R15 in the brief).
+- Status: active

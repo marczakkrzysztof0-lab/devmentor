@@ -1,0 +1,7 @@
+# D03 — Mentees reach a mentor through the mentor's own share link; no public directory or search in 1.0
+- Date, owner: 2026-10-16, Krzysztof Marczak; source: om-discover round 1, question 3; interviews 2026-09-03 (staff engineer: "nie wsadzajcie mnie na listę obok ludzi, których nie znam"; Python mentor brings his Discord audience only if he earns from it); board 2026-09-02 channels ("mentors bring users"); benchmark Topmate 2026-09-04 (single-link expert page)
+- Question asked and options weighed: how does a developer find a mentor in 1.0? (a) a public directory with search and filters; (b) each mentor's own page and link that they share with their audience; (c) both, with listing opt-in.
+- Decision and why: (b). It is what the mentors from our list accept, it matches the channel plan for a product with no mentors yet, and it is the smaller build. Tradeoff: a developer outside a mentor's audience cannot find anyone, so the strangers seen asking for help on Discord are not served by 1.0 unless a mentor shares a link there. An opt-in directory is Later.
+- Required path to change: a superseding record by Krzysztof Marczak.
+- Origin: Originated as the agent's recommendation, recorded on Krzysztof Marczak's blanket instruction to proceed with recommended answers (2026-10-16). Confirmed by Krzysztof Marczak on 2026-10-16 (source: Krzysztof Marczak, chat 2026-10-16).
+- Status: active
