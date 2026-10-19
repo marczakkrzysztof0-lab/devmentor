@@ -126,7 +126,7 @@ export const DecisionRefused: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Akceptuję" }));
     await userEvent.click(within(await within(document.body).findByRole("alertdialog")).getByRole("button", { name: "Akceptuję pytanie" }));
-    await expect(await canvas.findByRole("alert")).toHaveTextContent("Nie można zaakceptować — deweloper anulował zapytanie");
+    await expect(await canvas.findByRole("alert")).toHaveTextContent("Nie można zaakceptować — zapytanie zostało anulowane przez dewelopera");
   },
 };
 export const DecisionNetwork: Story = {
@@ -156,3 +156,39 @@ export const DecisionNarrow: Story = {
   render: () => <RequestDecision request={DETAIL} timeZone={ZONE} now={NOW} onAccept={okAfter(0)} onDecline={okAfter(0)} />,
 };
 export const NotFound: Story = { name: "RequestNotFound · another mentor's or unknown", render: () => <RequestNotFound /> };
+
+/* C9: „zwrot został zlecony” only when the refund really exists (#18). */
+async function acceptAndReadAlert(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement);
+  await userEvent.click(canvas.getByRole("button", { name: "Akceptuję" }));
+  await userEvent.click(within(await within(document.body).findByRole("alertdialog")).getByRole("button", { name: "Akceptuję pytanie" }));
+  return canvas.findByRole("alert");
+}
+export const RefusalLapsedRefundRequested: Story = {
+  name: "RequestDecision · lapsed meanwhile, refund requested (C9)",
+  render: () => <RequestDecision request={DETAIL} timeZone={ZONE} now={NOW} onAccept={async () => ({ ok: false as const, code: "lapsed" as const, refundStatus: "requested" as const })} onDecline={okAfter(0)} />,
+  play: async ({ canvasElement }) => {
+    await expect(await acceptAndReadAlert(canvasElement)).toHaveTextContent("Termin minął — zwrot został zlecony automatycznie");
+  },
+};
+export const RefusalLapsedNoRefundYet: Story = {
+  name: "RequestDecision · lapsed meanwhile, refund not requested yet (C9)",
+  render: () => <RequestDecision request={DETAIL} timeZone={ZONE} now={NOW} onAccept={async () => ({ ok: false as const, code: "lapsed" as const, refundStatus: null })} onDecline={okAfter(0)} />,
+  play: async ({ canvasElement }) => {
+    await expect(await acceptAndReadAlert(canvasElement)).toHaveTextContent("Termin minął — zwrot zostanie zlecony automatycznie");
+  },
+};
+export const LapsedWithRefund: Story = {
+  name: "RequestDecision · lapsed, refund requested (C9)",
+  render: () => <RequestDecision request={{ ...DETAIL, status: "lapsed", refundStatus: "requested" }} timeZone={ZONE} now={NOW} onAccept={okAfter(0)} onDecline={okAfter(0)} />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText("Zakończone — przeterminowane, zwrot zlecony")).toBeVisible();
+  },
+};
+export const LapsedWithoutRefund: Story = {
+  name: "RequestDecision · lapsed, refund not requested yet (C9)",
+  render: () => <RequestDecision request={{ ...DETAIL, status: "lapsed", refundStatus: null }} timeZone={ZONE} now={NOW} onAccept={okAfter(0)} onDecline={okAfter(0)} />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText("Zakończone — przeterminowane, zwrot zostanie zlecony automatycznie")).toBeVisible();
+  },
+};

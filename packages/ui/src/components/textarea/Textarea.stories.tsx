@@ -12,7 +12,7 @@ const meta = {
   title: "Primitives/Textarea",
   component: Textarea,
   tags: ["!autodocs"],
-  args: { "aria-label": "Twoje pytanie", placeholder: "Co robisz, co już sprawdziłeś i gdzie utknąłeś?" },
+  args: { "aria-label": "Twoje pytanie", placeholder: "Co próbujesz zrobić, co już działa, a co nie?" },
   decorators: [(Story) => <div className="max-w-text"><Story /></div>],
 } satisfies Meta<typeof Textarea>;
 
@@ -27,7 +27,7 @@ export const Variants: Story = {
       <FormField label="Twoje pytanie" hint="Mentor przeczyta je przed decyzją. Możesz wkleić kod.">
         <Textarea defaultValue={QUESTION} />
       </FormField>
-      <FormField label="Co już robiłeś" hint="Kilka zdań o tym, co już robiłeś — deweloper zobaczy je na twojej stronie.">
+      <FormField label="Twoje doświadczenie" hint="Np. upgrade ingress-nginx do 1.28, migracja do TypeScript 5 — deweloper zobaczy to na twojej stronie.">
         <Textarea rows={4} defaultValue="Migrowałam dwa duże projekty na server components i wiem, gdzie zwykle pękają testy oraz cache." />
       </FormField>
     </div>
@@ -38,7 +38,7 @@ export const States: Story = {
   render: () => (
     <StateGrid
       items={[
-        { label: "default (placeholder = example)", node: <Textarea aria-label="Pytanie" rows={3} placeholder="Co robisz, co już sprawdziłeś i gdzie utknąłeś?" /> },
+        { label: "default (placeholder = example)", node: <Textarea aria-label="Pytanie" rows={3} placeholder="Co próbujesz zrobić, co już działa, a co nie?" /> },
         { label: "filled", node: <Textarea aria-label="Pytanie" rows={3} defaultValue={QUESTION} /> },
         { label: "focus", node: <Textarea aria-label="Pytanie" rows={3} data-preview-state="focus" defaultValue={QUESTION} /> },
         { label: "error", node: <Textarea aria-label="Pytanie" rows={3} invalid defaultValue="help" /> },

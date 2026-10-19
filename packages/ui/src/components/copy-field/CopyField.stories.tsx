@@ -28,7 +28,7 @@ export const Variants: Story = {
       <CopyField
         label="Link do zapytania"
         value="http://localhost:3000/r/Qm9va2luZy1saW5rLWZvci1rdWJhLTI1LW1pbg"
-        hint="Zapisz ten link — wysłaliśmy go też na Twój e-mail."
+        hint="Zapisz ten link — kopia jest też w e-mailu z potwierdzeniem."
       />
     </div>
   ),

@@ -160,7 +160,7 @@ export const EditorNetwork: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Zapisz szkic" }));
     await expect(await canvas.findByRole("alert")).toHaveTextContent("Brak połączenia");
-    await expect(canvas.getByRole("textbox", { name: "Co już robiłeś" })).toHaveValue(ANNA.description);
+    await expect(canvas.getByRole("textbox", { name: "Twoje doświadczenie" })).toHaveValue(ANNA.description);
   },
 };
 export const EditorPublished: Story = {

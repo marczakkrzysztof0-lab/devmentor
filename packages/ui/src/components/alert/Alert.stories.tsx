@@ -33,7 +33,7 @@ export const Variants: Story = {
       <Alert tone="info" title="Nie masz dostępności — nikt nie może wybrać terminu" action={<TextLink href="#availability">Dodaj okno</TextLink>} />
       <Alert tone="success" title="Strona opublikowana">Skopiuj link i wklej go tam, gdzie ludzie już cię pytają.</Alert>
       <Alert tone="danger" title="Cena zmieniła się na 180 zł" action={<Button variant="primary">Zapłać 180 zł i wyślij pytanie</Button>}>
-        Mentor zmienił cenę, kiedy pisałeś pytanie. Potwierdź nową kwotę.
+        Cena zmieniła się w trakcie pisania pytania. Potwierdź nową kwotę.
       </Alert>
     </div>
   ),
@@ -57,7 +57,7 @@ export const LongNarrow: Story = {
   decorators: [narrow],
   args: {
     tone: "danger",
-    title: "Mentor właśnie zaakceptował — anulowanie ze zwrotem nie jest już możliwe",
+    title: "Pytanie zostało właśnie zaakceptowane — anulowanie ze zwrotem nie jest już możliwe",
     children: "Sesja odbędzie się w wybranym terminie jako czat tekstowy. Link do sesji znajdziesz na tej stronie i w e-mailu.",
   },
 };

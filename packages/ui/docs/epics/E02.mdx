@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Epics/E02 Paid request and mentor decision" />
+
+# E02 · Paid request and the mentor's decision (#9)
+
+A developer pays up front and sends the question within 5 minutes; the mentor reads it and accepts or declines; a decline, no answer before the slot, or the developer's cancellation before acceptance refunds the money automatically (D02, D04, D05, D08).
+
+## Flow
+
+| # | Step | Who | Screen | Spec |
+|---|---|---|---|---|
+| 1 | Length (with prices) → slot → name → question → „Zapłać 150 zł i wyślij pytanie” | Developer | S6 `/m/[slug]` | #17 |
+| 2 | Hosted Stripe Checkout | Developer | Stripe | #24 |
+| 3 | „Czekamy na potwierdzenie płatności” → „Opłacone — czeka na mentora”, „Zapisz ten link” | Developer | S7 `/r/[token]` | #17 |
+| 4 | E-mail „Nowe opłacone pytanie…”, list „Czeka na decyzję” | Mentor | S8 `/mentor/requests` | #17, #18 |
+| 5 | Question, length, slot → „Akceptuję” / „Odrzucam” with confirmation | Mentor | S9 `/mentor/requests/[id]` | #18 |
+| 6 | Optional: „Anuluj i odzyskaj 150 zł” until acceptance | Developer | S7 | #19 |
+| 7 | No answer before the slot → automatic refund | System | S7, S8, S9 | #18 |
+
+## Screens and stories
+
+| Screen | Stories (Product/E02 Paid request/Screens) | States |
+|---|---|---|
+| S6 Share page + form | slots and form, phone 375 px, no slots, slots loading, slots failed, 2000-character description, viewer in London, slot taken on pay, no such mentor, 320 px | 10 |
+| S7 Request page | waiting for payment, > 1 min, paid (can cancel), payment interrupted, too late, accepted, declined, overdue, lapsed, cancelled, refund failed, 404, 320 px | 13 |
+| S8 Requests | grouped, none yet, loading, load error, 30 requests, 320 px | 6 |
+| S9 Request detail | awaiting, accepted, slot started, cancelled a minute ago, not found, 320 px | 6 |
+
+Full state map: **Product/E02 Paid request/Screens state map**. Components: **Product/E02 Paid request/Components**. Patterns used: Form, Request status page, Grouped list, Detail view, Confirm irreversible decision, Share link, Time-zone-aware slots.
+
+## Source files
+
+| What | Path |
+|---|---|
+| Developer side | `packages/ui/src/product/e02/Request.tsx` |
+| Mentor side | `packages/ui/src/product/e02/MentorRequests.tsx` |
+| Screen compositions (Storybook only) | `packages/ui/.storybook/screens.tsx` |
+| Specs | `.ai/specs/2026-10-19-prepaid-request-with-question.md`, `…-mentor-accepts-or-declines-request.md`, `…-developer-cancels-before-acceptance.md`, `…-stripe-card-payment-refund-and-webhook.md` |
+
+## Work left in the product
+
+- Routes `/r/[token]`, `/mentor/requests`, `/mentor/requests/[id]` and the server actions `startRequest`, `acceptRequest`, `declineRequest`, `cancelRequest`; polling of the payment state for one minute (#17).
+- Mapping refusal codes with `refundStatus` from the fresh read (C9) and the refund status on `/r/{token}`.
+- E-mail templates (plain text, no question text) — content in specs, no visual design.
+- Stripe test-mode QA (abandon path, two tabs racing for one slot) and the 5-minute walkthrough (#17).
+- Guest checkout vs account stays open (#17 Q1, held back in the backlog).

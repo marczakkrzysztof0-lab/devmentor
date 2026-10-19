@@ -1,0 +1,102 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { X } from "lucide-react";
+import {
+  Alert, Button, CodeBlock, CopyField, FormField, IconButton, List, ListRow, Panel, RadioGroup, Select,
+  Skeleton, Spinner, StateMessage, StatusText, TextInput, TextLink, Textarea, InlineCode,
+} from "../../src";
+import { Amount, LengthToggle, MentorIdentity, MentorNav, RequestStatusView, SlotPreview } from "../../src/product";
+import { NOW, ANNA_SLOTS } from "../../.storybook/fixtures";
+
+<Meta title="Components" />
+
+# Components
+
+Every component with a small live preview, its group, one sentence and a link to its documentation. Previews are the real components from the package.
+
+export const Card = ({ name, group, href, children, text }) => (
+  <article className="flex flex-col gap-in-group border-b border-divider py-between-groups">
+    <div className="ds-docs-preview rounded-control border border-divider p-inside-panel">{children}</div>
+    <div className="flex flex-wrap items-baseline justify-between gap-in-group">
+      <a href={href} target="_top" className="font-strong text-link underline">{name}</a>
+      <span className="text-meta text-muted">{group}</span>
+    </div>
+    <p className="text-meta">{text}</p>
+  </article>
+);
+
+<Unstyled>
+<div className="ds-docs-preview grid gap-x-between-groups" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 18rem), 1fr))" }}>
+  <Card name="Button" group="Primitives · actions" href="./?path=/docs/primitives-button--docs" text="Starts one action; one primary per screen, the exact amount in the label.">
+    <div className="flex flex-wrap gap-in-group"><Button variant="primary">Akceptuję</Button><Button>Odrzucam</Button></div>
+  </Card>
+  <Card name="IconButton" group="Primitives · actions" href="./?path=/docs/primitives-iconbutton--docs" text="Only „×” to remove one item of a repeated row, with a named label.">
+    <IconButton label="Usuń okno wtorek 18:00–20:00" icon={<X />} />
+  </Card>
+  <Card name="TextLink" group="Primitives · navigation" href="./?path=/docs/primitives-textlink--docs" text="Goes to a page or site; underlined, external links say so.">
+    <TextLink href="https://github.com/annak" external>github.com/annak</TextLink>
+  </Card>
+  <Card name="Spinner" group="Primitives · feedback" href="./?path=/docs/primitives-spinner--docs" text="Waiting for a specific answer, always with words.">
+    <Spinner label="Czekamy na potwierdzenie płatności" />
+  </Card>
+  <Card name="FormField + Label" group="Primitives · forms" href="./?path=/docs/primitives-formfield--docs" text="Label, control, hint and error wired together.">
+    <FormField label="Imię" hint="Mentor zobaczy tylko imię."><TextInput defaultValue="Kuba" /></FormField>
+  </Card>
+  <Card name="TextInput" group="Primitives · forms" href="./?path=/docs/primitives-textinput--docs" text="One short value; units like „zł” as a suffix.">
+    <TextInput aria-label="Cena za 25 min" suffix="zł" defaultValue="150" />
+  </Card>
+  <Card name="Textarea" group="Primitives · forms" href="./?path=/docs/primitives-textarea--docs" text="Several lines of free text, code allowed; counter near a spec limit.">
+    <Textarea aria-label="Twoje pytanie" rows={2} placeholder="Co próbujesz zrobić, co już działa, a co nie?" />
+  </Card>
+  <Card name="Select" group="Primitives · forms" href="./?path=/docs/primitives-select--docs" text="One value from a long list: time zone, hour.">
+    <Select aria-label="Strefa czasowa" options={[{ value: "Europe/Warsaw", label: "Europe/Warsaw" }]} defaultValue="Europe/Warsaw" />
+  </Card>
+  <Card name="RadioGroup" group="Primitives · forms" href="./?path=/docs/primitives-radiogroup--docs" text="One of a few visible options; segmented for 25/50 min, list for slots.">
+    <RadioGroup legend="Długość sesji" variant="segmented" defaultValue="25" options={[{ value: "25", label: "25 min" }, { value: "50", label: "50 min" }]} />
+  </Card>
+  <Card name="Panel" group="Primitives · layout" href="./?path=/docs/primitives-panel--docs" text="One block of main content; never a card in a card.">
+    <Panel title="Zapisz ten link" titleAs="h3"><p className="text-meta">Kopia jest też w e-mailu z potwierdzeniem.</p></Panel>
+  </Card>
+  <Card name="List + ListRow" group="Primitives · layout" href="./?path=/docs/primitives-list--docs" text="Many items of one kind, rows with 1 px lines.">
+    <List aria-label="Przykład"><ListRow title="Kuba · 25 min" meta="jutro 12:30–12:55" end={<StatusText tone="waiting">Czeka na decyzję</StatusText>} /></List>
+  </Card>
+  <Card name="StatusText" group="Primitives · feedback" href="./?path=/docs/primitives-statustext--docs" text="The state as words, never a coloured pill.">
+    <StatusText tone="success" withIcon>Zaakceptowane</StatusText>
+  </Card>
+  <Card name="Alert" group="Primitives · feedback" href="./?path=/docs/primitives-alert--docs" text="A form-level problem or notice next to the work; never a toast.">
+    <Alert tone="danger" title="Ten termin właśnie się zajął — wybierz inny" />
+  </Card>
+  <Card name="ConfirmDialog" group="Primitives · overlays" href="./?path=/docs/primitives-confirmdialog--docs" text="Asks once before an irreversible decision and names the consequence.">
+    <p className="text-meta text-muted">Open it on its page — overlays are not previewed inline.</p>
+  </Card>
+  <Card name="StateMessage" group="Primitives · feedback" href="./?path=/docs/primitives-statemessage--docs" text="Empty, failed or not-found region with the next step.">
+    <StateMessage kind="empty" titleAs="h3" title="Brak wolnych terminów w najbliższych 14 dniach" className="py-0" />
+  </Card>
+  <Card name="Skeleton" group="Primitives · feedback" href="./?path=/docs/primitives-skeleton--docs" text="Static placeholder for content with a known shape.">
+    <Skeleton label="Wczytywanie terminów" lines={2} />
+  </Card>
+  <Card name="CodeBlock + InlineCode" group="Primitives · content" href="./?path=/docs/primitives-codeblock--docs" text="Code, paths and slugs exactly as written.">
+    <CodeBlock label="Kod" code={'cache: "force-cache"'} /><p className="text-meta">Strona: <InlineCode>/m/anna-k</InlineCode></p>
+  </Card>
+  <Card name="CopyField" group="Primitives · content" href="./?path=/docs/primitives-copyfield--docs" text="A link to keep or share, with one copy button.">
+    <CopyField label="Twój link" value="http://localhost:3000/m/anna-k" />
+  </Card>
+  <Card name="Share page blocks" group="Product · E01" href="./?path=/docs/product-e01-mentor-page-components--docs" text="Identity, description, prices, length toggle, slots, not found (#16).">
+    <MentorIdentity displayName="Anna K." publicWorkUrl="https://github.com/annak" />
+  </Card>
+  <Card name="LengthToggle" group="Product · E01" href="./?path=/docs/product-e01-mentor-page-components--docs" text="25/50 min with both prices visible (R07).">
+    <LengthToggle price25Minor={15000} price50Minor={28000} value={25} onValueChange={() => {}} />
+  </Card>
+  <Card name="Mentor screens" group="Product · E01" href="./?path=/docs/product-e01-mentor-page-components--docs" text="Navigation, invitation, page editor, availability, slot preview (#14, #15).">
+    <MentorNav current="requests" pendingCount={2} />
+  </Card>
+  <Card name="SlotPreview" group="Product · E01" href="./?path=/docs/product-e01-mentor-page-components--docs" text="Next offered slots in the mentor's zone.">
+    <SlotPreview slots={ANNA_SLOTS} timeZone="Europe/Warsaw" now={NOW} limit={2} />
+  </Card>
+  <Card name="Request blocks" group="Product · E02" href="./?path=/docs/product-e02-paid-request-components--docs" text="Request form, status, summary, question, save link, cancel (#17, #19).">
+    <RequestStatusView status="awaiting_mentor" amountMinor={15000} slotStart="2026-10-20T10:30:00.000Z" timeZone="Europe/Warsaw" now={NOW} />
+  </Card>
+  <Card name="Amount" group="Product · shared" href="./?path=/docs/product-e02-paid-request-components--docs" text="Every amount in Geist Mono, formatted for pl-PL.">
+    <p>Kwota: <Amount minor={15000} /></p>
+  </Card>
+</div>
+</Unstyled>

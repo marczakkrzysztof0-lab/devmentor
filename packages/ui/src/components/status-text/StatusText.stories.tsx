@@ -44,7 +44,7 @@ export const States: Story = {
 export const LongNarrow: Story = {
   name: "Long state, 320 px",
   decorators: [narrow],
-  args: { tone: "danger", children: "Mentor nie odpowiedział przed terminem — zwrot 150 zł zlecony automatycznie" },
+  args: { tone: "danger", children: "Brak odpowiedzi mentora przed terminem — zwrot 150 zł zlecony automatycznie" },
 };
 
 export const ReadsAsText: Story = {

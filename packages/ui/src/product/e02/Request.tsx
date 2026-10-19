@@ -175,7 +175,7 @@ export function RequestForm({
   const formAlert =
     formError === "price_changed" ? (
       <Alert tone="danger" title={`Cena zmieniła się na ${formatMoney(price, currency)}`}>
-        Mentor zmienił cenę, kiedy pisałeś pytanie. Sprawdź kwotę na przycisku i wyślij jeszcze raz.
+        Cena zmieniła się w trakcie pisania pytania. Sprawdź kwotę na przycisku i wyślij jeszcze raz.
       </Alert>
     ) : formError ? (
       <Alert tone="danger" title={FORM_ERRORS[formError].title}>
@@ -218,7 +218,7 @@ export function RequestForm({
           name="question"
           rows={8}
           maxLength={QUESTION_MAX}
-          placeholder="Co robisz, co już sprawdziłeś i gdzie utknąłeś?"
+          placeholder="Co próbujesz zrobić, co już działa, a co nie?"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onBlur={() => blur("question")}
@@ -288,7 +288,7 @@ export function RequestStatusView({
     },
     overdue: { title: "Termin minął — zwrot zostanie zlecony automatycznie", tone: "waiting" },
     lapsed: {
-      title: refundRequested ? "Mentor nie odpowiedział przed terminem — zwrot zlecony" : "Mentor nie odpowiedział przed terminem — zwrot zostanie zlecony automatycznie",
+      title: refundRequested ? "Brak odpowiedzi mentora przed terminem — zwrot zlecony" : "Brak odpowiedzi mentora przed terminem — zwrot zostanie zlecony automatycznie",
       tone: "neutral",
     },
     cancelled: { title: refundRequested ? `Anulowane — zwrot ${amount} zlecony` : `Anulowane — zwrot ${amount} zostanie zlecony automatycznie`, tone: "neutral" },
@@ -376,7 +376,7 @@ export function QuestionText({ text, heading = "Pytanie" }: { text: string; head
 export function SaveLinkBox({ url }: { url: string }) {
   return (
     <Panel title="Zapisz ten link">
-      <p className="max-w-text">Wysłaliśmy go też na Twój e-mail. Przez ten link sprawdzisz stan zapytania albo je anulujesz.</p>
+      <p className="max-w-text">Kopia jest też w e-mailu z potwierdzeniem. Przez ten link sprawdzisz stan zapytania albo je anulujesz.</p>
       <CopyField label="Link do zapytania" value={url} />
     </Panel>
   );
@@ -448,7 +448,7 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
     }
   };
   if (problem === "accepted") {
-    return <Alert tone="info" title="Mentor właśnie zaakceptował — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
+    return <Alert tone="info" title="Pytanie zostało właśnie zaakceptowane — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
   }
   return (
     <section aria-label="Anulowanie" className="flex flex-col items-start gap-in-group">
@@ -470,6 +470,6 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
 
 /** After acceptance: why there is no cancel button (#19 story 2). */
 export function CancelNotPossible() {
-  return <p className="text-muted">Mentor już przyjął pytanie — anulowanie ze zwrotem nie jest już możliwe.</p>;
+  return <p className="text-muted">Pytanie zostało już przyjęte — anulowanie ze zwrotem nie jest już możliwe.</p>;
 }
 

@@ -1,0 +1,74 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Content" />
+
+# Content
+
+UI copy is Polish; documentation is English (specs). Source of the tone: P29 (concrete amounts and states, no exclamation marks or marketing) and the words of the specs.
+
+## Tone
+
+Concrete, readable, calm, warm (P1–P4). The product says what happens and how much it costs.
+
+| DevMentor says | DevMentor does not say | Why |
+|---|---|---|
+| „Zapłać 150 zł i wyślij pytanie” | „Zacznij za darmo!” | Exact amount, no marketing (P29, A01) |
+| „Termin minął — zwrot zostanie zlecony automatycznie” | „Ups! Coś poszło nie tak 😕” | State + consequence; no emoji (R02.5) |
+| „Nie masz jeszcze zapytań — udostępnij swój link” | „Twoja ścieżka mentoringu zaczyna się tutaj” | Next step, not a learning journey (A02) |
+
+## Gender-neutral language (rule, accepted 2026-10-19)
+
+UI text never depends on the reader's or the other person's gender. Use the **2nd person in the present or future tense**, **nouns** or **impersonal forms**. Source: coordinator's proposal, accepted (decision C12).
+
+| Instead of | Write |
+|---|---|
+| „Co już robiłeś” | „Twoje doświadczenie” |
+| „Co już sprawdziłeś i gdzie utknąłeś?” | „Co próbujesz zrobić, co już działa, a co nie?” |
+| „Mentor zmienił cenę, kiedy pisałeś pytanie” | „Cena zmieniła się w trakcie pisania pytania” |
+| „Mentor właśnie zaakceptował” | „Pytanie zostało właśnie zaakceptowane” |
+| „Mentor nie odpowiedział przed terminem” | „Brak odpowiedzi mentora przed terminem” |
+| „Deweloper anulował zapytanie” | „Zapytanie zostało anulowane przez dewelopera” |
+| „Wysłaliśmy go też na Twój e-mail” | „Kopia jest też w e-mailu z potwierdzeniem” |
+
+Names stay in the nominative; do not build a sentence that needs a declined name („Odrzucić to pytanie?” + „Kuba, jutro 12:30.”). Source: C13. Content written by users (the mentor's own description) is not changed.
+
+## Buttons: verb + object
+
+„Opublikuj stronę”, „Zapisz szkic”, „Kopiuj link”, „Akceptuję pytanie”, „Anuluj i odzyskaj 150 zł”, „Wybierz inny termin”. Never „OK”, „Tak”, „Dalej”. Source: prompt (confirmation), R01.5.
+
+## Errors: what happened + what to do
+
+| Example | Source |
+|---|---|
+| „Dodaj link do publicznej pracy” | #14 |
+| „Ten adres jest zajęty” | #14 |
+| „Ten termin właśnie się zajął — wybierz inny” + „Twoje pytanie zostało w formularzu.” | #17 |
+| „Nie udało się otworzyć płatności — spróbuj ponownie” + „Nic nie zostało pobrane.” | #17 |
+| „Brak połączenia z internetem — sprawdź sieć i spróbuj ponownie. Wpisane dane zostały w formularzu.” | C1 |
+
+Where money is involved, always say whether anything was charged. Never blame the user; no „Błąd 500”.
+
+## Empty states: why it is empty + the next step
+
+„Nie masz jeszcze zapytań — udostępnij swój link” (+ the link), „Brak wolnych terminów w najbliższych 14 dniach”, „Nie masz dostępności — nikt nie może wybrać terminu” (+ „Dodaj dostępność”). Source: #15, #16, #18.
+
+## States: words, in the pattern „state — what it means for you”
+
+„Opłacone — czeka na mentora”, „Płatność przerwana — nic nie pobrano”, „Anulowane — zwrot 150 zł zlecony”. Refund words follow the data (C9, #18).
+
+## Formats
+
+| What | Format | Example | Source |
+|---|---|---|---|
+| Money | `Intl.NumberFormat('pl-PL', currency PLN)`, whole złoty, Geist Mono (`Amount`) | „150 zł” | #16 Q6, DK2 |
+| Time | 24 h, in the viewer's zone with the zone named nearby | „18:30”, „(twoja strefa: Europe/Warsaw)” | #16, #17 |
+| Day | „dziś”, „jutro”, otherwise short weekday + date | „czw. 22.10” | C14 |
+| Day for screen readers | relative + absolute | „jutro, wtorek 20.10, 18:00” | #16, C14 |
+| Range | en dash, no spaces | „12:30–12:55” | #18 |
+| Length | „25 min”, „50 min” | — | R01 |
+| Numbers | Polish separators via `Intl` | „3201 / 4000 znaków” | S14 |
+| Links and slugs | full, Geist Mono | `http://localhost:3000/m/anna-k` | #14 |
+
+## Translation
+
+Keep the verb first in buttons, let labels wrap, never truncate. Text that would double in a longer language must still fit 320 px (all components wrap).

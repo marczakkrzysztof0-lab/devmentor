@@ -175,7 +175,7 @@ export function validateMentorPage(values: MentorPageValues, mode: "blur" | "pub
   check("displayName", name.length >= 2 && name.length <= 80, "Wpisz imię i nazwisko (od 2 do 80 znaków)");
   if (mode === "publish" && !filled(values.publicWorkUrl)) errors.publicWorkUrl = "Dodaj link do publicznej pracy";
   else check("publicWorkUrl", /^https?:\/\/\S+$/.test(values.publicWorkUrl.trim()) && values.publicWorkUrl.length <= 500, "Link musi zaczynać się od https:// albo http://");
-  check("description", filled(values.description) && values.description.length <= 2000, "Opisz, co już robiłeś (do 2000 znaków)");
+  check("description", filled(values.description) && values.description.length <= 2000, "Opisz swoje doświadczenie (do 2000 znaków)");
   for (const field of ["price25", "price50"] as const) {
     const n = Number(values[field]);
     check(field, /^\d+$/.test(values[field].trim()) && n >= 20 && n <= 5000, "Podaj cenę od 20 do 5000 zł, bez groszy");
@@ -280,7 +280,7 @@ export function MentorPageForm({ initial, published: initiallyPublished = false,
         <FormField label="Link do publicznej pracy" hint="GitHub, blog albo prezentacja — deweloper zobaczy pełny adres." error={errors.publicWorkUrl}>
           <TextInput name="publicWorkUrl" type="url" inputMode="url" placeholder="https://github.com/annak" value={values.publicWorkUrl} onChange={(e) => set("publicWorkUrl", e.target.value)} onBlur={() => blur("publicWorkUrl")} />
         </FormField>
-        <FormField label="Co już robiłeś" hint="Kilka zdań prostym językiem. Bez ocen i opinii." error={errors.description}>
+        <FormField label="Twoje doświadczenie" hint="Np. upgrade ingress-nginx do 1.28, migracja do TypeScript 5. Prostym językiem, bez ocen i opinii." error={errors.description}>
           <Textarea name="description" rows={5} maxLength={2000} value={values.description} onChange={(e) => set("description", e.target.value)} onBlur={() => blur("description")} />
         </FormField>
         <div className="flex flex-wrap gap-between-groups">

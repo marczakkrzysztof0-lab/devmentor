@@ -81,7 +81,7 @@ export const S9CancelledRace: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("button", { name: "Akceptuję" }));
     await userEvent.click(within(await within(document.body).findByRole("alertdialog")).getByRole("button", { name: "Akceptuję pytanie" }));
-    await expect(await within(canvasElement).findByRole("alert")).toHaveTextContent("Nie można zaakceptować — deweloper anulował zapytanie");
+    await expect(await within(canvasElement).findByRole("alert")).toHaveTextContent("Nie można zaakceptować — zapytanie zostało anulowane przez dewelopera");
   },
 };
 export const S9NotFound: Story = { name: "S9 Request detail · not found or no access", render: () => <RequestDetailScreen state="not-found" /> };

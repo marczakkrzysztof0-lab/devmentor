@@ -245,7 +245,7 @@ export const CancelLostRace: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: /Anuluj i odzyskaj 150.zł/ }));
     await userEvent.click(within(await within(document.body).findByRole("alertdialog")).getByRole("button", { name: /Anuluj i odzyskaj 150.zł/ }));
-    await expect(await canvas.findByText("Mentor właśnie zaakceptował — sesja się odbędzie")).toBeVisible();
+    await expect(await canvas.findByText("Pytanie zostało właśnie zaakceptowane — sesja się odbędzie")).toBeVisible();
   },
 };
 export const CancelAfterAcceptance: Story = { name: "CancelNotPossible · after acceptance", render: () => <CancelNotPossible /> };

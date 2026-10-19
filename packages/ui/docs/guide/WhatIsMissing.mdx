@@ -1,0 +1,61 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="What is missing" />
+
+# What is missing
+
+What is ready, how the backlog is covered, and what is deliberately not built yet. If you need something from the lists below, follow **Contributing** — do not build it ad hoc on a screen.
+
+## Backlog coverage
+
+| Backlog item | Component or screen | State | Priority |
+|---|---|---|---|
+| #14 E01-S01 Mentor publishes the page | S1 Invitation, S2 Sign-in, S3 no session, S4 Editor; `InvitationPanel`, `AccessMessage`, `MentorPageForm`, `ShareLinkPanel` | Ready in Storybook | Now (pilot) |
+| #15 E01-S02 Availability | S5 Availability; `AvailabilityEditor`, `SlotPreview`, `NoAvailabilityNotice` | Ready | Now |
+| #16 E01-S03 Share page without ratings | S6; `MentorIdentity`, `MentorDescription`, `LengthToggle`, `SlotList`, `MentorNotFound` | Ready | Now |
+| #23 Data store | — (no UI) | Not applicable | — |
+| #17 E02-S01 Prepaid request | S6 form, S7 `/r/{token}`; `RequestForm`, `RequestStatusView`, `SaveLinkBox`, `QuestionCopyBox` | Ready | Now |
+| #24 Stripe payment, refund, webhook | Hosted Stripe Checkout — no own payment screen; states shown on S7 | Not applicable | — |
+| #18 E02-S02 Accept or decline | S8 list, S9 detail; `RequestList`, `RequestDecision` | Ready | Now |
+| #19 E02-S03 Cancel before acceptance | S7; `CancelRequest`, `CancelNotPossible` | Ready | Now |
+| #20 E03-S01 Live text session | Chat (message list, composer with Ctrl/Cmd+Enter, header „Czat tekstowy · 12:30–12:55”) | **Missing — no spec yet** (tokens `chat-message-gap` and rules K4, K5 are ready) | Next |
+| #21 E03-S02 No-shows | States on S7 and S9 after the session | Missing (depends on #20) | Next |
+| #22, #25 E04 Mentor payout | Payout setup screen after the first paid request (Stripe onboarding) | Missing — candidate for the agent test (POSTEP.md) | Later |
+| #26–#28 E06 Pilot research | — (no UI; manual export) | Not applicable | — |
+| E-mails (#17, #18) | Plain-text transactional e-mails | Content in specs, no visual design | Later |
+
+## Deliberately not built (P4, P5)
+
+| Missing | Why not now | When to add | Source |
+|---|---|---|---|
+| Checkbox | No screen in E01–E02 needs it | First consent or multi-select | P5 |
+| Switch | No settings in E01–E02 | First on/off setting | P5 |
+| Menu of actions | One or two actions per object fit as buttons | Three or more actions on one object | P5 |
+| Popover | No content that needs it | Never for essential information | P5, prompt |
+| Tooltip | Essential information belongs on the page | Only for non-essential hints, if ever | P5, prompt |
+| Tabs | Mentor screens are separate pages | Same page with 2+ peer views | P5, R02.6 |
+| Avatar | No photo in the DTO; initials on colour are A01 | If photos are added to the data model | P5, A01 |
+| Toast | Confirmations are inline („Skopiowano.”) | Only for non-actionable confirmations | P5 |
+| Generic dialog / side panel | Forms are pages; no sidebar | — | P5, R02.6 |
+| Combobox (searchable select) | Time zones work as a grouped `Select` | If zone lists become hard to use | P5 |
+| Generic list with filters (+ „no results for these filters” with „Wyczyść filtry”, + „nothing yet” with „create”) | Filters and search contradict A04; the mentor's list is short and grouped | If the mentor list grows beyond the pilot | P4 |
+| Data table | No tabular data in E01–E02 | Pilot reporting UI (D10 keeps it manual) | — |
+| Warning tone of `Alert` | No real need found in stage 3 (S10) | An expiring link or similar — come back with a proposal | S10 |
+
+## Known gaps in the code base
+
+| Gap | Detail | Next step |
+|---|---|---|
+| `app/page.tsx` uses palette classes and generic marketing | `bg-zinc-50`, `text-blue-600`, `rounded-3xl`, `shadow-sm`, `tracking-[0.2em]` {/* check-tokens-ignore */}; copy „Rozwijaj się w IT” (audyt.md) | Rebuild the home page with tokens; run `check:tokens` on `app/` |
+| `check:tokens` scans only `packages/ui` | The app is not checked yet | Add `app/` after the home page is migrated; CI in stage 5 (P10) |
+| CI does not run Storybook tests | `ci.yml` runs only `npm test` | Add `check:tokens`, `typecheck:ui`, `test:storybook:themes` + Chromium (P10) |
+
+## Not verified
+
+| What | Status |
+|---|---|
+| Live screen readers (NVDA, VoiceOver) | Not tested — only roles, names and descriptions in automated tests |
+| Safari and Firefox | Not tested — all tests run in Chromium |
+| Real server actions and Stripe | Only mocks returning the specs' codes |
+| „System” theme with a dark OS setting | Not tested by hand; forced light and dark are tested |
+| Every story at 768 and 1440 px | Checked on samples (stage 5 report) |

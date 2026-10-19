@@ -7,8 +7,8 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 | 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
 | 1. Fundamenty | zakończony, zatwierdzony 2026-10-19 (commit c21f37a) |
 | 2. Komponenty bazowe | zakończony, S1–S17 rozstrzygnięte 2026-10-19 (commity 5d09a9f, 32f559f, ce6412a) |
-| 3. Komponenty produktu, wzorce, ekrany | **zakończony 2026-10-19** (commity b6da955, 8986564, partia C) – czeka na decyzje C1–C14, S18–S20 |
-| 4. Strony, które uczą | nie rozpoczęty |
+| 3. Komponenty produktu, wzorce, ekrany | zakończony; C1–C14, S18–S20 rozstrzygnięte 2026-10-19 (commity b6da955, 8986564, 869c487) |
+| 4. Strony, które uczą | zakończony 2026-10-19 (Start here, Components, How to choose, Usage and accessibility, Content, What to avoid, What is missing, Contributing, Epics E01/E02; docs/design-system.md + AGENTS.md) |
 | 5. Sprawdzenie i raport | nie rozpoczęty |
 
 W etapie 0 zapisano wyłącznie ten plik.
@@ -102,7 +102,7 @@ W etapie 0 zapisano wyłącznie ten plik.
 | C9 | odmowy #18 poza „deweloper anulował” | „To pytanie jest już zaakceptowane / odrzucone”, „Termin już się zaczął — nie można już zdecydować”, „Termin minął — zwrot został zlecony automatycznie” |
 | C10 | brak dostępu do zapytania | „Nie ma takiego zapytania albo nie masz do niego dostępu” |
 | C11 | stany listy „Zakończone” | „Zakończone — odrzucone / przeterminowane / anulowane” |
-| C12 | etykiety pól edytora i podpowiedzi | „Imię i nazwisko” (Tak zobaczy cię deweloper, np. Anna K.), „Co już robiłeś”, „Adres strony” |
+| C12 | etykiety pól edytora i podpowiedzi | „Imię i nazwisko” (Tak zobaczy cię deweloper, np. Anna K.), ~~„Co już robiłeś”~~ → „Twoje doświadczenie” (decyzja C12), „Adres strony” |
 | C13 | imiona w pytaniach dialogów | imię w mianowniku poza pytaniem („Odrzucić to pytanie?” + „Kuba, jutro 12:30.”) – polska odmiana nie jest generowana |
 | C14 | format dnia | „dziś”, „jutro”, inaczej „czw. 22.10”; czytnik: „jutro, wtorek 20.10, 18:00” |
 
@@ -221,6 +221,12 @@ Zdecydował: K. Marczak (delegacja do agenta-koordynatora), 2026-10-19.
 | S14 | **Zmiana:** licznik znaków tylko gdy specyfikacja definiuje limit; pokazywany od 80 % limitu, ogłaszany czytnikowi z opóźnieniem (`aria-live="polite"`); bez limitu – bez licznika. Limity ze specyfikacji: pytanie 4000 (#17), opis mentora 2000 (#14) | przyjęte ze zmianą |
 | S15–S17 | Jak w tabeli | przyjęte |
 | Etap 3 | Partie bez czekania na „dalej”; po każdej sprawdzenia + lokalny commit | przyjęte (koordynator) |
+| C1–C8, C10, C11, C13, C14 | Treści jak w tabeli etapu 3 | przyjęte |
+| C9 | Przyjęte z warunkiem: „zwrot został zlecony” tylko, gdy `refund_status` oznacza zlecony zwrot; inaczej „Termin minął — zwrot zostanie zlecony automatycznie” (spec #18). Wdrożone: `refusalMessage(code, refundStatus)`, stan „przeterminowane” zależny od `refundStatus`; 4 stories na oba warianty | przyjęte z warunkiem |
+| C12 | **Zmiana:** pole „Twoje doświadczenie” (podpowiedź: „Np. upgrade ingress-nginx do 1.28, migracja do TypeScript 5. …”); zasada Content: teksty UI bez form zależnych od płci (2. osoba w czasie teraźniejszym, rzeczowniki, formy bezosobowe) – propozycja koordynatora, przyjęta. Przejrzane wszystkie teksty; poprawione m.in. „pisałeś” → „w trakcie pisania pytania”, „sprawdziłeś / utknąłeś” → „Co próbujesz zrobić, co już działa, a co nie?”, „Mentor właśnie zaakceptował” → „Pytanie zostało właśnie zaakceptowane”, „Mentor nie odpowiedział” → „Brak odpowiedzi mentora”, „deweloper anulował” → „zapytanie zostało anulowane przez dewelopera”, „wysłaliśmy go też na Twój e-mail” → „kopia jest też w e-mailu z potwierdzeniem” (odchodzi od dosłownych tekstów #17–#19) | przyjęte ze zmianą |
+| S18, S19 | Nagłówek „Ceny” nad PriceList; `aria-live` w RequestStatusView | przyjęte |
+| S20 | Przyjęte pod warunkiem: obie ceny widoczne bez interakcji i w pierwszych 812 px przy 375 px – spełnione (etykiety opcji przełącznika „25 min — 150 zł” / „50 min — 280 zł”; test S6 „phone 375 px” sprawdza dolną krawędź opcji 50 min ≤ 812 px); osobna PriceList na S6 niepotrzebna | przyjęte (warunek spełniony) |
+| Etap 4–5 | Etap 4 + commit, od razu etap 5 pkt 1–4 i 6; pkt 5 – tylko opis ekranu do testu agentem | przyjęte (koordynator) |
 
 ## Otwarte pytania (do decyzji Krzysztofa)
 

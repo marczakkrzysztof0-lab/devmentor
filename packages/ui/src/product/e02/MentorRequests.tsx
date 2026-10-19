@@ -14,7 +14,7 @@ import { StateMessage } from "../../components/state-message/StateMessage";
 import { StatusText, type StatusTone } from "../../components/status-text/StatusText";
 import { NETWORK_MESSAGE } from "../shared/form";
 import { formatDay, formatMoney, formatSlotRange, formatTime } from "../shared/format";
-import type { LoadState, RequestStatus, SessionLength } from "../shared/types";
+import type { LoadState, RefundStatus, RequestStatus, SessionLength } from "../shared/types";
 import { QuestionText, RequestSummary } from "./Request";
 
 export type MentorRequestItem = {
@@ -104,9 +104,19 @@ export function RequestList({ requests, state = "ready", timeZone, now = new Dat
 /* --------------------------------------------------------------- decision */
 
 export type DecisionRefusal = "not_found" | "cancelled" | "declined" | "lapsed" | "already_accepted" | "already_declined" | "slot_started";
-export type DecisionResult = { ok: true } | { ok: false; code: DecisionRefusal };
+/**
+ * Refusal from a fresh read (#18). `refundStatus` comes with that read, so the message says
+ * „zwrot został zlecony” only when the refund really exists (decision C9, spec #18).
+ */
+export type DecisionResult = { ok: true } | { ok: false; code: DecisionRefusal; refundStatus?: RefundStatus };
 
-export type MentorRequestDetail = MentorRequestItem & { question: string; amountMinor: number; currency?: string };
+export type MentorRequestDetail = MentorRequestItem & {
+  question: string;
+  amountMinor: number;
+  currency?: string;
+  /** Refund on the payment (#24); decides between „zlecony” and „zostanie zlecony” (C9). */
+  refundStatus?: RefundStatus;
+};
 
 export type RequestDecisionProps = {
   request: MentorRequestDetail;
@@ -119,14 +129,20 @@ export type RequestDecisionProps = {
 
 /** Refusal messages (#18 codes); the cancelled one is worded in the spec, the rest are proposals C9–C10 (POSTEP.md). */
 export const REFUSAL_MESSAGE: Record<DecisionRefusal, string> = {
-  cancelled: "Nie można zaakceptować — deweloper anulował zapytanie",
+  cancelled: "Nie można zaakceptować — zapytanie zostało anulowane przez dewelopera",
   declined: "To pytanie jest już odrzucone",
-  lapsed: "Termin minął — zwrot został zlecony automatycznie",
+  lapsed: "Termin minął — zwrot zostanie zlecony automatycznie",
   already_accepted: "To pytanie jest już zaakceptowane",
   already_declined: "To pytanie jest już odrzucone",
   slot_started: "Termin już się zaczął — nie można już zdecydować",
   not_found: "Nie ma takiego zapytania albo nie masz do niego dostępu",
 };
+
+/** Refusal text; the lapsed one depends on whether the refund is already requested (C9). */
+export function refusalMessage(code: DecisionRefusal, refundStatus?: RefundStatus) {
+  if (code === "lapsed" && refundStatus) return "Termin minął — zwrot został zlecony automatycznie";
+  return REFUSAL_MESSAGE[code];
+}
 
 /** Question, length and slot first, then „Akceptuję” / „Odrzucam” with their consequences (#18 AC). */
 export function RequestDecision({ request, timeZone, now = new Date(), onAccept, onDecline }: RequestDecisionProps) {
@@ -143,7 +159,7 @@ export function RequestDecision({ request, timeZone, now = new Date(), onAccept,
     try {
       const result = await (kind === "accept" ? onAccept : onDecline)(request.id);
       if (result.ok) setStatus(kind === "accept" ? "accepted" : "declined");
-      else setProblem(REFUSAL_MESSAGE[result.code]);
+      else setProblem(refusalMessage(result.code, result.refundStatus));
     } catch {
       setProblem(NETWORK_MESSAGE);
     } finally {
@@ -167,9 +183,11 @@ export function RequestDecision({ request, timeZone, now = new Date(), onAccept,
         ) : status === "declined" ? (
           <StatusText tone="neutral" withIcon>Odrzucone — deweloper dostaje pełny zwrot</StatusText>
         ) : status === "lapsed" ? (
-          <StatusText tone="neutral" withIcon>Zakończone — przeterminowane, zwrot zlecony</StatusText>
+          <StatusText tone="neutral" withIcon>
+            {request.refundStatus ? "Zakończone — przeterminowane, zwrot zlecony" : "Zakończone — przeterminowane, zwrot zostanie zlecony automatycznie"}
+          </StatusText>
         ) : (
-          <StatusText tone="neutral" withIcon>Zakończone — deweloper anulował zapytanie</StatusText>
+          <StatusText tone="neutral" withIcon>Zakończone — zapytanie anulowane przez dewelopera</StatusText>
         )}
       </header>
       <RequestSummary lengthMinutes={request.lengthMinutes} slotStart={request.slotStart} slotEnd={request.slotEnd} timeZone={timeZone} amountMinor={request.amountMinor} currency={request.currency} now={now} />

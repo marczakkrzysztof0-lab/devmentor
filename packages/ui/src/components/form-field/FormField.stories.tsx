@@ -32,7 +32,7 @@ export const Variants: Story = {
       <FormField label="Link do publicznej pracy" error="Dodaj link do publicznej pracy">
         <TextInput type="url" placeholder="https://github.com/annak" />
       </FormField>
-      <FormField label="Opis" optional hint="Kilka zdań o tym, co już robiłeś.">
+      <FormField label="Opis" optional hint="Np. upgrade ingress-nginx do 1.28, migracja do TypeScript 5.">
         <TextInput />
       </FormField>
       <div className="flex flex-col gap-in-group">

@@ -1,0 +1,48 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Epics/E01 Mentor page by share link" />
+
+# E01 · Mentor page reached by share link (#8)
+
+An invited mentor publishes a page under their own link within 20 minutes, sets availability, and a developer who opens the link sees who the mentor is, the prices and open slots — with no ratings (D03, D08, N02).
+
+## Flow
+
+| # | Step | Who | Screen | Spec |
+|---|---|---|---|---|
+| 1 | A founder sends a personal invitation link (`npm run mentor:invite`) | Founder | — (CLI) | #14 |
+| 2 | „Oliwia zaprasza cię do DevMentora” → „Akceptuję zaproszenie” | Mentor | S1 `/invite/[token]` | #14 |
+| 3 | Five fields + link, „Opublikuj stronę” → share link with „Kopiuj link” | Mentor | S4 `/mentor` | #14 |
+| 4 | Weekly windows in the mentor's zone, preview of the next 10 slots | Mentor | S5 `/mentor/availability` | #15 |
+| 5 | Identity → public work → description → prices → slots | Developer | S6 `/m/[slug]` | #16 |
+| 6 | Coming back on a new laptop: invitation-only message, founder sends a sign-in link | Mentor | S3, S2 | #14 |
+
+## Screens and stories
+
+| Screen | Stories (Product/E01 Mentor page/Screens) | States |
+|---|---|---|
+| S1 Invitation | S1 · valid, accepting, inactive, no network | 4 |
+| S2 Sign-in | S2 · valid, inactive | 2 |
+| S3 /mentor without session | S3 · invitation only | 1 |
+| S4 Editor | S4 · first visit, publish → share link, publishing, address taken, server error, no network, published, no availability, 320 px | 9 |
+| S5 Availability | S5 · set, empty, zone being changed, save failed, 320 px | 5 |
+| S6 Share page | Product/E02 Paid request/Screens (S6 carries the #17 form) | 10 |
+
+Full state map: **Product/E01 Mentor page/Screens state map**. Components: **Product/E01 Mentor page/Components**.
+
+## Source files
+
+| What | Path |
+|---|---|
+| Share page blocks | `packages/ui/src/product/e01/SharePage.tsx` |
+| Mentor blocks | `packages/ui/src/product/e01/Mentor.tsx` |
+| Formatting, types, layout | `packages/ui/src/product/shared/` |
+| Screen compositions (Storybook only) | `packages/ui/.storybook/screens.tsx` |
+| Specs | `.ai/specs/2026-10-19-mentor-invitation-and-page-publishing.md`, `…-mentor-weekly-availability-and-open-slots.md`, `…-public-mentor-share-page.md` |
+
+## Work left in the product
+
+- Next.js routes `/invite/[token]`, `/sign-in/[token]`, `/mentor`, `/mentor/availability`, `/m/[slug]` that render these components with server data and server actions (`acceptInvitation`, `saveMentorPage`, `saveAvailability`).
+- `listOpenSlots` and the DTO mapping (#15, #16); `noindex` and the page title `{displayName} — DevMentor` (#16).
+- The 20-minute walkthrough timed by QA (#14) and the 375 × 812 first-screen check on a real phone (#16).
+- The home page `app/page.tsx` still uses palette classes (What is missing).

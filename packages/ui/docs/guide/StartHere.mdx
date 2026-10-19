@@ -1,0 +1,53 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Start here" />
+
+# Start here: how to build a DevMentor screen
+
+## The product in three sentences
+
+DevMentor lets an invited senior engineer publish a page under their own link, and lets a developer who is stuck send a prepaid question for a 25- or 50-minute text session. The mentor reads the question and accepts or declines; a decline or no answer refunds the money automatically. The interface is **concrete, readable, calm and warm** — and never generic, noisy, colourless, judgemental or school-like (P1–P9).
+
+What that means on screen: dense lists for the mentor, a calm page for the question (K1); one main action with the exact amount (R01.5); state as words, not pills (R01.6); warmth from a stone base and plain words, not from gradients (DK1, K3); no ratings, catalogue, plans, video or sign-up before the question (A02–A07).
+
+## Five steps for a new screen
+
+| # | Step | Where |
+|---|---|---|
+| 1 | **Find the pattern.** Most screens are a Form, a Grouped list, a Detail view, a Request status page or an Invitation gate. Start from its stories. | Patterns |
+| 2 | **Choose components** with the "if … then use …" tables. Do not add a component or variant for one screen. | How to choose, Contributing |
+| 3 | **Use semantic tokens only**: `bg-surface-page`, `text-muted`, `border-control`, `gap-in-group`, `rounded-control`. No hex, no palette classes, no `p-[13px]`, no `p-4`. `npm run check:tokens` must pass. | Foundations {/* check-tokens-ignore: examples of what not to write */} |
+| 4 | **Design the data states**: loading, empty (why + next step), error (what happened + what to do), partial, lots of data, long text, 320 px — and for forms: pending, field error, server error, no network, success. | Patterns, Usage and accessibility |
+| 5 | **Check What to avoid** (product anti-patterns, generic AI look, implementation mistakes) and run the tests in both themes. | What to avoid, Contributing |
+
+## All components
+
+Imports: primitives from `@devmentor/ui`, product components from `@devmentor/ui/product`; styles once in the app with `@import "@devmentor/ui/styles.css"`.
+
+| Component | Import | Use when | Not when |
+|---|---|---|---|
+| Button | `@devmentor/ui` | Starting an action; one `primary` per screen | Navigation → TextLink; choice → RadioGroup |
+| IconButton | `@devmentor/ui` | „×” to remove one item of a repeated row | Any other action (needs words) |
+| TextLink | `@devmentor/ui` | Going to a page or site | It changes data → Button |
+| Spinner | `@devmentor/ui` | Waiting for a specific answer, with words | Content with a known shape → Skeleton |
+| FormField + Label | `@devmentor/ui` | Every typed field: label, hint, error | Groups of options → RadioGroup legend |
+| TextInput | `@devmentor/ui` | One short value (name, link, price with „zł”) | Several lines → Textarea |
+| Textarea | `@devmentor/ui` | Question, description (counter from 80 % of a spec limit) | Showing sent text → QuestionText |
+| Select | `@devmentor/ui` | Long lists: time zone, hours | 2–5 visible options → RadioGroup |
+| RadioGroup | `@devmentor/ui` | One of a few visible options: 25/50 min, slots | Actions, long lists |
+| Panel | `@devmentor/ui` | One block of main content („Zapisz ten link”) | Rows → List; never a card in a card |
+| List + ListRow | `@devmentor/ui` | Many items of one kind, 1 px lines | One block → Panel |
+| StatusText | `@devmentor/ui` | The state of something, as words | Something to act on now → Alert |
+| Alert | `@devmentor/ui` | A form-level problem or notice next to the work | Field error → FormField; empty region → StateMessage |
+| ConfirmDialog | `@devmentor/ui` | Before an irreversible decision | Reversible actions |
+| StateMessage | `@devmentor/ui` | Empty, failed or not-found region with the next step | Loading |
+| Skeleton | `@devmentor/ui` | Loading content with a known shape | Waiting for an action → Spinner / Button loading |
+| CodeBlock + InlineCode | `@devmentor/ui` | Code, paths, slugs as written | Input → Textarea |
+| CopyField | `@devmentor/ui` | A link to keep or share | A link to click → TextLink |
+| MentorIdentity, MentorDescription, PriceList, LengthToggle, SlotList, MentorNotFound | `@devmentor/ui/product` | Share page `/m/{slug}` (#16) | Mentor's own screens |
+| MentorNav, InvitationPanel, AccessMessage, MentorPageForm, ShareLinkPanel, NoAvailabilityNotice, AvailabilityEditor, SlotPreview | `@devmentor/ui/product` | Mentor screens (#14, #15) | Developer screens (no nav, R02.6) |
+| RequestForm, RequestStatusView, RequestSummary, QuestionText, SaveLinkBox, QuestionCopyBox, CancelRequest, CancelNotPossible | `@devmentor/ui/product` | Request form and `/r/{token}` (#17, #19) | Mentor screens |
+| RequestList, RequestDecision, RequestNotFound | `@devmentor/ui/product` | `/mentor/requests` and detail (#18) | Developer screens |
+| Amount, PageLayout, format helpers | `@devmentor/ui/product` | Every amount (Geist Mono), page frame, times in the viewer's zone | — |
+
+Agents: read `docs/design-system.md` in the repository first; it is the short version of this Storybook.

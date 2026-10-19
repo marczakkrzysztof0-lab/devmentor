@@ -11,7 +11,7 @@ const meta = {
   tags: ["!autodocs"],
   args: {
     title: "Zapisz ten link",
-    children: <p className="max-w-text">Wysłaliśmy go też na Twój e-mail. Przez ten link sprawdzisz stan zapytania albo je anulujesz.</p>,
+    children: <p className="max-w-text">Kopia jest też w e-mailu z potwierdzeniem. Przez ten link sprawdzisz stan zapytania albo je anulujesz.</p>,
   },
   argTypes: { children: { control: false }, titleAs: { control: "inline-radio", options: ["h2", "h3"] } },
 } satisfies Meta<typeof Panel>;
