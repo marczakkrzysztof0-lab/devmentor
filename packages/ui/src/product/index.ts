@@ -6,3 +6,5 @@ export { PageLayout, type PageLayoutProps } from "./shared/PageLayout";
 
 export * from "./e01/SharePage";
 export * from "./e01/Mentor";
+export * from "./e02/Request";
+export * from "./e02/MentorRequests";

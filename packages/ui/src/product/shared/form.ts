@@ -13,6 +13,10 @@ export function useFocusFirstError(formRef: RefObject<HTMLFormElement | null>, a
   useEffect(() => {
     if (attempt === 0) return;
     const first = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
-    first?.focus();
+    // A radio group is not focusable itself: focus its checked radio, or the first one.
+    const target = first?.getAttribute("role") === "radiogroup"
+      ? (first.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]') ?? first.querySelector<HTMLElement>('[role="radio"]'))
+      : first;
+    target?.focus();
   }, [attempt, formRef]);
 }

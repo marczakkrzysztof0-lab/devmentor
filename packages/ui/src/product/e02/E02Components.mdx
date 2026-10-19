@@ -1,0 +1,45 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Req from "./Request.stories";
+import * as MentorReq from "./MentorRequests.stories";
+import { RequestForm, RequestStatusView, RequestSummary, QuestionText, SaveLinkBox, CancelRequest, QuestionCopyBox } from "./Request";
+import { RequestList, RequestDecision } from "./MentorRequests";
+
+<Meta title="Product/E02 Paid request/Components" />
+
+# E02 · Paid request and the mentor's decision — product components
+
+Import: `import { … } from "@devmentor/ui/product"`. Specs: #17 (prepaid request), #18 (accept or decline), #19 (cancel), #24 (Stripe — hosted Checkout, so no payment screen of ours). Server actions are props; stories pass async `fn()` mocks that return the codes from the specs' API contracts.
+
+| Component | Screen | States (stories) | Key rules and sources |
+|---|---|---|---|
+| `RequestForm` | S6 `/m/{slug}` | idle · success → redirect to Stripe · pending (double click ignored) · empty submit (focus on the first error) · field error from the server · `slot_taken` · `price_changed` (button shows the new amount) · `checkout_failed` · `payments_unavailable` · no network · slots loading · no slots · 320 px | Order length → slot → name → question → „Zapłać 150 zł i wyślij pytanie”; two typed fields; input kept on every error; `submissionId` reused only for a retryable checkout failure (#17) |
+| `RequestStatusView` | S7 `/r/{token}` | all 9 states · refund requested / done / failed · confirmation > 1 min | State first, in words; „zlecony” only when a refund exists (#17, #18, #19, R01.5, R01.6) |
+| `RequestSummary` | S7, S9 | — | Slot in the viewer's zone with the zone name; amount in Geist Mono; mentor sees only the first name (#17, #18) |
+| `QuestionText` | S7, S9 | text with code · long at 320 px | Plain text, fenced code as `CodeBlock`, never HTML (R01.2, #16) |
+| `SaveLinkBox` | S7 | — | Main content, „Zapisz ten link — wysłaliśmy go też na Twój e-mail” + „Kopiuj link” (#17) |
+| `QuestionCopyBox` | S7 (payment interrupted) | — | Question in a copyable box + „Wybierz inny termin” (#17 story 2) |
+| `CancelRequest` / `CancelNotPossible` | S7 | confirm and cancel · mentor accepted a moment earlier · after acceptance | Only while awaiting the mentor; confirmation names the consequence (#19, D05) |
+| `RequestList` | S8 `/mentor/requests` | ready (grouped) · loading · empty → share link · load error (no partial data) · partial · 30 rows · 320 px | Groups „Czeka na decyzję” (by slot), „Zaakceptowane”, „Zakończone”; never unpaid requests; state as a word (#18, R01.6) |
+| `RequestDecision` / `RequestNotFound` | S9 `/mentor/requests/[id]` | awaiting · accept · decline · pending · developer cancelled (refusal) · no network · slot started (no buttons) · already accepted · 320 px · not found | Question, length and slot before any button; irreversible decisions confirmed; refusal messages from a fresh read (#18) |
+
+Copy not worded by the specs (network, `slot_not_offered`, `page_unavailable`, `payments_unavailable`, refusal messages other than „deweloper anulował”, „Płacisz z góry…”) is marked C5–C12 in POSTEP.md.
+
+## Developer side
+
+<Canvas of={Req.FormIdle} />
+<Canvas of={Req.StatusAll} />
+<Canvas of={Req.SaveLink} />
+
+### API
+<ArgTypes of={RequestForm} />
+<ArgTypes of={RequestStatusView} />
+<ArgTypes of={CancelRequest} />
+
+## Mentor side
+
+<Canvas of={MentorReq.ListReady} />
+<Canvas of={MentorReq.Decision} />
+
+### API
+<ArgTypes of={RequestList} />
+<ArgTypes of={RequestDecision} />
