@@ -1,0 +1,23 @@
+# Architectural Review: Mentor accepts or declines a request
+
+**Werdykt: revise.** Podstawowy przepływ pasuje do decyzji D02/D05 i kontraktu płatności #24, a historie opisują konkretne reguły biznesowe zamiast płaskiego CRUD. Przed implementacją trzeba rozstrzygnąć powiadomienia i doprecyzować, co widzi użytkownik, gdy automatyczny zwrot jeszcze się nie rozpoczął.
+
+## Decision needed
+
+- **Czy mentor ma otrzymać powiadomienie o nowym płatnym zapytaniu?** Spec wybiera brak powiadomień, mimo że A01 — ryzykowne założenie briefu — dotyczy właśnie tego, czy mentorzy odpowiadają wystarczająco szybko. Rekomendacja: potraktować brak powiadomień jako tymczasowy wybór pilota i jawnie zapisać, jak pilot sprawdzi wpływ na akceptacje i wygaśnięcia. Bez tego podstawowa obietnica dla dewelopera może zależeć od tego, czy mentor sam otworzy `/mentor`.
+
+## Findings
+
+- **High: status strony dewelopera może obiecywać rozpoczęty zwrot, zanim system go zleci.** Przy wygaśnięciu spec mówi, że job dopiero przy następnym uruchomieniu zmienia `awaiting_mentor` na `lapsed` i zapisuje intencję zwrotu. Równocześnie strona ma pokazywać „zwrot zlecony”, a lista mentora „Przeterminowane — zwrot w drodze” już dla przeterminowanego `awaiting_mentor` (Edge Cases, Proposed Solution). Jeśli scheduler nie działa, `refund_status` może być pusty. **Skutek:** interfejs przedstawia nieprawdziwy stan płatności. **Korekta:** rozróżnić „termin minął, zwrot oczekuje na przetworzenie” od „zwrot zlecony”; wyświetlać „w toku” dopiero po zapisaniu `refund_status = requested`.
+
+- **High: decyzja o braku powiadomień nie rozwiązuje ryzyka A01.** Q2 wybiera brak push/email, a jedynym mechanizmem jest licznik widoczny po wejściu na `/mentor`; historia 1 zakłada, że mentor dowiaduje się o prośbie z Discorda. Brief oznacza szybkość odpowiedzi mentorów jako niezweryfikowane założenie wysokiego ryzyka (A01), a R09 obiecuje zwrot tego samego dnia. **Skutek:** zapytanie może wygasnąć bez wiedzy mentora, co podważa testowaną wartość produktu. **Korekta:** określić w decyzji pilota, czy zewnętrzne powiadomienie jest poza zakresem i jak mierzone będą przeoczone zapytania oraz wygaśnięcia; nie przedstawiać samego badge’a jako rozwiązania problemu dotarcia.
+
+- **Medium: spec nazywa zaakceptowane zapytanie sesją, ale nie ustala jego granicy względem #20.** Q1 zakłada, że `accepted` request jest zarezerwowaną sesją bez tabeli `sessions`; TLDR i historia 1 mówią, że #20 otwiera czat na zaakceptowanych requestach. To rozsądny wybór, lecz oznaczono go jako wymagający potwierdzenia, a sekcja „Decisions in play” nie wymienia #20 jako zależności ani punktu uzgodnienia. **Skutek:** #20 może wprowadzić osobny rekord sesji lub inne stany, dublując dane i komplikując przejścia. **Korekta:** uzgodnić kontrakt ze specyfikacją #20 przed implementacją: identyfikator używany przez czat, relację sesji do requestu i właściciela dalszych stanów po akceptacji.
+
+- **Medium: opis wyścigu accept/lapse gwarantuje zwycięzcę, ale nie zawsze uzasadnia odpowiedź `slot_started`.** Akceptacja wymaga `slot_start > now()`; job wybiera wiersze z `slot_start <= now()`. Przy równoległych transakcjach warunek może zostać ponownie sprawdzony po blokadzie wiersza i akceptacja przegra z powodu rozpoczętego slotu, lecz spec przypisuje odpowiedź `slot_started` każdemu przegranemu akceptowi bez określenia ponownego odczytu po serializacji. **Skutek:** implementacja może zwrócić błędny kod lub ujawnić nieaktualny stan przy wyścigu z anulowaniem. **Korekta:** opisać diagnostyczny odczyt po nieudanym warunkowym `UPDATE` jako źródło kodu odmowy i określić kolejność klasyfikacji stanów końcowych oraz rozpoczętego slotu.
+
+- **Low: szczegóły implementacyjne zajmują miejsce potrzebne na zachowanie interfejsu.** Spec określa CTE, `FOR UPDATE SKIP LOCKED`, parametr czasu testowego, wstrzyknięty klient DB oraz szczegółową komendę QA, a jednocześnie nie ustala stanów ładowania, błędu pobrania listy ani pustej listy. **Skutek:** plan silnie narzuca rozwiązanie SQL, pozostawiając luki w stanach widocznych dla użytkownika. **Korekta:** zachować ograniczenia istotne dla poprawności (atomowość, zakres mentora, idempotencja, ograniczona partia), a pozostałe szczegóły przenieść do planu implementacji; dopisać zachowanie UI dla pustej listy i błędu odczytu.
+
+## Review limits
+
+Przejrzano specyfikację, `AGENTS.md`, `CLAUDE.md`, `SDLC.md`, `BACKWARD_COMPATIBILITY.md`, `package.json`, brief produktu, decyzje D05/D11 oraz powiązane specyfikacje #17, #19, #23, #24 i #14. Nie znaleziono implementacji modułów aplikacji do porównania; ocena dotyczy zgodności dokumentów i projektu, nie działania kodu.
