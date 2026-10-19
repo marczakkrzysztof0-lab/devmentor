@@ -73,3 +73,23 @@ export const TypingKeepsNewLines: Story = {
     await expect(field).toHaveValue("Linia 1\nLinia 2");
   },
 };
+
+const NEAR_LIMIT = `${QUESTION} `.repeat(30).slice(0, 3195);
+
+export const CounterNearLimit: Story = {
+  name: "Test: counter appears from 80 % of the limit (S14)",
+  render: () => (
+    <FormField label="Twoje pytanie" hint="Od 20 do 4000 znaków.">
+      <Textarea maxLength={4000} defaultValue={NEAR_LIMIT} />
+    </FormField>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole("textbox", { name: "Twoje pytanie" });
+    await expect(canvas.queryByTestId("char-counter")).toBeNull();
+    await userEvent.click(field);
+    await userEvent.keyboard("{End}");
+    await userEvent.type(field, " cache");
+    await expect(canvas.getByTestId("char-counter")).toHaveTextContent("3201 / 4000 znaków");
+  },
+};

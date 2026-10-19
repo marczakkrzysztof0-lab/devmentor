@@ -9,7 +9,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles/index.css",
-    "./tokens.css": "./src/styles/tokens.css"
+    "./tokens.css": "./src/styles/tokens.css",
+    "./product": "./src/product/index.ts"
   },
   "scripts": {
     "storybook": "storybook dev -p 6006 --no-open --no-version-updates",

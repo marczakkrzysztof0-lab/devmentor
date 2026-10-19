@@ -6,8 +6,8 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 |---|---|
 | 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
 | 1. Fundamenty | zakończony, zatwierdzony 2026-10-19 (commit c21f37a) |
-| 2. Komponenty bazowe | **zakończony 2026-10-19** (commity 5d09a9f, 32f559f, partia 3 – patrz niżej) – czeka na zbiorczą decyzję S1–S17 |
-| 3. Komponenty produktu, wzorce, ekrany | nie rozpoczęty |
+| 2. Komponenty bazowe | zakończony, S1–S17 rozstrzygnięte 2026-10-19 (commity 5d09a9f, 32f559f, ce6412a) |
+| 3. Komponenty produktu, wzorce, ekrany | **w toku** – partie bez czekania na „dalej” |
 | 4. Strony, które uczą | nie rozpoczęty |
 | 5. Sprawdzenie i raport | nie rozpoczęty |
 
@@ -116,7 +116,7 @@ Oznaczenia: **źródło** = decyzja z materiałów; **S#** = propozycja agenta (
 | Dialog potwierdzenia | `shadow-lg`, `rounded-lg`, przyciski „Cancel” / „Continue” | bez cienia, `border-control`, 4 px; „Wróć” (fokus startowy) + czasownik z obiektem („Odrzucam pytanie”) | P2, prompt (potwierdzenie), P4; fokus na rezygnacji – S11 |
 | Pole wymagane / opcjonalne | brak konwencji | wymagane bez znaku; opcjonalne opisane słowem „(opcjonalnie)” przy etykiecie | S12 (formularze produktu mają prawie same pola wymagane – spec #14, #17) |
 | Pole bez zmiany przy najechaniu | `hover:border-ring` (zależnie od wersji) | pola i trigger selecta bez zmiany na hover | S13 (pole nie musi „zapraszać” do kliknięcia; spokojny – P3) |
-| Licznik znaków w polu pytania | brak | brak, dopóki specyfikacja go nie wymaga (limit 4000 egzekwuje serwer) | S14 |
+| Licznik znaków | brak | tylko przy limicie ze specyfikacji, od 80 % limitu, ogłaszany z opóźnieniem (polite) | S14 (zmienione przez koordynatora 2026-10-19) |
 | Wiersz listy jako link | brak | „stretched link”: cały wiersz klikalny, w DOM jeden link na wiersz | S15 |
 | Kolorowanie składni | brak | brak – paleta ma jeden kolor akcji i kolory statusów | S16 (DK1) |
 | Zablokowany schowek w CopyField | brak | link zaznaczony + instrukcja „skopiuj go ręcznie (Ctrl+C)” | S17 |
@@ -166,6 +166,10 @@ Zdecydował: K. Marczak (delegacja do agenta-koordynatora), 2026-10-19.
 | P9 | Favicon Storybooka = `app/favicon.ico`; ukryty nagłówek sr-only Storybooka zostaje | przyjęte |
 | P10 | `check:tokens`, `typecheck:ui`, `test:storybook:themes` w CI – w etapie 5 | przyjęte |
 | Etap 2 | Partie po ok. 6 komponentów bez czekania na „dalej”; po każdej partii sprawdzenia + lokalny commit; propozycje rozstrzygane zbiorczo po etapie | przyjęte (koordynator) |
+| S1–S13 | Jak w tabeli różnic wobec shadcn (S4: „Odrzucam” nie jest destrukcyjne – pełny zwrot – brak wariantu danger; S10: wrócić z propozycją, jeśli w etapie 3 pojawi się realna potrzeba ostrzeżenia) | przyjęte |
+| S14 | **Zmiana:** licznik znaków tylko gdy specyfikacja definiuje limit; pokazywany od 80 % limitu, ogłaszany czytnikowi z opóźnieniem (`aria-live="polite"`); bez limitu – bez licznika. Limity ze specyfikacji: pytanie 4000 (#17), opis mentora 2000 (#14) | przyjęte ze zmianą |
+| S15–S17 | Jak w tabeli | przyjęte |
+| Etap 3 | Partie bez czekania na „dalej”; po każdej sprawdzenia + lokalny commit | przyjęte (koordynator) |
 
 ## Otwarte pytania (do decyzji Krzysztofa)
 

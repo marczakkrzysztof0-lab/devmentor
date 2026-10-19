@@ -2,7 +2,7 @@
 
 import { Check, CircleAlert } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
-import { useId, type ReactNode } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 
@@ -22,7 +22,14 @@ export type RadioGroupProps = {
   legend: ReactNode;
   /** Hide the legend visually when the screen already shows the same words as a heading. */
   legendHidden?: boolean;
-  options: RadioOption[];
+  /** Flat options… */
+  options?: RadioOption[];
+  /**
+   * …or options under visual group headings (list variant), e.g. slots by day (#16).
+   * Headings are hidden from screen readers, so each option label must carry the group in text
+   * (e.g. a visually hidden „wtorek 20.10,” before „18:00”) — spec #16: dates in text, not only by grouping.
+   */
+  groups?: { label: ReactNode; options: RadioOption[] }[];
   /** `list`: one option per row (slots). `segmented`: 2–3 short options side by side (25/50 min). */
   variant?: "list" | "segmented";
   value?: string;
@@ -40,6 +47,7 @@ export function RadioGroup({
   legend,
   legendHidden = false,
   options,
+  groups,
   variant = "list",
   value,
   defaultValue,
@@ -71,7 +79,14 @@ export function RadioGroup({
         orientation={segmented ? "horizontal" : "vertical"}
         className={segmented ? "flex flex-wrap gap-in-group" : "flex flex-col"}
       >
-        {options.map((option) => {
+        {(groups ?? [{ label: null, options: options ?? [] }]).map((group, groupIndex) => (
+          <Fragment key={groupIndex}>
+            {group.label ? (
+              <p aria-hidden="true" className="pt-in-group font-ui text-meta font-strong text-muted first:pt-0">
+                {group.label}
+              </p>
+            ) : null}
+        {group.options.map((option) => {
           const itemId = `${base}-${option.value}`;
           if (segmented) {
             return (
@@ -127,6 +142,8 @@ export function RadioGroup({
             </label>
           );
         })}
+          </Fragment>
+        ))}
       </RadioGroupPrimitive.Root>
       {error ? (
         <p id={errorId} className="flex items-start gap-inline text-meta text-status-danger">

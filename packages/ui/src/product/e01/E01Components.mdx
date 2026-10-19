@@ -1,0 +1,55 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Share from "./SharePage.stories";
+import * as MentorStories from "./Mentor.stories";
+import { MentorIdentity, MentorDescription, PriceList, LengthToggle, SlotList, MentorNotFound } from "./SharePage";
+import { MentorNav, InvitationPanel, AccessMessage, MentorPageForm, ShareLinkPanel, NoAvailabilityNotice, AvailabilityEditor, SlotPreview } from "./Mentor";
+
+<Meta title="Product/E01 Mentor page/Components" />
+
+# E01 · Mentor page reached by share link — product components
+
+Import: `import { … } from "@devmentor/ui/product"`. Built only from Primitives and tokens. Specs: #14 (invitation, editor), #15 (availability), #16 (share page). Story data comes from the specs (Anna K., 150 / 280 zł, Tuesday 18:00–20:00 and Thursday 12:00–13:00, "now" = Monday 19.10.2026 19:00 Warsaw).
+
+| Component | Screen | Data states (stories) | Key rules and sources |
+|---|---|---|---|
+| `MentorIdentity` | S6 `/m/{slug}` | ready · long name and URL at 320 px | Name is the page's only h1; public work right under it, full host visible, `rel="nofollow noopener ugc"` (#16, N02, R01.5) |
+| `MentorDescription` | S6 | ready · 2000 characters (spec maximum), never truncated | Plain text, line breaks kept, no HTML (#16) |
+| `PriceList` | S6 | ready | Both prices before any question field; amounts in Geist Mono (R07, DK2) |
+| `LengthToggle` | S6 (with #17) | 25 / 50; filters the slot list | Segmented radio, price in each option (tokeny.md, R07) |
+| `SlotList` | S6, (S5 preview) | ready (text) · selectable (#17) · loading · empty · load error · partial · lots of data · other zone · zone unknown → UTC · 320 px | Zone in the heading; the date in text, not only by grouping; 50 min hides slots where it does not fit (#16) |
+| `MentorNotFound` | S6 | — | Neutral, no mentor data at all (#16 story 4) |
+| `MentorNav` | S4, S5, S8, S9 | 0 / 1 / 2 / 12 waiting, 320 px | Three items, no sidebar; the only counter „N zapytań czeka na decyzję” with Polish plural (R02.6, R01.6, P19) |
+| `InvitationPanel` | S1, S2 | invite · sign-in · accepting · link already used · no network | One button, no form, no password, no bank fields; expiry shown (#14) |
+| `AccessMessage` | S1, S2, S3 | inactive link · invitation only | Never says which reason (expired, used, unknown) (#14) |
+| `MentorPageForm` | S4 | empty draft · pending · missing fields (focus first) · „Ten adres jest zajęty” · server error · no network · published (slug locked) · link suggested from the name · 320 px | Five fields + link; Save draft accepts partial content; Publish validates everything; input kept on errors; focus on the first invalid field; share link with focus after publishing (#14) |
+| `ShareLinkPanel` | S4 | — | Link + „Kopiuj link” + „Wklej go tam, gdzie ludzie już cię pytają” (#14) |
+| `NoAvailabilityNotice` | S4, S5 | — | „Nie masz dostępności — nikt nie może wybrać terminu” + link (#15 story 3) |
+| `AvailabilityEditor` | S5 | set · empty · add + save · zone changed (warning, „Zapisz i zmień strefę”) · server error keeps the set · 320 px | Seven weekday rows, 30-minute steps, end never before start, remove with a named „×” (#15, P1) |
+| `SlotPreview` | S5 | next 10 · empty | Mentor's zone; „25 lub 50 min” / „tylko 25 min” (#15) |
+
+Copy the specs do not word (network and server failures, „Szkic zapisany…”, „Zmiany są już na twojej stronie…”, „Dostępność zapisana”) is marked as proposal C1–C4 in POSTEP.md.
+
+## Share page blocks (#16)
+
+<Canvas of={Share.Identity} />
+<Canvas of={Share.Prices} />
+<Canvas of={Share.LengthFiltersSlots} />
+<Canvas of={Share.SlotsSelectable} />
+
+### API
+<ArgTypes of={SlotList} />
+<ArgTypes of={LengthToggle} />
+<ArgTypes of={MentorIdentity} />
+
+## Mentor side (#14, #15)
+
+<Canvas of={MentorStories.Nav} />
+<Canvas of={MentorStories.Invitation} />
+<Canvas of={MentorStories.EditorPublished} />
+<Canvas of={MentorStories.Availability} />
+
+### API
+<ArgTypes of={MentorPageForm} />
+<ArgTypes of={AvailabilityEditor} />
+<ArgTypes of={InvitationPanel} />
+<ArgTypes of={MentorNav} />

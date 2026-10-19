@@ -25,7 +25,11 @@ Box (panel fill, `border-control`, 4 px), vertical resize handle, text. Label, h
 ## 5. Variants
 <Canvas of={Stories.Variants} />
 
-One variant. Height is set with `rows` (default 6); the user can make it taller. Source: S14 (proposal — no character counter until the spec asks for one).
+One variant. Height is set with `rows` (default 6); the user can make it taller.
+
+**Character counter (S14, decided 2026-10-19):** only when the spec defines a limit — pass it as `maxLength`: the question 4000 (#17), the mentor's description 2000 (#14). The counter („3201 / 4000 znaków”, Geist Mono) appears from 80 % of the limit; screen readers hear it through a polite live region one second after the user stops typing. No limit in the spec → no counter.
+
+<Canvas of={Stories.CounterNearLimit} />
 
 ## 6. States
 <Canvas of={Stories.States} />
@@ -48,6 +52,7 @@ One variant. Height is set with `rows` (default 6); the user can make it taller.
 ## 8. Content
 - Placeholder is a prompt-like example („Co robisz, co już sprawdziłeś i gdzie utknąłeś?”), never the name.
 - Long text and code wrap and scroll inside the field; nothing is cut. Code keeps its line breaks.
+- Limits come from the spec (question 20–4000 characters after trim, #17); the minimum is checked on blur and submit, the maximum is enforced by `maxLength` and shown by the counter (S14).
 
 ## 9. Responsiveness
 Full width at every width; at 320 px the field keeps 6 rows and grows with resize.
