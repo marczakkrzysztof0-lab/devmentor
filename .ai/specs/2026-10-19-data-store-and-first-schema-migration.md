@@ -8,6 +8,8 @@ Every 1.0 story (#14 mentor publishes a page, #15 availability, #16 share page, 
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Which ORM / migration tool? | No ORM. `pg` driver + `node-pg-migrate` with `.sql` migration files carrying an explicit `-- Down Migration` section. | `BACKWARD_COMPATIBILITY.md` requires migrations tested **up and down**; Prisma Migrate and drizzle-kit generate no down migrations. Plain SQL, runnable from the existing `node --test` `.mjs` suite without a TS loader. | Accepted on owner's blanket yes (2026-10-19, grill Q1) |

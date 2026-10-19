@@ -8,11 +8,13 @@ A signed-in mentor (#14) has a page but no way to say when they can take a sessi
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Recurring weekly windows or dated one-off windows? | Weekly recurring windows only; no date exceptions in 1.0. | Mentors describe availability as a weekly habit ("między spotkaniami", "nie w weekend"); a staff engineer "forgets it exists" after a month — a set-once pattern keeps the page bookable without upkeep. Date exceptions (vacations) are Later; removing a window works meanwhile. | — |
 | Q2 | Slot time zone (open on #15)? | Windows **and the :00/:30 slot grid** are wall-clock times in the mentor's IANA time zone (`mentors.time_zone`, prefilled from the browser, editable). Slots are stored/compared as UTC instants; viewers see them in their own browser zone. | Shared cross-spec decision; correct across DST for the mentor. | — |
-| Q3 | Must both lengths be offered (open on #15)? | Every window yields both 25- and 50-minute slots where they fit; no per-window length setting. Follows #14 Q3 (both prices required). | One rule, no extra UI; consistent with #14. | ⚠ NEEDS HUMAN CONFIRMATION (same epic #8 question as #14 Q3) |
+| Q3 | Must both lengths be offered (open on #15)? | Every window yields both 25- and 50-minute slots where they fit; no per-window length setting. Follows #14 Q3 (both prices required). | One rule, no extra UI; consistent with #14. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (same epic #8 question as #14 Q3) |
 | Q4 | Slot grid, horizon and minimum notice? | Local :00/:30 grid; 14-day horizon; `MIN_NOTICE_MINUTES = 180` — **the single constant every spec references** (E02 defines no lead time of its own). Exported constants, not mentor settings. | The grid gives a 25-min session a 5-min buffer; the notice leaves the mentor time to read and accept (R05, R09). It trades against developers' "within the hour" (A01, an assumption the pilot tests by recording the earliest slot offered). | Accepted (shared decision; grill Q3) |
 | Q5 | Is there a separate "publish availability" step? | No. Saving windows makes them live immediately; available on draft pages too. | Fewer steps toward the 20-minute target (D08); a page without windows simply offers nothing (AC). | — |
 | Q6 | Overlapping windows? | Allowed; the generator merges each local date's windows into disjoint intervals before fitting slots (18:00–19:00 + 19:00–20:00 offers a 50-min slot at 18:30). | Simpler editor than overlap validation; no ambiguity in the result. | — |

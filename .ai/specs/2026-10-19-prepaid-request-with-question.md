@@ -8,9 +8,11 @@ A developer who opens a mentor's share link can see prices and slots (#16) but c
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
-| Q1 | Account or guest (brief Key flow step 3)? | **Guest.** Private request link `/r/{token}`; Stripe Checkout collects the email. | 5-minute target, "nie że zakładam konto" (D08); a later account can claim requests by email. | ⚠ NEEDS HUMAN CONFIRMATION (the brief left this undecided on purpose) |
+| Q1 | Account or guest (brief Key flow step 3)? | **Guest.** Private request link `/r/{token}`; Stripe Checkout collects the email. | 5-minute target, "nie że zakładam konto" (D08); a later account can claim requests by email. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (the brief left this undecided on purpose) |
 | Q2 | Notifications? | Minimal transactional emails through **one provider-agnostic adapter** owned here: mentor on a new paid request; developer on payment (with the `/r/` link), accept, decline, lapse, refund done/failed. Address of the developer = Stripe's `payer_email` (no extra form field). | Coordinator decision (A01 risk); a lost link becomes recoverable from the inbox. | — |
 | Q3 | Does a pending request hold the slot? | **Yes**, atomically from *Pay* (mentor-row lock); released as soon as Stripe confirms the checkout expired, at the latest `checkout_expires_at + 10 min`. | No double sale; no slot blocked by a dead checkout. | — |
 | Q4 | Earliest bookable slot? | `MIN_NOTICE_MINUTES = 180` from #15, applied by `isSlotOffered`. | Single constant (coordinator decision). | ⚠ via #15 (3 h vs A01) |

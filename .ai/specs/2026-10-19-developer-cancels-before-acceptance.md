@@ -8,6 +8,8 @@ After paying (#17) a developer whose problem solved itself, or who picked the wr
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Who may cancel? | Whoever holds the `/r/{token}` link (#17 token contract). | The developer's only credential in 1.0. | ⚠ via #17 Q1 (guest vs account) |

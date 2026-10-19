@@ -8,18 +8,20 @@ Every money movement in E02/E03 (pay for a request, refund on decline, lapse, ca
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Hosted Checkout or embedded Payment Element? | Hosted **Stripe Checkout** (`mode: payment`, card only), redirect and return. | Least UI and PCI surface, 3-D Secure and card errors handled by Stripe, fits the 5-minute target (D08). | — |
 | Q2 | Capture at payment, or authorize and capture on mentor accept? | **Capture immediately**; every "money back" path is a full refund. | R08 (pay when sending); authorizations expire in ~7 days; #21 needs a refund after capture anyway. | — |
-| Q3 | Commission (Q01 open)? | Env `PLATFORM_COMMISSION_BPS`, **snapshotted** on each payment; unused by E02; payouts (#22/#25) read the snapshot. `.env.example`: `1000`. | The mentee always pays the full price; a snapshot keeps later payouts correct. | ⚠ NEEDS HUMAN CONFIRMATION (Q01 rate) |
-| Q4 | Currency (Q02 open)? | The caller passes the mentor page's `mentor_pages.currency` (#14, default `PLN`); `PAYMENT_CURRENCIES` (`.env.example`: `PLN`) is only an allowlist. Stored uppercase, lowercased for Stripe. | One source (the page); env only blocks a currency Stripe/test setup is not ready for. | ⚠ NEEDS HUMAN CONFIRMATION (Q02) |
+| Q3 | Commission (Q01 open)? | Env `PLATFORM_COMMISSION_BPS`, **snapshotted** on each payment; unused by E02; payouts (#22/#25) read the snapshot. `.env.example`: `1000`. | The mentee always pays the full price; a snapshot keeps later payouts correct. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (Q01 rate) |
+| Q4 | Currency (Q02 open)? | The caller passes the mentor page's `mentor_pages.currency` (#14, default `PLN`); `PAYMENT_CURRENCIES` (`.env.example`: `PLN`) is only an allowlist. Stored uppercase, lowercased for Stripe. | One source (the page); env only blocks a currency Stripe/test setup is not ready for. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (Q02) |
 | Q5 | Live keys? | **Refused.** `STRIPE_SECRET_KEY` must start with `sk_test_`/`rk_test_`; `livemode: true` events rejected. Going live is a later spec after Q01, Q02, Q04, Q05. | A config flag alone is too easy to flip. | — |
-| Q6 | Who pays Stripe fees on refunds? | The platform; the mentee always gets the full amount (R09, R11). | R09/R11 say "full refund". | ⚠ NEEDS HUMAN CONFIRMATION (Q01/Q05 before live) |
-| Q7 | Disputes / chargebacks? | Recorded only (`disputed_at`, log); handled in the Stripe dashboard. | No dispute owner (Q05). | ⚠ NEEDS HUMAN CONFIRMATION (Q05 owner) |
+| Q6 | Who pays Stripe fees on refunds? | The platform; the mentee always gets the full amount (R09, R11). | R09/R11 say "full refund". | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (Q01/Q05 before live) |
+| Q7 | Disputes / chargebacks? | Recorded only (`disputed_at`, log); handled in the Stripe dashboard. | No dispute owner (Q05). | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (Q05 owner) |
 | Q8 | How do stories learn about payment outcomes? | Explicit subscriber list in `lib/payments/subscribers`, called **inside the same DB transaction** as the transition. No queue, no bus. | One process, one DB. | — |
 | Q9 | Who runs scheduled work? | `POST /api/internal/jobs` with `Bearer $CRON_SECRET`, called every 5 min by whatever cron the host offers (chosen with hosting, foundation spec Q8); locally `npm run jobs` every 60 s. | Scheduler-agnostic. | — |
-| Q10 | Refund failing for 24 h? | Terminal `failed`, error log, counted in the jobs health endpoint so a monitor alerts; fixed by hand in the Stripe dashboard. | Automatic retries beyond 24 h hide a real problem; manual handling needs an owner. | ⚠ NEEDS HUMAN CONFIRMATION (Q05 owner) |
+| Q10 | Refund failing for 24 h? | Terminal `failed`, error log, counted in the jobs health endpoint so a monitor alerts; fixed by hand in the Stripe dashboard. | Automatic retries beyond 24 h hide a real problem; manual handling needs an owner. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (Q05 owner) |
 
 ## 📝 Problem Statement
 

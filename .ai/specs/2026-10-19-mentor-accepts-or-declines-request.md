@@ -8,6 +8,8 @@ After #17 a paid request sits in the database and the mentor has an email about 
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | What is "a session exists" after acceptance? | The `accepted` request **is** the booked session; `requests.id` is the id #20's chat uses; #20 owns every state after `accepted`. No `sessions` table here. | R05; a separate table would duplicate slot, parties and payment. | — (contract #20 must follow) |
