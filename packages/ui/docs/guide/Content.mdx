@@ -48,6 +48,12 @@ Names stay in the nominative; do not build a sentence that needs a declined name
 
 Where money is involved, always say whether anything was charged. Never blame the user; no „Błąd 500”.
 
+**No network — three variants (C6):** in a form „…Wpisane dane zostały w formularzu.” (`NETWORK_MESSAGE`); after an action that is not a form (accept, cancel, open a provider page) „Brak połączenia z internetem — sprawdź sieć i spróbuj ponownie. Nic się nie zmieniło.” (`NETWORK_ACTION_MESSAGE`); while loading a region „Brak połączenia z internetem — nie udało się wczytać danych. Sprawdź sieć i odśwież.” (`NETWORK_LOAD_MESSAGE`, `LoadState` „offline”).
+
+**Words for things that need the viewer's action** start with the action or end with it: „Uzupełnij dane w Stripe — wypłaty są wstrzymane”, „…— dokończ, żeby kontynuować” (`attention` tone, B1).
+
+**Payout states** (E04) have no spec yet — their words are in What is missing (C5).
+
 ## Empty states: why it is empty + the next step
 
 „Nie masz jeszcze zapytań — udostępnij swój link” (+ the link), „Brak wolnych terminów w najbliższych 14 dniach”, „Nie masz dostępności — nikt nie może wybrać terminu” (+ „Dodaj dostępność”). Source: #15, #16, #18.
@@ -60,8 +66,8 @@ Where money is involved, always say whether anything was charged. Never blame th
 
 | What | Format | Example | Source |
 |---|---|---|---|
-| Money | `Intl.NumberFormat('pl-PL', currency PLN)`, whole złoty, Geist Mono (`Amount`) | „150 zł” | #16 Q6, DK2 |
-| Time | 24 h, in the viewer's zone with the zone named nearby | „18:30”, „(twoja strefa: Europe/Warsaw)” | #16, #17 |
+| Money | `Intl.NumberFormat('pl-PL', currency PLN)` through `Amount`/`formatMoney`, Geist Mono. Whole amounts without „,00”; **grosze whenever the amount is not whole** — never round money (payouts after commission) | „150 zł”, „134,50 zł” | #16 Q6, DK2, C1 (2026-10-19) |
+| Time | 24 h, in the viewer's zone with the zone named nearby. In a list, name the zone **once above the list**, not in every row | „18:30”, „(twoja strefa: Europe/Warsaw)”, „Godziny w strefie: Europe/Warsaw” | #16, #17, D3 |
 | Day | „dziś”, „jutro”, otherwise short weekday + date | „czw. 22.10” | C14 |
 | Day for screen readers | relative + absolute | „jutro, wtorek 20.10, 18:00” | #16, C14 |
 | Range | en dash, no spaces | „12:30–12:55” | #18 |

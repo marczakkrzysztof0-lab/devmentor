@@ -10,6 +10,7 @@ import { Button } from "../../components/button/Button";
 import { CodeBlock } from "../../components/code-block/CodeBlock";
 import { ConfirmDialog } from "../../components/confirm-dialog/ConfirmDialog";
 import { CopyField } from "../../components/copy-field/CopyField";
+import { DescriptionList } from "../../components/description-list/DescriptionList";
 import { FormField } from "../../components/form-field/FormField";
 import { Panel } from "../../components/panel/Panel";
 import { Spinner } from "../../components/spinner/Spinner";
@@ -18,7 +19,7 @@ import { TextInput } from "../../components/text-input/TextInput";
 import { Textarea } from "../../components/textarea/Textarea";
 import { LengthToggle, payLabel, SlotList, type Prices } from "../e01/SharePage";
 import { Amount } from "../shared/Amount";
-import { NETWORK_MESSAGE, useFocusFirstError } from "../shared/form";
+import { NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, useFocusFirstError } from "../shared/form";
 import { formatDay, formatMoney, formatSlotRange, formatTime } from "../shared/format";
 import type { FieldErrors, LoadState, OpenSlot, RefundStatus, RequestStatus, SessionLength } from "../shared/types";
 
@@ -336,22 +337,13 @@ export type RequestSummaryProps = {
 
 /** Slot in the viewer's zone with the zone name, length, amount (#17, #18). */
 export function RequestSummary({ lengthMinutes, slotStart, slotEnd, timeZone, amountMinor, currency = "PLN", now = new Date(), menteeName }: RequestSummaryProps) {
-  const rows: [string, ReactNode][] = [
-    ...(menteeName ? ([["Deweloper", menteeName]] as [string, ReactNode][]) : []),
-    ["Termin", <><span className="font-mono">{formatSlotRange(slotStart, slotEnd, timeZone, now)}</span> <span className="text-muted">({timeZone})</span></>],
-    ["Sesja", `${lengthMinutes} min, czat tekstowy`],
-    ["Kwota", <Amount key="amount" minor={amountMinor} currency={currency} />],
+  const items: { label: string; value: ReactNode }[] = [
+    ...(menteeName ? [{ label: "Deweloper", value: menteeName }] : []),
+    { label: "Termin", value: <><span className="font-mono">{formatSlotRange(slotStart, slotEnd, timeZone, now)}</span> <span className="text-muted">({timeZone})</span></> },
+    { label: "Sesja", value: `${lengthMinutes} min, czat tekstowy` },
+    { label: "Kwota", value: <Amount minor={amountMinor} currency={currency} /> },
   ];
-  return (
-    <dl className="flex flex-col border-t border-divider">
-      {rows.map(([label, value]) => (
-        <div key={label} className="flex flex-wrap justify-between gap-in-group border-b border-divider py-list-row-y">
-          <dt className="text-muted">{label}</dt>
-          <dd className="text-right">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
+  return <DescriptionList items={items} />;
 }
 
 /** The question as written: text paragraphs and ``` fenced code as CodeBlock (R01.2). */
@@ -452,7 +444,7 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
   }
   return (
     <section aria-label="Anulowanie" className="flex flex-col items-start gap-in-group">
-      {problem === "network" ? <Alert tone="danger" title={NETWORK_MESSAGE} /> : null}
+      {problem === "network" ? <Alert tone="danger" title={NETWORK_ACTION_MESSAGE} /> : null}
       <p className="text-meta text-muted">Możesz anulować, dopóki mentor nie zaakceptuje.</p>
       <ConfirmDialog
         trigger={<Button variant="secondary">{label}</Button>}

@@ -19,7 +19,7 @@ import { TextInput } from "../../components/text-input/TextInput";
 import { TextLink } from "../../components/text-link/TextLink";
 import { Textarea } from "../../components/textarea/Textarea";
 import { cn } from "../../lib/cn";
-import { NETWORK_MESSAGE, SERVER_MESSAGE, useFocusFirstError } from "../shared/form";
+import { NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, SERVER_MESSAGE, useFocusFirstError } from "../shared/form";
 import { formatDay, formatTime } from "../shared/format";
 import type { FieldErrors, OpenSlot } from "../shared/types";
 
@@ -28,7 +28,8 @@ import type { FieldErrors, OpenSlot } from "../shared/types";
 export type MentorSection = "requests" | "page" | "availability";
 
 export type MentorNavProps = {
-  current: MentorSection;
+  /** The screen the mentor is on; omit on screens that are not in the navigation yet (A2). */
+  current?: MentorSection;
   /** Requests awaiting a decision — the only counter in the product (R01.6, P19). */
   pendingCount?: number;
   /** Paths; the defaults are the routes from the specs. */
@@ -119,7 +120,7 @@ export function InvitationPanel({ kind, inviterName, expiresLabel, onAccept }: I
         </h1>
         <p className="text-meta text-muted">Link ważny do {expiresLabel}.</p>
       </div>
-      {state === "network" ? <Alert tone="danger" title={NETWORK_MESSAGE} /> : null}
+      {state === "network" ? <Alert tone="danger" title={NETWORK_ACTION_MESSAGE} /> : null}
       <Button variant="primary" loading={state === "pending"} onClick={accept}>
         {kind === "invite" ? "Akceptuję zaproszenie" : "Zaloguj"}
       </Button>

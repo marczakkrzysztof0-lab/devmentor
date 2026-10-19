@@ -14,7 +14,8 @@ One object on its own page, with the information needed for the decision and the
 | The state (or deadline) comes first, as a heading-level line: „Zdecyduj do jutra 12:30” | R01.5, P18 |
 | The facts needed to decide come before any button: question, length, slot (#18 AC) | Spec #18 |
 | Main information and the main action fit the first screen at 1440 and 768 px; on 320 px the action follows the question | R01.5, K6 |
-| One primary action; the opposite decision is secondary | R01.5, P18 |
+| At most one primary action; the opposite decision is secondary; no primary when nothing is left to do | R01.5, P18, D1 |
+| The h1 names the object the viewer acts on („Pytanie — Kuba”, „Wypłaty”); the state is the first line under it. Only a page whose whole purpose is to show the state of the viewer's own request (`/r/{token}`) puts the state in the h1 | D2: R01.5 („stan zawsze na górze `/r/{token}`”), #18 (question before buttons), 2026-10-19 |
 | "Does not exist" and "no access" look the same and show no data | Specs #16, #17, #18 |
 | A decided object shows its result and no action buttons | Spec #18 |
 

@@ -1,12 +1,15 @@
-import { Check, CircleAlert, Clock } from "lucide-react";
+import { Check, CircleAlert, Clock, TriangleAlert } from "lucide-react";
 import type { HTMLAttributes } from "react";
 
 import { cn } from "../../lib/cn";
 
-export type StatusTone = "neutral" | "waiting" | "success" | "danger";
+export type StatusTone = "neutral" | "waiting" | "attention" | "success" | "danger";
 
 export type StatusTextProps = HTMLAttributes<HTMLSpanElement> & {
-  /** neutral: plain fact · waiting: someone has to act · success: done and good · danger: failed. */
+  /**
+   * neutral: plain fact · waiting: someone else or time has to act · attention: the viewer must act
+   * (B1, D7) · success: done and good · danger: failed.
+   */
   tone?: StatusTone;
   /** Add the tone icon (status lines on top of a page). Rows in a list usually go without. */
   withIcon?: boolean;
@@ -15,11 +18,12 @@ export type StatusTextProps = HTMLAttributes<HTMLSpanElement> & {
 const toneClass: Record<StatusTone, string> = {
   neutral: "text-primary",
   waiting: "text-primary",
+  attention: "text-primary",
   success: "text-status-success",
   danger: "text-status-danger",
 };
 
-const toneIcon = { neutral: null, waiting: Clock, success: Check, danger: CircleAlert } as const;
+const toneIcon = { neutral: null, waiting: Clock, attention: TriangleAlert, success: Check, danger: CircleAlert } as const;
 
 /** The state of something, written as a word („Czeka na decyzję”) — never a coloured pill. */
 export function StatusText({ tone = "neutral", withIcon = false, className, children, ...props }: StatusTextProps) {

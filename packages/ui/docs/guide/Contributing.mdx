@@ -13,6 +13,19 @@ import { Meta } from "@storybook/addon-docs/blocks";
 | One screen wants something different | Change the screen, not the system; if it is a real gap, add it to What is missing | Prompt rule 6 |
 | It is only a different colour, size or radius | Nothing — use tokens; ask for a token change if a value is missing | Prompt rule 3 |
 
+Example of the second-use rule: the label–value list existed only inside `RequestSummary`; the payouts draft needed it again, so it became the primitive `DescriptionList` (A1, 2026-10-19).
+
+## Where code lives: components, screens, drafts (C8, D5)
+
+| What | Where | Name |
+|---|---|---|
+| Primitive | `packages/ui/src/components/<kebab-name>/` (component, `.stories.tsx`, `.mdx`) | `Primitives/<Name>` |
+| Product component | `packages/ui/src/product/e<NN>/` — folder per epic number (`e01`, `e02`, `e04`), not per feature name | `Product/E<NN> <Epic>/…` |
+| Shared product pieces | `packages/ui/src/product/shared/` | — |
+| Screen (a route of the app) | Composition in `packages/ui/.storybook/screens.tsx` + stories in `src/product/screens/E<NN>Screens.stories.tsx`, named `S<n> <Screen> · <state>`; the app route builds the same composition | `Product/E<NN> <Epic>/Screens` + state map (`npm run state-map`) |
+| Pattern | `packages/ui/src/patterns/<Name>.stories.tsx` + `.mdx` | `Patterns/<Name>` |
+| Draft (no spec yet, e.g. from an agent test) | `src/product/e<NN>/`, **not exported** from `src/product/index.ts`, title ends with „(draft)”, listed in What is missing | `Product/E<NN> <Epic> (draft)/…` |
+
 ## What a new component must have
 
 1. Code in `src/components/<name>/` (primitives) or `src/product/<epic>/` (product), styles only from tokens, exported from `src/index.ts` or `src/product/index.ts`.

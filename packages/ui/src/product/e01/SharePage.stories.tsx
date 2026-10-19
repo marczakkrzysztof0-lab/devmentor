@@ -144,3 +144,10 @@ export const NotFound: Story = {
     await expect(canvasElement.textContent).not.toMatch(/Anna|zł/);
   },
 };
+export const SlotsOffline: Story = {
+  name: "SlotList · no network while loading (C6)",
+  args: { state: "offline" },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("alert")).toHaveTextContent("Brak połączenia z internetem");
+  },
+};

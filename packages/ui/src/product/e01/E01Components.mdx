@@ -18,7 +18,7 @@ Import: `import { … } from "@devmentor/ui/product"`. Built only from Primitive
 | `LengthToggle` | S6 (with #17) | 25 / 50; filters the slot list | Segmented radio, price in each option (tokeny.md, R07) |
 | `SlotList` | S6, (S5 preview) | ready (text) · selectable (#17) · loading · empty · load error · partial · lots of data · other zone · zone unknown → UTC · 320 px | Zone in the heading; the date in text, not only by grouping; 50 min hides slots where it does not fit (#16) |
 | `MentorNotFound` | S6 | — | Neutral, no mentor data at all (#16 story 4) |
-| `MentorNav` | S4, S5, S8, S9 | 0 / 1 / 2 / 12 waiting, 320 px | Three items, no sidebar; the only counter „N zapytań czeka na decyzję” with Polish plural (R02.6, R01.6, P19) |
+| `MentorNav` (`current` optional — omit it on a screen that is not an item yet; „Wypłaty” waits for E04, What is missing — A2) | S4, S5, S8, S9 | 0 / 1 / 2 / 12 waiting, 320 px | Three items, no sidebar; the only counter „N zapytań czeka na decyzję” with Polish plural (R02.6, R01.6, P19) |
 | `InvitationPanel` | S1, S2 | invite · sign-in · accepting · link already used · no network | One button, no form, no password, no bank fields; expiry shown (#14) |
 | `AccessMessage` | S1, S2, S3 | inactive link · invitation only | Never says which reason (expired, used, unknown) (#14) |
 | `MentorPageForm` | S4 | empty draft · pending · missing fields (focus first) · „Ten adres jest zajęty” · server error · no network · published (slug locked) · link suggested from the name · 320 px | Five fields + link; Save draft accepts partial content; Publish validates everything; input kept on errors; focus on the first invalid field; share link with focus after publishing (#14) |

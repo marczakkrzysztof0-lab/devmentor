@@ -1,0 +1,71 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./DescriptionList.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# DescriptionList
+
+## 1. Purpose
+Shows the facts of one object as label–value rows, so the user can check a slot, a length or an amount at a glance.
+
+## 2. When to use
+- Request facts: Termin, Sesja, Kwota on `/r/{token}` and the mentor's request detail (#17, #18; used by `RequestSummary`).
+- Payout amounts: „Do wypłaty”, „Wypłacone do tej pory” (E04 draft, #22).
+- Second use of the same markup → extracted into a primitive (A1, Contributing).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Many items of one kind | `List` + `ListRow` | R01.1 |
+| The state of the object | `StatusText` above the list | R01.5, R01.6 |
+| Editable values | `FormField` controls | — |
+| A table with columns | Not in the system (What is missing) | — |
+
+## 4. Anatomy
+`dl` with a top 1 px line → rows (`dt` label in muted text, `dd` value right-aligned) separated by 1 px `border-divider`, `py-list-row-y`. Optional: one emphasised value.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| Plain | Facts of equal weight | R01.3 |
+| One item with `emphasis` | The one main fact of the screen, e.g. the balance to pay out: `text-heading-section` + 600. At most one per list and per screen | A3 (rule derived from Typography: hierarchy by size and weight, one main thing per screen — R01.5) |
+
+## 6. States
+Not interactive: hover, focus, pressed, disabled, loading, selected, error do not apply. Missing data is written in words, never an empty cell. Loading is the surrounding `Skeleton`.
+
+## 7. Behaviour and accessibility
+- Native `dl`/`dt`/`dd`: screen readers announce term–description pairs.
+- Name it with `aria-label` when no heading sits right above it.
+- Amounts in Geist Mono through `Amount`; times with the zone named in the value or nearby (Content).
+
+## 8. Content
+Labels are nouns of 1–3 words („Termin”, „Do wypłaty”); values are facts, not sentences. Amounts follow Content › Formats (grosze only when not whole — C1).
+
+## 9. Responsiveness
+Rows wrap: at 320 px a long value moves under its label and stays right-aligned; nothing is truncated.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<DescriptionList
+  aria-label="Kwoty"
+  items={[
+    { label: "Do wypłaty", value: <Amount minor={owedMinor} />, emphasis: true },
+    { label: "Wypłacone do tej pory", value: <Amount minor={paidOutMinor} /> },
+  ]}
+/>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| One emphasised fact (the balance). | Several big numbers in a row (A01 „row of big numbers”). |
+| `Amount` for every amount. | Formatting money by hand. |
+
+## 13. Related
+- Confused with: `List` (many items), `RequestSummary` (a product component built on it).
+- Used in: Detail view, Request status page, E04 payouts draft.

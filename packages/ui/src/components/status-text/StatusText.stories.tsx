@@ -57,3 +57,18 @@ export const ReadsAsText: Story = {
     await expect(svg?.closest("[aria-hidden=\"true\"]")).not.toBeNull();
   },
 };
+
+export const Attention: Story = {
+  name: "Tone attention vs waiting (B1, D7)",
+  render: () => (
+    <StateGrid
+      items={[
+        { label: "waiting: someone else or time", node: <StatusText tone="waiting" withIcon>Czeka na decyzję mentora</StatusText> },
+        { label: "attention: the viewer must act", node: <StatusText tone="attention" withIcon>Uzupełnij dane w Stripe — wypłaty są wstrzymane</StatusText> },
+      ]}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText(/Uzupełnij dane w Stripe/)).toBeVisible();
+  },
+};

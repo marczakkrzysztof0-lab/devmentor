@@ -30,7 +30,7 @@ Container (border, fill) → optional `Spinner` (only while `loading`) → label
 |---|---|---|
 | `primary` | Exactly one per screen: the action the screen exists for. | R01.5, P18, DK1 |
 | `secondary` | Every other action. Declining and cancelling are `secondary` too (no "danger" variant: the error colour is too close to the action colour). | S4 (proposal), tokeny.md |
-| `fullWidth` | Main action on a phone layout (`/m/{slug}` at 375 px). | K2 |
+| `fullWidth` | Only the main action of the developer's narrow pages (`/m/{slug}`, `/r/{token}` — `PageLayout width="narrow"`), at every width (the column is narrow anyway). Mentor screens (`wide`) keep the natural width. No responsive variant: the prop stays boolean | K2; C7 (derived from K1 – dense mentor screens vs calm developer pages, 2026-10-19) |
 
 One size only (40 px high from tokens: 24 px line + 2 × 8 px). Source: S1 (proposal).
 

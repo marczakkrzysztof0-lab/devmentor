@@ -12,7 +12,7 @@ import { List, ListRow } from "../../components/list/List";
 import { Skeleton } from "../../components/skeleton/Skeleton";
 import { StateMessage } from "../../components/state-message/StateMessage";
 import { StatusText, type StatusTone } from "../../components/status-text/StatusText";
-import { NETWORK_MESSAGE } from "../shared/form";
+import { NETWORK_ACTION_MESSAGE, NETWORK_LOAD_MESSAGE } from "../shared/form";
 import { formatDay, formatMoney, formatSlotRange, formatTime } from "../shared/format";
 import type { LoadState, RefundStatus, RequestStatus, SessionLength } from "../shared/types";
 import { QuestionText, RequestSummary } from "./Request";
@@ -59,6 +59,7 @@ export type RequestListProps = {
 export function RequestList({ requests, state = "ready", timeZone, now = new Date(), shareUrl, hrefFor = (id) => `/mentor/requests/${id}` }: RequestListProps) {
   if (state === "loading") return <Skeleton label="Wczytywanie zapytań" lines={5} />;
   if (state === "error") return <StateMessage kind="error" title="Nie udało się wczytać zapytań — odśwież" />;
+  if (state === "offline") return <StateMessage kind="error" title={NETWORK_LOAD_MESSAGE} />;
   if (requests.length === 0) {
     return (
       <StateMessage kind="empty" title="Nie masz jeszcze zapytań — udostępnij swój link">
@@ -75,6 +76,10 @@ export function RequestList({ requests, state = "ready", timeZone, now = new Dat
 
   return (
     <div className="flex flex-col gap-between-sections">
+      {/* D3: times in rows are in the mentor's zone; the zone is named once above the list (Content). */}
+      <p className="text-meta text-muted">
+        Godziny w strefie: <span className="font-mono">{timeZone}</span>
+      </p>
       {groups.map((group) => (
         <section key={group.id} aria-labelledby={`group-${group.id}`} className="flex flex-col gap-in-group">
           <h2 id={`group-${group.id}`} className="text-heading-section font-strong">
@@ -161,7 +166,7 @@ export function RequestDecision({ request, timeZone, now = new Date(), onAccept,
       if (result.ok) setStatus(kind === "accept" ? "accepted" : "declined");
       else setProblem(refusalMessage(result.code, result.refundStatus));
     } catch {
-      setProblem(NETWORK_MESSAGE);
+      setProblem(NETWORK_ACTION_MESSAGE);
     } finally {
       setPending(false);
       setDialog(null);

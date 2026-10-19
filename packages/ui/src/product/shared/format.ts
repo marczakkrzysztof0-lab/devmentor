@@ -1,13 +1,18 @@
 // Formatting shared by the product components. Polish UI (spec #16 Q6): amounts through
 // Intl.NumberFormat('pl-PL'), times in the viewer's zone with its name (#16, #17).
 
-/** Whole złoty from minor units (grosze): 15000 → „150 zł”. */
+/**
+ * Money from minor units (grosze): 15000 → „150 zł”, 13450 → „134,50 zł”.
+ * Whole amounts without „,00”; grosze shown whenever the amount is not whole, so a payout
+ * after commission is never rounded (decision C1, 2026-10-19).
+ */
 export function formatMoney(minor: number, currency = "PLN") {
+  const digits = minor % 100 === 0 ? 0 : 2;
   return new Intl.NumberFormat("pl-PL", {
     style: "currency",
     currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
   }).format(minor / 100);
 }
 

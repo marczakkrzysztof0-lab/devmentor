@@ -1,12 +1,40 @@
 # DevMentor design system — short version for agents
 
-Read this file first when you build or change a screen. The full documentation is the Storybook in `packages/ui` (`npm run storybook`). Decisions and their dates: `packages/ui/POSTEP.md`. Sources of every rule: `lekcja-06/referencje.md` (R, A, K, DK), `lekcja-06/tokeny.md`, specs in `.ai/specs/`.
+Read this file first when you build or change a screen. The Next.js block at the top of `AGENTS.md` is about the app in `app/` (Next.js 16); it does not apply to `packages/ui`, which is plain React + Tailwind 4 with Storybook (D6). The full documentation is the Storybook in `packages/ui` (`npm run storybook`). Decisions and their dates: `packages/ui/POSTEP.md`. Sources of every rule: `lekcja-06/referencje.md` (R, A, K, DK), `lekcja-06/tokeny.md`, specs in `.ai/specs/`.
 
 ## Character
 
 DevMentor lets an invited senior engineer publish a page under their own link and lets a stuck developer send a prepaid question for a 25- or 50-minute text session; the mentor accepts or declines, and a decline or no answer refunds automatically. The interface is **concrete, readable, calm, warm** — never generic, noisy, colourless, judgemental or school-like. Dense lists for the mentor, calm pages for the question (K1); one main action with the exact amount (R01.5); states as words (R01.6); warmth from a stone base and plain words, not gradients (DK1, K3).
 
 UI copy: Polish, gender-neutral (2nd person present, nouns, impersonal forms — C12), no emoji, no exclamation marks. Documentation: English.
+
+## Rules added after the agent test (2026-10-19)
+
+- Money: grosze whenever the amount is not whole („134,50 zł”), whole amounts without „,00” (C1).
+- Tones: nothing to do → `info`; someone else or time → `waiting`; the viewer must act → `attention`; failure → `danger`. Always words + icon (B1, D7).
+- At most one primary action per screen; none when there is nothing to do (D1, B2).
+- The h1 names the object; only `/r/{token}` uses the state as h1 (D2).
+- Lists: group order „needs your action → in progress → done” (C3); a row has `href` only if a detail page exists (C4); the zone is named once above a list (D3).
+- Not available yet because of a business condition → `StateMessage empty` (why + next step); one action waiting for input → `disabledReason` (B3). Empty sub-section → `StateMessage` inside that section (B5).
+- No network: form / action / loading variants (`NETWORK_MESSAGE`, `NETWORK_ACTION_MESSAGE`, `NETWORK_LOAD_MESSAGE`) (C6).
+- `fullWidth` only for the main action of narrow developer pages (C7).
+- Where code lives: components `src/components/<name>/`, product `src/product/e<NN>/`, screens `.storybook/screens.tsx` + `src/product/screens/E<NN>Screens.stories.tsx`, drafts not exported (C8, D5).
+
+## What the source codes mean
+
+| Code | Meaning | File |
+|---|---|---|
+| R01.x, R02.x | A trait taken from (or rejected in) a reference: R01 = GitHub (lists, mono code, 1 px lines), R02 = Slack (conversation in the centre) | `lekcja-06/referencje.md` |
+| A01–A07 | Anti-references — looks to avoid (A01 generic AI, A02 course, A03 ratings, A04 catalogue, A05 subscription, A06 video, A07 gate before the question) | `lekcja-06/referencje.md` |
+| K1–K6 | Resolved conflicts between references (e.g. K1 density by zone, K2 phone first screen) | `lekcja-06/referencje.md` |
+| DK1–DK4 | Decisions outside references: colour, typography, motion, themes | `lekcja-06/referencje.md` |
+| P1–P30 (in referencje.md) | The agent's proposals accepted with the references (character words P1–P9, rules P18–P29) | `lekcja-06/referencje.md` |
+| P1–P10, S1–S20, C1–C14, T1, A1, B1… (design system) | Design-system decisions by stage: P = stage 0–1 plan, S = differences from shadcn and screen choices, C = copy, T = tokens, A/B/C/D = gaps from the agent test | `packages/ui/POSTEP.md`, `lekcja-06/test-agentem.md` |
+| D01–D12, N01–N05, R01–R15 (brief) | Product decisions, "not now" decisions and rules from the brief and research — note: brief R-codes differ from reference R01.x | `.ai/specs/product-brief.md`, `.ai/specs/research/decisions/` |
+| #14–#25 | Backlog items / GitHub issues; their specs are `.ai/specs/2026-10-19-*.md` | `.ai/specs/backlog.md` |
+| WCAG x.y.z, WAI-ARIA | Accessibility standards | external |
+
+You do not need the source file to apply a rule — the sentence next to the code is the rule; the code says where it was decided.
 
 ## How to build a screen
 
@@ -33,8 +61,9 @@ Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } fro
 | `RadioGroup` (`list`, `segmented`, `groups`) | `@devmentor/ui` | 25/50 min with prices, slots by day | Actions, long lists |
 | `Panel` | `@devmentor/ui` | One block of main content | Rows; never nested |
 | `List` + `ListRow` (`href`, `meta`, `end`) | `@devmentor/ui` | Many items of one kind, 1 px lines | Card grids |
-| `StatusText` (`waiting`, `success`, `danger`, `neutral`) | `@devmentor/ui` | State as words | Pills, counters |
-| `Alert` (`info`, `success`, `danger`) | `@devmentor/ui` | Form-level problem or notice next to the work | Field errors; toasts |
+| `StatusText` (`waiting`, `attention`, `success`, `danger`, `neutral`) | `@devmentor/ui` | State as words | Pills, counters |
+| `DescriptionList` (`items`, one `emphasis`) | `@devmentor/ui` | Label–value facts; the main amount as `emphasis` | Many items → `List` |
+| `Alert` (`info`, `attention`, `success`, `danger`) | `@devmentor/ui` | Form-level problem or notice next to the work | Field errors; toasts |
 | `ConfirmDialog` | `@devmentor/ui` | Irreversible decisions (accept, decline, cancel) | Reversible actions |
 | `StateMessage` (`empty`, `error`, `not-found`) | `@devmentor/ui` | Empty/failed/missing region + next step | Loading |
 | `Skeleton` | `@devmentor/ui` | Loading known-shape content (static) | Waiting for an action |
@@ -44,6 +73,7 @@ Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } fro
 | `MentorNav`, `InvitationPanel`, `AccessMessage`, `MentorPageForm`, `ShareLinkPanel`, `NoAvailabilityNotice`, `AvailabilityEditor`, `SlotPreview` | `@devmentor/ui/product` | Mentor screens (#14, #15) | Developer screens |
 | `RequestForm`, `RequestStatusView`, `RequestSummary`, `QuestionText`, `SaveLinkBox`, `QuestionCopyBox`, `CancelRequest`, `CancelNotPossible` | `@devmentor/ui/product` | Request form, `/r/[token]` (#17, #19) | Mentor screens |
 | `RequestList`, `RequestDecision`, `RequestNotFound` | `@devmentor/ui/product` | `/mentor/requests`, detail (#18) | Developer screens |
+| `HostedRedirectAction`, `HostedReturnNotice` | `@devmentor/ui/product` | Leaving for Stripe Checkout / Connect (Button + „Otworzy się strona Stripe…”) and the notice after return | Links inside DevMentor |
 | `Amount`, `PageLayout`, `formatMoney`, `formatTime`, `formatDay`, `formatDayFull`, `displayUrl` | `@devmentor/ui/product` | Every amount (Geist Mono), page frame, times in the viewer's zone | — |
 
 Server actions are props (`action`, `onAccept`, `onDecline`…); a thrown error means "no network".

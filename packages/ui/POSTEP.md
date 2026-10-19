@@ -57,6 +57,26 @@ W etapie 0 zapisano wyłącznie ten plik.
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
 
+## Po teście agentem – zamknięcie luk (2026-10-19)
+
+Test: `lekcja-06/test-agentem.md` (52 decyzje: 23 REGUŁA, 12 PRZYKŁAD, 17 ZGADUJĘ; szkic ekranu `src/product/e04/`). Decyzje: K. Marczak przez delegację, 2026-10-19.
+
+| # | Decyzja | Status |
+|---|---|---|
+| C1 (test) | Grosze w `Amount`/`formatMoney`, gdy kwota niepełna; pełne bez „,00”; zasada Content; testy | przyjęte, wdrożone |
+| B1 + D7 | Ton `attention` w Alert i StatusText z istniejących tokenów (ikona + słowa); zasada info/attention; E04 zaktualizowany | przyjęte, wdrożone |
+| A1 | Prymityw `DescriptionList` wydzielony z `RequestSummary` (13 sekcji + stories) | przyjęte, wdrożone |
+| A2 | `MentorNav.current` opcjonalne; „Wypłaty” → What is missing | przyjęte, wdrożone |
+| A3, B2–B6, C2–C8 | Zasady tam, gdzie wynikają z istniejących decyzji (ze źródłem); B6 i C5 → What is missing z pytaniem; C6 – osobny komunikat braku sieci przy wczytywaniu | przyjęte, wdrożone |
+| A4 | Wzorzec „Redirect to hosted provider page” + `HostedRedirectAction`/`HostedReturnNotice`; E04 go używa | przyjęte, wdrożone |
+| D1–D3 | Jedna zasada dla każdej sprzeczności; D3 – `RequestList` nazywa strefę raz nad listą | przyjęte, wdrożone |
+| D4 | Słowniczek kodów źródeł w `docs/design-system.md` i Start here | przyjęte, wdrożone |
+| D5, C8 | Konwencja ścieżek ekranów i komponentów w Contributing | przyjęte, wdrożone |
+| D6 | Zdanie o bloku Next.js w AGENTS.md | przyjęte, wdrożone |
+| E04 | Szkic nieeksportowany, „(draft)”, wpis w What is missing („wymaga specyfikacji #22”) | przyjęte, wdrożone |
+
+Tabela „luka → co zrobiono” jest w `lekcja-06/test-agentem.md`.
+
 ## Po etapie 5 – T1, A1, CI (2026-10-19)
 
 | # | Decyzja (K. Marczak przez delegację, 2026-10-19) | Wdrożenie |
@@ -422,4 +442,4 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 
 ## Następny krok
 
-Test agentem w nowej sesji: ekran „Wypłaty mentora” (sekcja „Etap 5”, pkt 5); każde zgadywanie → dokumentacja albo „What is missing”. Potem przepisanie treści strony głównej.
+Specyfikacja #22 (wypłaty) – potem szkic E04 do pełnego komponentu i pozycja „Wypłaty” w nawigacji; przepisanie treści strony głównej; ewentualny drugi test agentem na innym ekranie.

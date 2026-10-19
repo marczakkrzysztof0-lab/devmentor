@@ -20,7 +20,7 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 | #19 E02-S03 Cancel before acceptance | S7; `CancelRequest`, `CancelNotPossible` | Ready | Now |
 | #20 E03-S01 Live text session | Chat (message list, composer with Ctrl/Cmd+Enter, header „Czat tekstowy · 12:30–12:55”) | **Missing — no spec yet** (tokens `chat-message-gap` and rules K4, K5 are ready) | Next |
 | #21 E03-S02 No-shows | States on S7 and S9 after the session | Missing (depends on #20) | Next |
-| #22, #25 E04 Mentor payout | Payout setup screen after the first paid request (Stripe onboarding) | Missing — candidate for the agent test (POSTEP.md) | Later |
+| #22, #25 E04 Mentor payout | `src/product/e04/MentorPayouts.tsx` — **draft from the agent test, not exported; needs spec #22** (story „Product/E04 Mentor payout (draft)”) | Draft | Later |
 | #26–#28 E06 Pilot research | — (no UI; manual export) | Not applicable | — |
 | E-mails (#17, #18) | Plain-text transactional e-mails | Content in specs, no visual design | Later |
 
@@ -40,7 +40,10 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 | Combobox (searchable select) | Time zones work as a grouped `Select` | If zone lists become hard to use | P5 |
 | Generic list with filters (+ „no results for these filters” with „Wyczyść filtry”, + „nothing yet” with „create”) | Filters and search contradict A04; the mentor's list is short and grouped | If the mentor list grows beyond the pilot | P4 |
 | Data table | No tabular data in E01–E02 | Pilot reporting UI (D10 keeps it manual) | — |
-| Warning tone of `Alert` | No real need found in stage 3 (S10) | An expiring link or similar — come back with a proposal | S10 |
+| „Wypłaty” as the 4th item of `MentorNav` | R02.6 names three mentor screens; `current` is optional meanwhile | Together with E04 and spec #22 | A2 |
+| Words for payout states (configuration and per session: e.g. „Wstrzymane — czeka na dane do wypłaty”, „Wypłata w drodze”) and how to show the commission | No spec #22; commission open (Q01) | **Question:** spec #22 must define the states and whether the mentor sees gross, commission and net | C5 |
+| Limit for long history lists („Pokaż starsze”, paging) | Only #18 defines a limit (last 30 days) | **Question:** per list in its spec; default proposal: the same 30 days + „Pokaż starsze” | B6 |
+| Shared redirect logic in `RequestForm` | `RequestForm` keeps its own implementation of the redirect states; `HostedRedirectAction` is the reusable one | When `RequestForm` changes next | A4 |
 
 ## Known gaps in the code base
 

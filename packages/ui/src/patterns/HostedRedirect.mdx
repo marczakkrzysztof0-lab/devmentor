@@ -1,0 +1,37 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./HostedRedirect.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Redirect to a hosted provider page
+
+Some steps happen on the payment provider's own page: Stripe Checkout (pay, #17, #24) and Stripe Connect onboarding (payout details, #22, #25). DevMentor never shows bank or card fields (R13, D07, #24 Q1). Built from the pay button of `RequestForm`; the reusable pieces are `HostedRedirectAction` and `HostedReturnNotice` (`@devmentor/ui/product`). Source of the pattern: agent test gap A4, decided 2026-10-19.
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| The action is a `Button` (a server action creates the link), not a `TextLink`; label = verb + object + provider („Skonfiguruj wypłaty w Stripe”). With money: verb + amount („Zapłać 150 zł i wyślij pytanie”) | C2; R01.5; #17 |
+| Say before the click that the user leaves DevMentor and comes back: „Otworzy się strona Stripe. Po zakończeniu wrócisz na tę stronę.” (the button's description) | C2; WCAG 3.2.5 (advisory) |
+| One click only: loading while the link is created, spinner „Przekierowujemy do Stripe…” while leaving | #17 (no double submit) |
+| Link could not be created: `Alert danger` — what happened + what did not change; no network: the action variant of the network message (no form) | Content › Errors; C6 |
+| Back from the provider, completed: `Alert success` with what happens next; interrupted or link expired: `Alert attention` — the user must finish, nothing was charged | B4; B1 (attention) |
+| The page state after return comes from the server (provider is the authority), not from the return URL | #17 („Stripe is the authority”) |
+| Primary when it is the screen's main action; secondary for "open the provider's panel" when nothing is required | R01.5, D1 |
+
+## States
+
+| # | State | Story |
+|---|---|---|
+| 1 | Before the click | Before the click |
+| 2 | Creating the link | Creating the link |
+| 3 | Leaving | Leaving for the provider |
+| 4 | Failed | The link could not be created |
+| 5 | No network | No network |
+| 6 | Back, completed | completed |
+| 7 | Back, interrupted | interrupted (attention) |
+
+<Canvas of={Stories.Idle} />
+<Canvas of={Stories.ReturnInterrupted} />
+
+Used by: `RequestForm` (Checkout, its own implementation of the same states), E04 payouts draft (Connect onboarding, uses `HostedRedirectAction`).

@@ -44,6 +44,8 @@ Shows many items of one kind densely and readably, so the mentor sees what waits
 | Error | `StateMessage` („Nie udało się wczytać zapytań — odśwież”), no partial data | Spec #18 |
 | Pressed, disabled, loading, selected | Not applicable. | — |
 
+Rule (C4): give a row `href` only when a detail page exists. A row without its own page is static — do not invent a link or a „Szczegóły” button.
+
 ## 7. Behaviour and accessibility
 - Real list semantics (`ul`/`li`): screen readers announce „list, 3 items”. Name the list with `aria-label` when there is no heading right above it.
 - One tab stop per link row (the title link); an end action is a separate tab stop.

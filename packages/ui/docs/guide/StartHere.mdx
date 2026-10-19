@@ -38,7 +38,8 @@ Imports: primitives from `@devmentor/ui`, product components from `@devmentor/ui
 | Panel | `@devmentor/ui` | One block of main content („Zapisz ten link”) | Rows → List; never a card in a card |
 | List + ListRow | `@devmentor/ui` | Many items of one kind, 1 px lines | One block → Panel |
 | StatusText | `@devmentor/ui` | The state of something, as words | Something to act on now → Alert |
-| Alert | `@devmentor/ui` | A form-level problem or notice next to the work | Field error → FormField; empty region → StateMessage |
+| Alert (`info`, `attention`, `success`, `danger`) | `@devmentor/ui` | A form-level problem or notice next to the work; `attention` when the viewer must act | Field error → FormField; empty region → StateMessage |
+| DescriptionList | `@devmentor/ui` | Label–value facts of one object; one `emphasis` for the main amount | Many items → List |
 | ConfirmDialog | `@devmentor/ui` | Before an irreversible decision | Reversible actions |
 | StateMessage | `@devmentor/ui` | Empty, failed or not-found region with the next step | Loading |
 | Skeleton | `@devmentor/ui` | Loading content with a known shape | Waiting for an action → Spinner / Button loading |
@@ -48,6 +49,23 @@ Imports: primitives from `@devmentor/ui`, product components from `@devmentor/ui
 | MentorNav, InvitationPanel, AccessMessage, MentorPageForm, ShareLinkPanel, NoAvailabilityNotice, AvailabilityEditor, SlotPreview | `@devmentor/ui/product` | Mentor screens (#14, #15) | Developer screens (no nav, R02.6) |
 | RequestForm, RequestStatusView, RequestSummary, QuestionText, SaveLinkBox, QuestionCopyBox, CancelRequest, CancelNotPossible | `@devmentor/ui/product` | Request form and `/r/{token}` (#17, #19) | Mentor screens |
 | RequestList, RequestDecision, RequestNotFound | `@devmentor/ui/product` | `/mentor/requests` and detail (#18) | Developer screens |
-| Amount, PageLayout, format helpers | `@devmentor/ui/product` | Every amount (Geist Mono), page frame, times in the viewer's zone | — |
+| Amount, PageLayout, format helpers | `@devmentor/ui/product` | Every amount (Geist Mono, grosze when not whole), page frame, times in the viewer's zone | — |
+| HostedRedirectAction, HostedReturnNotice | `@devmentor/ui/product` | Leaving for Stripe Checkout / Connect and coming back | Navigation inside DevMentor → TextLink |
 
 Agents: read `docs/design-system.md` in the repository first; it is the short version of this Storybook.
+
+## What the source codes mean (D4)
+
+| Code | Meaning | File |
+|---|---|---|
+| R01.x, R02.x | A trait taken from (or rejected in) a reference: R01 = GitHub (lists, mono code, 1 px lines), R02 = Slack (conversation in the centre) | `lekcja-06/referencje.md` |
+| A01–A07 | Anti-references — looks to avoid (A01 generic AI, A02 course, A03 ratings, A04 catalogue, A05 subscription, A06 video, A07 gate before the question) | `lekcja-06/referencje.md` |
+| K1–K6 | Resolved conflicts between references (e.g. K1 density by zone, K2 phone first screen) | `lekcja-06/referencje.md` |
+| DK1–DK4 | Decisions outside references: colour, typography, motion, themes | `lekcja-06/referencje.md` |
+| P1–P30 (in referencje.md) | The agent's proposals accepted with the references (character words P1–P9, rules P18–P29) | `lekcja-06/referencje.md` |
+| P1–P10, S1–S20, C1–C14, T1, A1, B1… (design system) | Design-system decisions by stage: P = stage 0–1 plan, S = differences from shadcn and screen choices, C = copy, T = tokens, A/B/C/D = gaps from the agent test | `packages/ui/POSTEP.md`, `lekcja-06/test-agentem.md` |
+| D01–D12, N01–N05, R01–R15 (brief) | Product decisions, "not now" decisions and rules from the brief and research — note: brief R-codes differ from reference R01.x | `.ai/specs/product-brief.md`, `.ai/specs/research/decisions/` |
+| #14–#25 | Backlog items / GitHub issues; their specs are `.ai/specs/2026-10-19-*.md` | `.ai/specs/backlog.md` |
+| WCAG x.y.z, WAI-ARIA | Accessibility standards | external |
+
+You do not need the source file to apply a rule — the sentence next to the code is the rule; the code says where it was decided.

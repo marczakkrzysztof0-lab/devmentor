@@ -31,11 +31,12 @@ Background `surface-code` (no border, no shadow) → tone icon (16 px) → title
 
 | Tone | When | Announced | Source |
 |---|---|---|---|
-| `info` | Worth knowing before acting | polite (`status`) | WAI-ARIA status |
+| `info` | Worth knowing; **nothing to do** („Okna zachowają godziny w nowej strefie”) | polite (`status`) | WAI-ARIA status; D7 |
+| `attention` | **The viewer must act** before something can continue, nothing failed („Stripe prosi o uzupełnienie danych — wypłaty są wstrzymane”, an interrupted provider flow). Triangle icon + words; no new colour | polite (`status`) | B1, D7 (2026-10-19) |
 | `success` | It worked and there is a next step | polite | DK1 (green = success) |
 | `danger` | Something failed and needs action | assertive (`alert`), title in `status-danger` | WAI-ARIA alert, WCAG 4.1.3 |
 
-No warning tone: the tokens have no warning colour, and `info` with clear words covers it (S10).
+`attention` replaces the earlier "no warning tone" note (S10 → B1, 2026-10-19). It uses only existing tokens: the difference from `info` is the icon and the words, which must name the action („uzupełnij”, „dokończ”). Choose: nothing to do → `info`; the viewer must act → `attention`; something failed → `danger`.
 
 ## 6. States
 <Canvas of={Stories.States} />

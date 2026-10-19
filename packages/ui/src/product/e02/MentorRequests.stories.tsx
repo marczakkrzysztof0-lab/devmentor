@@ -192,3 +192,17 @@ export const LapsedWithoutRefund: Story = {
     await expect(within(canvasElement).getByText("Zakończone — przeterminowane, zwrot zostanie zlecony automatycznie")).toBeVisible();
   },
 };
+
+export const ListOffline: Story = {
+  name: "RequestList · no network while loading (C6)",
+  args: { state: "offline" },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("alert")).toHaveTextContent("Brak połączenia z internetem — nie udało się wczytać danych");
+  },
+};
+export const ListZoneNamed: Story = {
+  name: "RequestList · zone named once above the list (D3)",
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText("Europe/Warsaw")).toBeVisible();
+  },
+};

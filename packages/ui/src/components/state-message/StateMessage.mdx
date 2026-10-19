@@ -15,6 +15,11 @@ Explains why a place on the screen has no content — nothing yet, failed to loa
 | `error` | „Nie udało się wczytać terminów — odśwież stronę”; „Nie udało się wczytać zapytań — odśwież” | Spec #16, #18 |
 | `not-found` | „Nie ma takiej strony mentora”; „Ten link jest nieaktywny — poproś zespół o nowy”; „Dostęp tylko przez zaproszenie — poproś zespół o link do logowania” | Spec #16, #14 |
 
+Two more cases (agent test, 2026-10-19):
+
+- **Not available yet** (a business condition, e.g. payouts before the first paid request, D07/R13): `kind="empty"` — why + the next step; do not show a disabled button for the whole feature (B3).
+- **Empty sub-section next to other content** (the page has a state and amounts, but no sessions yet): `StateMessage` inside that section, `titleAs` one level below the section heading, with `className="py-0"`; the rest of the page stays (B5).
+
 ## 3. When not to use
 | Situation | Use instead | Source |
 |---|---|---|

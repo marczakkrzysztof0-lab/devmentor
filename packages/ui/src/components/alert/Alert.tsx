@@ -1,12 +1,15 @@
-import { Check, CircleAlert, Info } from "lucide-react";
+import { Check, CircleAlert, Info, TriangleAlert } from "lucide-react";
 import type { HTMLAttributes, ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 
-export type AlertTone = "info" | "success" | "danger";
+export type AlertTone = "info" | "attention" | "success" | "danger";
 
 export type AlertProps = Omit<HTMLAttributes<HTMLDivElement>, "title"> & {
-  /** info: worth knowing before acting · success: it worked · danger: something failed and needs action. */
+  /**
+   * info: worth knowing, nothing to do · attention: the viewer must act before something can continue
+   * (no failure) · success: it worked · danger: something failed (B1, D7, 2026-10-19).
+   */
   tone?: AlertTone;
   /** One line: what happened. */
   title: ReactNode;
@@ -16,7 +19,7 @@ export type AlertProps = Omit<HTMLAttributes<HTMLDivElement>, "title"> & {
   action?: ReactNode;
 };
 
-const icons = { info: Info, success: Check, danger: CircleAlert } as const;
+const icons = { info: Info, attention: TriangleAlert, success: Check, danger: CircleAlert } as const;
 
 /** An inline message inside the page, next to what it is about. Never a toast for something that needs action. */
 export function Alert({ tone = "info", title, children, action, className, ...props }: AlertProps) {

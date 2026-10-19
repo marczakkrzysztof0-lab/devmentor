@@ -7,6 +7,7 @@ import { useMemo } from "react";
 
 import { RadioGroup } from "../../components/radio-group/RadioGroup";
 import { Skeleton } from "../../components/skeleton/Skeleton";
+import { NETWORK_LOAD_MESSAGE } from "../shared/form";
 import { StateMessage } from "../../components/state-message/StateMessage";
 import { TextLink } from "../../components/text-link/TextLink";
 import { cn } from "../../lib/cn";
@@ -149,6 +150,8 @@ export function SlotList({
   let body;
   if (state === "loading") {
     body = <Skeleton label="Wczytywanie terminów" />;
+  } else if (state === "offline") {
+    body = <StateMessage kind="error" titleAs="h3" title={NETWORK_LOAD_MESSAGE} className="py-0" />;
   } else if (state === "error") {
     body = <StateMessage kind="error" titleAs="h3" title="Nie udało się wczytać terminów — odśwież stronę" className="py-0" />;
   } else if (days.length === 0) {

@@ -19,3 +19,4 @@ export { StateMessage, type StateKind, type StateMessageProps } from "./componen
 export { Skeleton, type SkeletonProps } from "./components/skeleton/Skeleton";
 export { CodeBlock, InlineCode, type CodeBlockProps, type InlineCodeProps } from "./components/code-block/CodeBlock";
 export { CopyField, type CopyFieldProps } from "./components/copy-field/CopyField";
+export { DescriptionList, type DescriptionItem, type DescriptionListProps } from "./components/description-list/DescriptionList";

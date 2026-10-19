@@ -76,3 +76,18 @@ export const DangerIsAnnounced: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("Okna zachowają godziny w nowej strefie");
   },
 };
+
+export const Attention: Story = {
+  name: "Tone attention: the viewer must act (B1, D7)",
+  args: {
+    tone: "attention",
+    title: "Konfiguracja w Stripe nie została dokończona — dokończ ją, żeby dostać wypłatę",
+    children: "Dane podane do tej pory zostały w Stripe. Nic nie zostało pobrane.",
+  },
+  play: async ({ canvasElement }) => {
+    // Attention is announced politely (it is not a failure) and always has words + an icon.
+    const status = within(canvasElement).getByRole("status");
+    await expect(status).toHaveTextContent("dokończ ją");
+    await expect(status.querySelector("svg")).not.toBeNull();
+  },
+};

@@ -17,8 +17,8 @@ export type SessionLength = 25 | 50;
 /** One offered slot from `listOpenSlots` (#15): a start time that fits this length. */
 export type OpenSlot = { startsAt: string; lengthMinutes: SessionLength };
 
-/** Load state of a section whose data comes separately (slots, request list). */
-export type LoadState = "loading" | "ready" | "error";
+/** Load state of a section whose data comes separately (slots, request list). "offline" = no network (C6). */
+export type LoadState = "loading" | "ready" | "error" | "offline";
 
 /** Request states from the #17 state machine plus what the page shows around them (#18, #19). */
 export type RequestStatus =
