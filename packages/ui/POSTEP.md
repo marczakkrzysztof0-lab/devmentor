@@ -5,8 +5,8 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 | Etap | Stan |
 |---|---|
 | 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
-| 1. Fundamenty | **zakończony 2026-10-19 – czeka na „dalej” i decyzje P6–P10** |
-| 2. Komponenty bazowe | nie rozpoczęty |
+| 1. Fundamenty | zakończony, zatwierdzony 2026-10-19 (commit c21f37a) |
+| 2. Komponenty bazowe | **w toku** – partie bez czekania na „dalej” (decyzja koordynatora 2026-10-19) |
 | 3. Komponenty produktu, wzorce, ekrany | nie rozpoczęty |
 | 4. Strony, które uczą | nie rozpoczęty |
 | 5. Sprawdzenie i raport | nie rozpoczęty |
@@ -57,6 +57,37 @@ W etapie 0 zapisano wyłącznie ten plik.
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
 
+## Etap 2 – różnice wobec domyślnej bazy shadcn
+
+Baza: shadcn/ui (styl „new-york”, Tailwind 4) na `radix-ui`. Od Radix bierzemy zachowanie i dostępność; wygląd w całości z tokenów. Komponenty napisane na wzór plików shadcn (ta sama budowa: `cva` + `cn` + prymitywy Radix), bez CLI shadcn – CLI dodaje `tw-animate-css` i domyślne zmienne (`--primary`, `--ring`…), które i tak trzeba by usunąć (zasada 6). Pochodzenie zapisane też w notatce technicznej (strona „Contributing”, etap 4).
+
+Oznaczenia: **źródło** = decyzja z materiałów; **S#** = propozycja agenta (materiały milczą), do zbiorczej decyzji po etapie.
+
+| Cecha | Domyślnie w shadcn | U nas | Źródło |
+|---|---|---|---|
+| Wysokość kontrolki (przycisk, pole, select) | 36 px (`h-9`) | 40 px wynikające z tokenów: interlinia 24 px + `py-in-group` 2 × 8 px; bez osobnego tokenu wysokości | S1 (propozycja; ≥ 24 × 24 px – WCAG 2.5.8; telefon na `/m/{slug}` – K2) |
+| Promień | `rounded-md` (6 px), pigułki w badge, koła w awatarze | `rounded-control` 4 px wszędzie; jedyny wyjątek: okrągły wskaźnik radia (konwencja kontrolki) | A01; wyjątek radia – S2 |
+| Obramowanie pól | `border-input` (jasny, ok. 1,3 : 1) | `border-control` 1 px (4,59 : 1) | R01.3, WCAG 1.4.11 |
+| Cień | `shadow-xs` na polach i przycisku outline, `shadow-lg` na menu i dialogu | brak; menu i dialog oddzielone `border-control` i tłem `surface-scrim` | P2, A01 |
+| Fokus | `ring-[3px] ring-ring/50` (półprzezroczysty, wartość arbitralna) | `outline-2 outline-offset-2 outline-focus-ring` (2 px, pełny kolor, odstęp) | WCAG 2.4.7, tokeny.md reguła 11 |
+| Padding przycisku i pola | `px-4 py-2` / `px-3 py-1` | `px-inside-panel py-in-group` (16 / 8 px) | tokeny.md (relacje odstępów) |
+| Typografia kontrolek | `text-sm font-medium` (14 px / 500) | `text-body` 16 px; przycisk i etykieta `font-strong` 600 | P2 (wagi 400/600), P7 (etykieta 600); 16 px w polu – S3 (zapobiega powiększaniu na iOS, czytelność) |
+| Warianty przycisku | default, destructive, outline, secondary, ghost, link; 4 rozmiary | `primary` (jedna główna akcja), `secondary`; jeden rozmiar; link to osobny `TextLink` | R01.5, P18; brak `destructive`: kolor błędu bliski akcji (tokeny.md) – S4 |
+| Hover / wciśnięty | `bg-primary/90` (przezroczystość) | primary → `action-primary-fill-hover`; secondary → `bg-surface-code` | DK1 (hover/pressed); secondary – S5 |
+| Zablokowany | `opacity-50`, `pointer-events-none`, bez wyjaśnienia | `bg-surface-code text-muted border-control` (czytelny kontrast), przyczyna zawsze tekstem obok (`aria-describedby`); w trakcie wysyłania zamiast blokady – stan „ładowanie” | Prompt (zablokowany z wyjaśnieniem); spec #17 (blokada podwójnego wysłania); wygląd – S6 |
+| Ładowanie | brak | `Spinner` + niezmieniona etykieta, `aria-busy`, kliknięcia ignorowane | spec #17 („Button disabled while submitting”) |
+| Błąd pola | `aria-invalid:border-destructive` + ring | `border-status-danger` + komunikat słowami pod polem (`aria-describedby`), fokus na pierwszym błędzie | spec #14, #17; WCAG 3.3.1, 1.4.1 |
+| Tło pola | `bg-transparent` | `bg-surface-panel`; tylko do odczytu: `bg-surface-code` | tokeny.md (`surface-panel` dla pól); read-only – S7 |
+| Menu selecta | animacje `tw-animate-css` (zoom, slide) | tylko przezroczystość, `duration-menu`, 0 ms przy reduced motion | DK3, P7 |
+| Stan wybrany (radio, 25/50) | kropka w kółku / brak segmentów | radio: kropka + tekst; segment 25/50: `action-primary-fill` + `text-on-action` + ikona `Check` (nie tylko kolor) | tokeny.md (przełącznik 25/50), WCAG 1.4.1, audyt (kolor jedynym nośnikiem) |
+| Badge | pigułka z kolorem | `StatusText`: słowo stanu, opcjonalna ikona, bez tła i pigułki | R01.6, P19, A01 |
+| Szkielet | `animate-pulse` | statyczny blok `bg-surface-code` + tekst dla czytnika „Wczytywanie…” | P7 / Motion („nic nie rusza się samo”); S8 |
+| Spinner | `animate-spin` | obrót tylko w trakcie oczekiwania, zatrzymany przy reduced motion, zawsze z tekstem | DK3; S9 |
+| Alert | ramka + ikona, wariant destructive | tło `surface-code`, bez ramki (ramka tylko na tym, co się klika – Shape and depth), ikona + słowa; `role="alert"` tylko dla błędów | A01, audyt; S10 |
+| Dialog potwierdzenia | `shadow-lg`, `rounded-lg`, przyciski „Cancel” / „Continue” | bez cienia, `border-control`, 4 px; „Wróć” (fokus startowy) + czasownik z obiektem („Odrzucam pytanie”) | P2, prompt (potwierdzenie), P4; fokus na rezygnacji – S11 |
+| Pole wymagane / opcjonalne | brak konwencji | wymagane bez znaku; opcjonalne opisane słowem „(opcjonalnie)” przy etykiecie | S12 (formularze produktu mają prawie same pola wymagane – spec #14, #17) |
+| Podgląd stanów w dokumentacji | brak | w Storybooku warianty `hover:`, `focus-visible:`, `active:` działają też dla `data-preview-state` (te same klasy, inna reguła tylko w CSS Storybooka) | prompt (etap 2) |
+
 ## Inwentaryzacja repozytorium
 
 - npm 11.19.0, Node 24.21.0, `package-lock.json` w katalogu głównym, brak `workspaces`.
@@ -95,10 +126,16 @@ Zdecydował: K. Marczak (delegacja do agenta-koordynatora), 2026-10-19.
 | Plan | Workspace `@devmentor/ui` (plan B, jeśli dowód nie przejdzie); wersje i skrypty jak niżej | przyjęte |
 | Pkt 7 | Zmiany w `app/globals.css` w całości | przyjęte |
 | Etap 1 | Instalacja z rejestru npm (tylko pakiety z planu) + Chromium dla Playwrighta; po etapie lokalny commit bez push | przyjęte |
+| P6 | Maks. szerokość treści `--ds-width-page` 1024 px, do lewej; tekst `max-w-text` 65ch | przyjęte |
+| P7 | Etykieta pola 600; animujemy tylko kolor, przezroczystość i małe przesunięcia | przyjęte |
+| P8 | `data-theme` dozwolony na dowolnym elemencie (próbki w dokumentacji) | przyjęte |
+| P9 | Favicon Storybooka = `app/favicon.ico`; ukryty nagłówek sr-only Storybooka zostaje | przyjęte |
+| P10 | `check:tokens`, `typecheck:ui`, `test:storybook:themes` w CI – w etapie 5 | przyjęte |
+| Etap 2 | Partie po ok. 6 komponentów bez czekania na „dalej”; po każdej partii sprawdzenia + lokalny commit; propozycje rozstrzygane zbiorczo po etapie | przyjęte (koordynator) |
 
 ## Otwarte pytania (do decyzji Krzysztofa)
 
-P1–P5 z etapu 0 – rozstrzygnięte (sekcja „Zatwierdzone decyzje”). Nowe z etapu 1, każde oznaczone w dokumentacji jako „proposal”:
+P1–P10 rozstrzygnięte (sekcja „Zatwierdzone decyzje”). Historia pytań etapu 1 poniżej; propozycje etapu 2 – w sekcji „Etap 2 – różnice wobec shadcn” (S1–S…).
 
 | # | Pytanie | Moja rekomendacja (propozycja) |
 |---|---|---|

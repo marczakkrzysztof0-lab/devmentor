@@ -1,0 +1,77 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./TextInput.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# TextInput
+
+## 1. Purpose
+Lets the user type one short value — a name, a link, a price — and see it exactly as it will be used.
+
+## 2. When to use
+- „Imię” on the request form (#17).
+- „Imię i nazwisko”, „Link do publicznej pracy”, „Cena za 25 min” / „Cena za 50 min” with the „zł” suffix, „Adres strony” (read-only after publishing) in the mentor editor (#14).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| More than one line (question, description) | `Textarea` | Spec #14, #17 |
+| Choosing from a known list (time zone, hours) | `Select` | Spec #15 |
+| Showing a link to copy | `CopyField` | Spec #14 |
+
+## 4. Anatomy
+Box (panel fill, `border-control`, 4 px) → input text → optional suffix („zł”, announced as the field's description).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| Plain | Name, link | — |
+| `suffix` | A unit that is not typed: „zł” (currency is not editable) | Spec #14 |
+| `readOnly` | Value shown but locked: the share URL after the first publish | Spec #14; look – S7 |
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | `surface-panel`, `border-control` (4,59 : 1) | tokeny.md, WCAG 1.4.11 |
+| Hover | No change | S13 (proposal: a field does not need to invite a click) |
+| Focus | 2 px `focus-ring` outline around the whole box (incl. suffix) | WCAG 2.4.7 |
+| Error | `border-status-danger` + message from `FormField` | WCAG 3.3.1 |
+| Read-only | `surface-code` fill; text stays primary and selectable | S7 |
+| Disabled | `surface-code`, muted text; explain why next to it (rare in this product) | Prompt |
+| Placeholder | Muted example („https://github.com/annak”), never the name | WCAG 3.3.2 |
+
+## 7. Behaviour and accessibility
+- Native `<input>`; inside `FormField` it gets id, `aria-describedby`, `aria-invalid` and `required` automatically.
+- The suffix is linked as a description, so a screen reader says „Cena za 25 min, 150, zł”.
+- Use the right `type`/`inputMode`/`autoComplete` (`url`, `numeric`, `given-name`) so phones show the right keyboard.
+
+## 8. Content
+- Placeholder is an example, not an instruction. Prices: whole złoty, formatted on display with `Intl.NumberFormat('pl-PL')` (spec #16 Q6).
+- Long values scroll inside the field; nothing is cut on save.
+
+## 9. Responsiveness
+Full width of its container at every width; 16 px text avoids zoom on focus in mobile Safari (S3).
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<FormField label="Cena za 25 min" hint="Tyle zapłaci deweloper.">
+  <TextInput name="price25" inputMode="numeric" suffix="zł" defaultValue="150" />
+</FormField>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Suffix „zł” outside the typed value. | Asking the mentor to type „150 zł” and parsing it. |
+| `readOnly` slug with a hint why it is locked. | A disabled field with no explanation. |
+
+## 13. Related
+- Confused with: `Textarea`, `CopyField`.
+- Used in: Form pattern, Mentor page editor, Request form.

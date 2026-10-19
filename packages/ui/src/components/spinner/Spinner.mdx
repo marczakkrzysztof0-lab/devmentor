@@ -1,0 +1,63 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Spinner.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Spinner
+
+## 1. Purpose
+Tells the user that the product is waiting for something specific, so they do not click again or leave.
+
+## 2. When to use
+- `/r/{token}` while the payment is being confirmed: „Czekamy na potwierdzenie płatności” (#17).
+- Inside a `Button` while it is `loading` (decorative, no text of its own).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Content with a known shape is loading (slot list) | `Skeleton` | Prompt (How to choose) |
+| Waiting longer than about a minute | A state with a refresh button (`StateMessage`), as #17 does after 1 minute | Spec #17 |
+| Spinner without words | Always add `label` (except inside a button) | WCAG 1.1.1 |
+
+## 4. Anatomy
+Rotating `LoaderCircle` icon (16 or 20 px) → text label (required outside buttons).
+
+## 5. Variants
+<Canvas of={Stories.Sizes} />
+
+| Size | When | Source |
+|---|---|---|
+| `md` 20 px | Status lines, buttons | P1 |
+| `sm` 16 px | Next to metadata text | P1 |
+
+## 6. States
+Only one state: waiting. With `prefers-reduced-motion: reduce` the icon stops rotating and the text carries the meaning. Source: DK3, WCAG 2.3.3. Hover, focus, pressed, disabled, selected and error do not apply (not interactive).
+
+## 7. Behaviour and accessibility
+- With `label`: `role="status"` (polite live region), so the waiting state is announced once.
+- Without `label`: decorative; the surrounding `Button` has `aria-busy`.
+- Never focusable.
+
+## 8. Content
+Say what we wait for, not „Ładowanie…”: „Czekamy na potwierdzenie płatności”. Add the reassurance the spec requires where money is involved: „nic nie zostanie pobrane dwa razy” (#17). Max one sentence.
+
+## 9. Responsiveness
+Text wraps next to the icon at 320 px; the icon stays top-aligned.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<Spinner label="Czekamy na potwierdzenie płatności" />`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| „Czekamy na potwierdzenie płatności” next to the spinner. | A lone spinner in the middle of the page. |
+| `Skeleton` for the slot list shape. | A spinner instead of content that has a known shape. |
+
+## 13. Related
+- Confused with: `Skeleton`.
+- Used in: `Button` (loading), Request status page pattern.

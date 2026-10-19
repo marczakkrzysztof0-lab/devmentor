@@ -209,6 +209,8 @@
   --border-color-divider: var(--ds-border-divider);
   --border-color-control: var(--ds-border-control);
   --border-color-action-primary-fill: var(--ds-action-primary-fill);
+  --border-color-action-primary-fill-hover: var(--ds-action-primary-fill-hover);
+  --border-color-status-danger: var(--ds-status-danger-text); /* field in error: 6,02 : 1, WCAG 1.4.11 */
   --outline-color-focus-ring: var(--ds-focus-ring);
 
   --font-ui: var(--ds-font-ui);
