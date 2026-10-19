@@ -32,6 +32,8 @@ Mentors agreed to paid text sessions on two conditions: they see who is asking a
 
 ## 📝 Proposed Solution
 
+> **UI/UX:** copy neutralized per design system Content rule C12, 2026-10-19 — UI copy uses gender-neutral forms (e.g. „Pytanie zostało właśnie zaakceptowane”, „Brak odpowiedzi mentora przed terminem”, „kopia jest też w e-mailu z potwierdzeniem”); see `docs/design-system.md` and Storybook › Content.
+
 - **Screens** under the #14 session: `/mentor/requests` (*Czeka na decyzję* by slot, *Zaakceptowane*, *Zakończone* — declined, lapsed, cancelled, last 30 days) and `/mentor/requests/[id]`. Never lists `awaiting_payment` / `payment_failed` (#17). Empty list → *Nie masz jeszcze zapytań — udostępnij swój link* with the share URL; load error → *Nie udało się wczytać zapytań — odśwież* (no partial data).
 - **Transitions** (mentor id only from `getCurrentMentor()`): one conditional update per action — `WHERE id = $id AND mentor_id = $currentMentor AND status = 'awaiting_mentor' AND slot_start > now()`. PostgreSQL re-checks the `WHERE` after a blocked row lock, so accept, decline, cancel (#19) and lapse are mutually exclusive with no application locks.
 - **Refusal code from a fresh read.** Zero rows updated → re-read the row **scoped by `mentor_id`** after the failed update and classify in this order: not found (or another mentor's) → `not_found`; status `cancelled` / `declined` / `lapsed` / `accepted` → that code; still `awaiting_mentor` with `slot_start <= now()` → `slot_started`.

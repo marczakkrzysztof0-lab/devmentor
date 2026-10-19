@@ -103,6 +103,8 @@ Down migration drops both tables (dev/test only; forward-fix after pilot data ex
 
 ## 📝 UI/UX
 
+> copy neutralized per design system Content rule C12, 2026-10-19 — UI copy uses gender-neutral forms (e.g. „Pytanie zostało właśnie zaakceptowane”, „Brak odpowiedzi mentora przed terminem”, „kopia jest też w e-mailu z potwierdzeniem”); see `docs/design-system.md` and Storybook › Content.
+
 - Form order: length → slot (minus held ranges) → name → question → pay button with the exact amount. Two typed fields. Button disabled while submitting.
 - `/r/{token}` states: *Czekamy na potwierdzenie płatności* (auto-refresh every 3 s for 1 min, then a refresh button and *nic nie zostanie pobrane dwa razy*) · *Opłacone — czeka na mentora* · *Płatność przerwana — nic nie pobrano* · *Płatność dotarła za późno — zwrot zlecony*. #18 and #19 add theirs.
 - Times in the viewer's zone with its name; stored UTC.

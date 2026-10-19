@@ -1,0 +1,81 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./TextLink.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# TextLink
+
+## 1. Purpose
+Takes the user to another page or site and shows clearly where it goes — for example the mentor's public work.
+
+## 2. When to use
+- Navigation inside the product: „Dostępność” from the editor notice (#15), the mentor's top navigation items.
+- External sites: the mentor's public work „github.com/annak” (#16, `external`).
+- A link inside a sentence: „Nie masz dostępności — nikt nie może wybrać terminu. Dodaj okno” (#15).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| It changes data or sends something | `Button` | WAI-ARIA |
+| Copying the share link | `CopyField` | Spec #14 |
+| Decorating a word in a heading | Nothing — no coloured words in headings | A01 |
+
+## 4. Anatomy
+Underlined text in `text-link` → optional external icon (16 px) + hidden text „(otwiera się w nowej karcie)” when `external`.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| Internal | Pages of the product | — |
+| `external` | Another site; opens a new tab so the developer keeps the mentor page | Spec #16 (`target="_blank"`) |
+
+The public-work link with `rel="nofollow noopener ugc"` and the full host is a product component (stage 3) built on `TextLink`.
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | `text-link`, 1 px underline | DK1; underline – WCAG 1.4.1 |
+| Hover | 2 px underline | S5 (proposal) |
+| Focus | 2 px `focus-ring` outline | WCAG 2.4.7 |
+| Pressed, disabled, loading, selected, error | Not applicable: a link either goes somewhere or is not rendered. | — |
+
+## 7. Behaviour and accessibility
+- Native `<a href>`: Tab, Enter. Never a `<div onClick>`.
+- External links announce „(otwiera się w nowej karcie)”. Source: WCAG 3.2.5 (advisory), G201.
+- Inline links keep the line height; the underline makes them recognisable without colour (WCAG 1.4.1).
+
+## 8. Content
+- The text names the destination: „github.com/annak”, „Dostępność” — never „kliknij tutaj”. Source: WCAG 2.4.4.
+- External: show the host the user will land on. Source: spec #16.
+- Long URLs: allow breaking (`break-all`) rather than overflow.
+
+## 9. Responsiveness
+Wraps with the text at every width; long URLs break at 320 px.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<TextLink href="/mentor/availability">Dostępność</TextLink>
+
+// With Next.js routing
+<TextLink asChild><Link href="/mentor/availability">Dostępność</Link></TextLink>
+
+// External
+<TextLink href="https://github.com/annak" external rel="nofollow noopener ugc">github.com/annak</TextLink>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| „github.com/annak” — the developer sees where it goes. | „Zobacz profil” pointing somewhere else (audyt, finding 6). |
+| Underlined link inside a sentence. | Colour alone marking a link (WCAG 1.4.1). |
+
+## 13. Related
+- Confused with: `Button` (actions), `Button asChild` (navigation that looks like an action).
+- Used in: Mentor identity (Product, E01), Invitation-only gate, StateMessage actions.

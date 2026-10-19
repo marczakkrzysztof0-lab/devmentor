@@ -1,0 +1,69 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./IconButton.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# IconButton
+
+## 1. Purpose
+Lets the mentor remove one item from a repeated row without a word on every row — for example a time window in Availability.
+
+## 2. When to use
+- „×” next to each availability window on `/mentor/availability` (#15): „Usuń okno wtorek 18:00–20:00”.
+- Only this case for now (P1: the only icon used alone).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Any action that is not "remove this item" | `Button` with text | P1 |
+| Copying a link | `CopyField` (button with text „Kopiuj link”) | P1 |
+| Opening a menu of actions | Not in the system (P5) — see What is missing | P5 |
+
+## 4. Anatomy
+Transparent square target → one lucide icon (20 px, hidden from screen readers). The accessible name comes from `label` (required).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+One variant, quiet (no border, muted icon), so a list of rows stays calm. Source: K1, P3 (calm); look – S5.
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | Muted icon, no border | K1 |
+| Hover / pressed | `surface-code` fill, primary icon colour | S5 (proposal) |
+| Focus | 2 px `focus-ring` outline | WCAG 2.4.7 |
+| Disabled | Not used: if a window cannot be removed, the row explains why instead. | Prompt (disabled needs a reason) |
+| Loading, selected, error | Not applicable: removal is local until „Zapisz” (#15 saves the whole set). | Spec #15 |
+
+## 7. Behaviour and accessibility
+- Native `<button>`: Tab, Enter, Space.
+- Name = `label`, which must name the object („Usuń okno wtorek 18:00–20:00”), not just „Usuń” — several rows have the same icon. Source: WCAG 2.4.6, 4.1.2.
+- Target 30 × 30 px (≥ 24 × 24). Source: WCAG 2.5.8.
+- No tooltip: the name is for screen readers; sighted users read the row (P5).
+
+## 8. Content
+`label` = verb + object with its distinguishing detail (day and hours). Max about 50 characters. Translate the whole sentence, not word by word.
+
+## 9. Responsiveness
+Same size at every width; at 320 px the row text wraps and the button stays at the end of the row.
+
+<Canvas of={Stories.InARowNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<IconButton label="Usuń okno wtorek 18:00–20:00" icon={<X />} onClick={() => removeWindow(id)} />`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| `label="Usuń okno wtorek 18:00–20:00"` — every row's button has a distinct name. | `label="Usuń"` on seven rows — a screen reader user cannot tell them apart. |
+| Text `Button` for any other action. | An icon-only button for „Kopiuj” or „Edytuj” — the icon has to be guessed (P1). |
+
+## 13. Related
+- Confused with: `Button` (has text).
+- Used in: Availability editor (Product, E01), Pattern: Time-zone-aware slots.

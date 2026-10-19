@@ -1,0 +1,29 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./RequestStatusPage.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Request status page
+
+The developer's only place to follow a paid request, reached through a private link (`/r/{token}`, #17). No account (D12 / #17 Q1 guest default).
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| The state is the first thing on the page, as words, in the h1 — the one exception to „h1 names the object” (Detail view), because this page exists only to show the state of the viewer's own request | R01.5, R01.6, spec #17, D2 |
+| „Zapisz ten link” with „Kopiuj link” is main content, not a footnote | Spec #17 |
+| Money words follow the data: „zwrot zlecony” only when a refund exists; before that „zostanie zlecony automatycznie” | Spec #18 |
+| Times in the viewer's zone with the zone name | Spec #17 |
+| Cancel only while the mentor has not accepted; after acceptance say why there is no button | Spec #19, D05 |
+| Waiting for payment: auto-refresh for a minute, then „Odśwież” and „Nic nie zostanie pobrane dwa razy” | Spec #17 |
+| Unknown or expired link: 404 with no detail | Spec #17 |
+
+## States
+
+All page states are full-screen stories in `Product/E02 Paid request/Screens` (S7, 12 states). This pattern shows the five that teach the rules:
+
+<Canvas of={Stories.StatusPaid} />
+<Canvas of={Stories.StatusRefund} />
+
+Components: `RequestStatusView`, `SaveLinkBox`, `CancelRequest`, `CancelNotPossible`, `RequestSummary`, `QuestionText`, `QuestionCopyBox`.

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marta Nowak – DevMentor</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1d2330;
+    --muted: #5b6475;
+    --border: #e2e5ea;
+    --accent: #3b5bdb;
+    --accent-soft: #edf1ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header.top {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+  header.top .inner { max-width: 960px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-weight: 700; color: var(--accent); }
+  .url { font-size: 13px; color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+  main { max-width: 960px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .profile { display: flex; gap: 16px; align-items: center; }
+  .avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 26px; font-weight: 700; flex-shrink: 0; }
+  h1 { margin: 0; font-size: 24px; }
+  .role { color: var(--muted); margin: 2px 0 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .tag { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
+  h2 { font-size: 16px; margin: 24px 0 8px; }
+  .work a { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); text-decoration: none; margin-bottom: 8px; }
+  .work a:hover { border-color: var(--accent); }
+  .work small { color: var(--muted); display: block; }
+  .note { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 10px 12px; margin-top: 16px; }
+  .booking h2:first-child { margin-top: 0; }
+  .lengths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .option input { position: absolute; opacity: 0; }
+  .option span { display: block; border: 2px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; }
+  .option strong { display: block; font-size: 20px; }
+  .option input:checked + span { border-color: var(--accent); background: var(--accent-soft); }
+  .option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .day { font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+  .slots { display: flex; flex-wrap: wrap; gap: 8px; }
+  .slot input { position: absolute; opacity: 0; }
+  .slot span { display: inline-block; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+  .slot input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .slot input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.field { display: block; font-weight: 600; font-size: 14px; margin: 20px 0 6px; }
+  textarea { width: 100%; min-height: 130px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font: inherit; resize: vertical; }
+  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  button { width: 100%; margin-top: 20px; background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  button:hover { filter: brightness(1.08); }
+  .fine { font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .fine li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="inner">
+    <span class="logo">DevMentor</span>
+    <span class="url">devmentor.app/m/marta-nowak</span>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="profile">
+      <div class="avatar" aria-hidden="true">MN</div>
+      <div>
+        <h1>Marta Nowak</h1>
+        <p class="role">Senior frontend engineer · TypeScript, React</p>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag">TypeScript</span>
+      <span class="tag">React</span>
+      <span class="tag">Next.js</span>
+      <span class="tag">Server components</span>
+    </div>
+
+    <h2>What I have done</h2>
+    <p>Ten years building React apps for product companies. I led two migrations to Next.js server components and wrote the type layer for a design system used by six teams. I answer TypeScript generics and React migration questions on Discord most weeks — here you get my full attention for a booked slot.</p>
+    <p>Send your question up front. I read it before accepting, so I only take what I can actually help with. If I decline, you get a full refund straight away.</p>
+
+    <h2>Public work</h2>
+    <div class="work">
+      <a href="https://github.com/" target="_blank" rel="noopener">
+        <span>GitHub – open-source type utilities<small>github.com/martanowak</small></span>
+        <span aria-hidden="true">↗</span>
+      </a>
+      <a href="https://example.com/" target="_blank" rel="noopener">
+        <span>Blog – migrating to server components<small>martanowak.dev</small></span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+
+    <p class="note">Sessions are live text chat only – no video. There are no ratings here; check my public work instead.</p>
+  </section>
+
+  <aside class="card booking">
+    <form onsubmit="event.preventDefault(); alert('Demo: next step is card payment via Stripe.');">
+      <h2>Choose session length</h2>
+      <div class="lengths">
+        <label class="option">
+          <input type="radio" name="length" value="25" checked>
+          <span>25 min<strong>120 zł</strong></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="length" value="50">
+          <span>50 min<strong>220 zł</strong></span>
+        </label>
+      </div>
+
+      <h2>Pick a time</h2>
+      <div class="day">Tuesday, 20 Oct</div>
+      <div class="slots">
+        <label class="slot"><input type="radio" name="slot" value="2026-10-20T12:00"><span>12:00</span></label>
+        <label class="slot"><input type="radio" name="slot" value="2026-10-20T13:00"><span>13:00</span></label>
+        <label class="slot"><input type="radio" name="slot" value="2026-10-20T17:30"><span>17:30</span></label>
+      </div>
+      <div class="day">Wednesday, 21 Oct</div>
+      <div class="slots">
+        <label class="slot"><input type="radio" name="slot" value="2026-10-21T09:00"><span>09:00</span></label>
+        <label class="slot"><input type="radio" name="slot" value="2026-10-21T12:30"><span>12:30</span></label>
+      </div>
+      <div class="day">Thursday, 22 Oct</div>
+      <div class="slots">
+        <label class="slot"><input type="radio" name="slot" value="2026-10-22T18:00"><span>18:00</span></label>
+      </div>
+
+      <label class="field" for="question">Your question</label>
+      <textarea id="question" name="question" required placeholder="What are you stuck on, what have you tried, and when is your deadline?"></textarea>
+      <div class="hint">Marta reads this before accepting.</div>
+
+      <button type="submit">Continue to payment – 120 zł</button>
+
+      <ul class="fine">
+        <li>You pay by card now. Full refund if Marta declines or doesn't accept before the slot.</li>
+        <li>You can cancel for a full refund until she accepts.</li>
+        <li>Times shown in your time zone. Bookings need at least 3 hours' notice.</li>
+      </ul>
+    </form>
+  </aside>
+</main>
+
+<script>
+  const btn = document.querySelector('button[type=submit]');
+  document.querySelectorAll('input[name=length]').forEach(r =>
+    r.addEventListener('change', () => {
+      btn.textContent = 'Continue to payment – ' + (r.value === '25' ? '120 zł' : '220 zł');
+    })
+  );
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./FormField.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# FormField and Label
+
+## 1. Purpose
+Tells the user what to type, how, and what went wrong — next to the field, in words.
+
+## 2. When to use
+- Every typed field: „Imię”, „Twoje pytanie” (#17); „Imię i nazwisko”, „Link do publicznej pracy”, „Opis”, „Cena za 25 min”, „Cena za 50 min”, „Adres strony” (#14); „Strefa czasowa” (#15).
+- `Label` alone only for a custom group where `FormField` does not fit.
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| A group of options (25/50, slots) | `RadioGroup` with its own legend | WAI-ARIA radio group |
+| An error about the whole form or the server | `Alert` above the form | Spec #17 (errors inline + `aria-live`) |
+| A placeholder as the only name | Never — the label is always visible | Prompt (Form pattern), WCAG 3.3.2 |
+
+## 4. Anatomy
+Label (required, 600) → optional „(opcjonalnie)” → control (exactly one) → optional hint (meta, muted) → optional error (meta, danger, icon + words).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| Required (default) | Almost every field in the product; no mark | S12 (proposal) |
+| `optional` | The few optional fields; „(opcjonalnie)” in words | S12, WCAG 3.3.2 |
+| With `hint` | When the field needs one sentence of help („Mentor zobaczy tylko imię.”) | Spec #17 Q5 |
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default / with hint | Label 600, hint muted under the control | P7, R02.3 |
+| Error | Control border `status-danger` + message in words with an icon; never colour alone | WCAG 3.3.1, 1.4.1; specs #14, #17 |
+| Hover, focus, pressed, disabled, loading | Belong to the control (`TextInput`, `Textarea`, `Select`). | — |
+
+## 7. Behaviour and accessibility
+- `<label for>` is tied to the control; clicking the label focuses it.
+- `aria-describedby` = error + hint (error first, so it is read first); `aria-invalid` when there is an error; `required` unless `optional`.
+- Validation runs on blur and on submit; after a failed submit the form moves focus to the first invalid field (Form pattern, stage 3). Source: spec #14, #17.
+
+## 8. Content
+- Label: noun phrase, 1–4 words, no colon. Hint: one sentence. Error: what happened + what to do, e.g. „Dodaj link do publicznej pracy”, „Ten adres jest zajęty”. Source: specs #14, P29.
+- Long labels wrap; they are never cut.
+
+## 9. Responsiveness
+Stacked at every width (label above control) — no side labels, so 320 px works without change.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<FormField label="Imię" hint="Mentor zobaczy tylko imię." error={errors.menteeName}>
+  <TextInput name="menteeName" autoComplete="given-name" defaultValue={values.menteeName} />
+</FormField>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Visible label „Link do publicznej pracy” and an example in the placeholder. | Placeholder „Link” as the only name — it disappears when typing. |
+| „Dodaj link do publicznej pracy” under the field. | „Błąd” or a red border alone. |
+
+## 13. Related
+- Confused with: `Alert` (form-level errors).
+- Used in: Form pattern, Mentor page editor, Request form, Availability editor.

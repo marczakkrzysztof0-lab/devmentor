@@ -1,0 +1,39 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { Check, CircleAlert, Copy, ExternalLink, LoaderCircle, Plus, X } from "lucide-react";
+import { Preview } from "../../.storybook/blocks";
+
+<Meta title="Foundations/Icons" />
+
+# Icons
+
+Library: **lucide-react** (P1). Icons support words; they never replace them.
+
+| Size | Token | Class | Use for | Source |
+|---|---|---|---|---|
+| 16 px | `--ds-icon-size-sm` | `size-icon-sm` | Next to 14–16 px text: links, metadata, "+ okno" | P1 |
+| 20 px | `--ds-icon-size-md` | `size-icon-md` | Buttons and alerts | P1 |
+
+Icons draw in `currentColor`, so they take the text colour of their context.
+
+<Unstyled>
+  <Preview>
+    <ul className="flex flex-col gap-in-group">
+      <li className="flex items-center gap-inline"><Copy aria-hidden="true" className="size-icon-sm" /> Kopiuj link</li>
+      <li className="flex items-center gap-inline text-link"><ExternalLink aria-hidden="true" className="size-icon-sm" /> github.com/annak</li>
+      <li className="flex items-center gap-inline"><Plus aria-hidden="true" className="size-icon-sm" /> okno</li>
+      <li className="flex items-center gap-inline text-status-success"><Check aria-hidden="true" className="size-icon-md" /> Opłacone</li>
+      <li className="flex items-center gap-inline text-status-danger"><CircleAlert aria-hidden="true" className="size-icon-md" /> Nie udało się wczytać terminów — odśwież stronę</li>
+      <li className="flex items-center gap-inline"><LoaderCircle aria-hidden="true" className="size-icon-md" /> Czekamy na potwierdzenie płatności</li>
+      <li className="flex items-center gap-inline"><X aria-hidden="true" className="size-icon-sm" /> The only icon used alone: needs an aria-label such as „Usuń okno wtorek 18:00–20:00”</li>
+    </ul>
+  </Preview>
+</Unstyled>
+
+## When an icon needs a label
+
+| Situation | Rule | Source |
+|---|---|---|
+| Icon next to text | The icon gets `aria-hidden="true"`; the text is the accessible name. | P1, WAI-ARIA |
+| Icon alone | Only "×" for removing a time window. It gets an `aria-label` naming the object and a target of at least 24 × 24 px. | P1, WCAG 2.5.8, 4.1.2 |
+| State | Never an icon or a colour alone; the state is written in words. | R01.6, WCAG 1.4.1 |
+| Forbidden | `Sparkles` and other AI symbols, emoji instead of icons, camera and microphone icons. | A01, R02.5, A06 |

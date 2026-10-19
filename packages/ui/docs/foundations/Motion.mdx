@@ -1,0 +1,26 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { TokenValue } from "../../.storybook/blocks";
+
+<Meta title="Foundations/Motion" />
+
+# Motion
+
+Fast and calm: motion confirms that something reacted; it never decorates. Source: DK3, R02.2, P3 (calm).
+
+| Token | Current value | Use for | Not for | Source |
+|---|---|---|---|---|
+| `--ds-duration-control` | <TokenValue name="--ds-duration-control" /> | Hover, the 25/50 switch, button press | Opening dialogs | DK3 |
+| `--ds-duration-menu` | <TokenValue name="--ds-duration-menu" /> | Select lists (time zone, hours) | Buttons | DK3 |
+| `--ds-duration-dialog` | <TokenValue name="--ds-duration-dialog" /> | Confirmation dialog ("Na pewno?") | Chat messages | DK3 |
+| `--ds-ease-standard` (`ease-standard`) | <TokenValue name="--ds-ease-standard" /> | Every transition | — | P2 |
+
+In a component: `transition-colors duration-(--ds-duration-control) ease-standard`.
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| With `prefers-reduced-motion: reduce` all three durations are `0ms`. This is set in the tokens file, so components need no extra code. | DK3, WCAG 2.3.3 |
+| Chat messages appear immediately, without an entrance animation. | DK3, R02.2 |
+| Nothing moves on its own: no looping animation, no animated gradient. | A01, P3 |
+| Animate colour, opacity and small transforms only; layout never jumps. | Proposal (P7) |

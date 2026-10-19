@@ -31,6 +31,8 @@ Developers prepay for help with a blocker that may resolve before the mentor ans
 
 ## 📝 Proposed Solution
 
+> **UI/UX:** copy neutralized per design system Content rule C12, 2026-10-19 — UI copy uses gender-neutral forms (e.g. „Pytanie zostało właśnie zaakceptowane”, „Brak odpowiedzi mentora przed terminem”, „kopia jest też w e-mailu z potwierdzeniem”); see `docs/design-system.md` and Storybook › Content.
+
 One server action, one conditional update: `UPDATE requests SET status = 'cancelled', cancelled_at = now() WHERE access_token_hash = $hash AND status = 'awaiting_mentor' RETURNING id, payment_id`; in the same transaction `requestRefund(tx, paymentId, 'mentee_cancelled')` (#24); after commit `executeRefund`. Accept, decline and lapse (#18) guard the same row with `status = 'awaiting_mentor'`; PostgreSQL re-checks the `WHERE` after a blocked lock, so the first committed transition wins and the rest update nothing. Zero rows → re-read by token and answer with the current state (API Contracts).
 
 Rejected: a "cancelling" intermediate state or application locks (same guarantee, more states); `SERIALIZABLE` (retries for no gain on a single-row guard); a slot-time cutoff for cancel (contradicts D05).

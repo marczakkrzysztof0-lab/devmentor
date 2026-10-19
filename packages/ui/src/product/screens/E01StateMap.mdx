@@ -1,0 +1,36 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Product/E01 Mentor page/Screens state map" />
+
+# E01 Mentor page – Screens state map
+
+Which story shows which state of each E01 screen. Every story is full screen and uses only components from `@devmentor/ui` and `@devmentor/ui/product` with spec data. Generated from the built Storybook index by `npm run state-map` (run `build-storybook` first); regenerate when adding a screen story.
+
+<table>
+  <thead>
+    <tr><th scope="col">Screen</th><th scope="col">Route</th><th scope="col">Spec</th><th scope="col">State</th><th scope="col">Story</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>S1 Invitation</td><td><code>/invite/[token]</code></td><td>#14</td><td>valid link</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-1-valid" target="_top">s-1-valid</a></td></tr>
+    <tr><td>S1 Invitation</td><td><code>/invite/[token]</code></td><td>#14</td><td>accepting</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-1-accepting" target="_top">s-1-accepting</a></td></tr>
+    <tr><td>S1 Invitation</td><td><code>/invite/[token]</code></td><td>#14</td><td>expired, used or unknown</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-1-inactive" target="_top">s-1-inactive</a></td></tr>
+    <tr><td>S1 Invitation</td><td><code>/invite/[token]</code></td><td>#14</td><td>no network</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-1-network" target="_top">s-1-network</a></td></tr>
+    <tr><td>S2 Sign-in</td><td><code>/sign-in/[token]</code></td><td>#14</td><td>valid link</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-2-valid" target="_top">s-2-valid</a></td></tr>
+    <tr><td>S2 Sign-in</td><td><code>/sign-in/[token]</code></td><td>#14</td><td>inactive link</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-2-inactive" target="_top">s-2-inactive</a></td></tr>
+    <tr><td>S3 /mentor</td><td><code>/mentor (no session)</code></td><td>#14</td><td>no session (invitation only)</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-3-no-session" target="_top">s-3-no-session</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>first visit</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-first-visit" target="_top">s-4-first-visit</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>publish → share link</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-publish" target="_top">s-4-publish</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>publishing</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-publishing" target="_top">s-4-publishing</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>address taken</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-slug-taken" target="_top">s-4-slug-taken</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>server error</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-server-error" target="_top">s-4-server-error</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>no network</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-network" target="_top">s-4-network</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>published, editing</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-published" target="_top">s-4-published</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>published, no availability</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-no-availability" target="_top">s-4-no-availability</a></td></tr>
+    <tr><td>S4 Editor</td><td><code>/mentor</code></td><td>#14, #15</td><td>320 px</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-4-narrow" target="_top">s-4-narrow</a></td></tr>
+    <tr><td>S5 Availability</td><td><code>/mentor/availability</code></td><td>#15</td><td>set</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-5-set" target="_top">s-5-set</a></td></tr>
+    <tr><td>S5 Availability</td><td><code>/mentor/availability</code></td><td>#15</td><td>empty</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-5-empty" target="_top">s-5-empty</a></td></tr>
+    <tr><td>S5 Availability</td><td><code>/mentor/availability</code></td><td>#15</td><td>zone being changed</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-5-zone-differs" target="_top">s-5-zone-differs</a></td></tr>
+    <tr><td>S5 Availability</td><td><code>/mentor/availability</code></td><td>#15</td><td>save failed</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-5-server-error" target="_top">s-5-server-error</a></td></tr>
+    <tr><td>S5 Availability</td><td><code>/mentor/availability</code></td><td>#15</td><td>320 px</td><td><a href="./?path=/story/product-e01-mentor-page-screens--s-5-narrow" target="_top">s-5-narrow</a></td></tr>
+  </tbody>
+</table>

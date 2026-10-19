@@ -1,0 +1,20 @@
+<!-- Rule 10: only the product name in the Storybook UI, including the browser tab title. -->
+<title>DevMentor</title>
+<link rel="icon" href="./favicon.ico" data-devmentor="true" />
+<script>
+  (function () {
+    var fix = function () {
+      var t = document.title;
+      var next = t.replace(/\s*⋅\s*Storybook$/, " ⋅ DevMentor").replace(/^storybook - Storybook$/, "DevMentor");
+      if (next !== t) document.title = next;
+    };
+    new MutationObserver(fix).observe(document.querySelector("title"), { childList: true, characterData: true, subtree: true });
+    fix();
+    // P9: keep only the product favicon.
+    var dropStorybookIcons = function () {
+      document.querySelectorAll("link[rel~=\"icon\"]:not([data-devmentor])").forEach(function (l) { l.remove(); });
+    };
+    dropStorybookIcons();
+    document.addEventListener("DOMContentLoaded", dropStorybookIcons);
+  })();
+</script>

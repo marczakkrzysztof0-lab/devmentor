@@ -1,0 +1,66 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Contributing" />
+
+# Contributing: how to change the system
+
+## Add a component, a variant, or nothing?
+
+| Situation | Decision | Source |
+|---|---|---|
+| The same need appears in at least two places (screens or components) | Add a component | Prompt (stage 4) |
+| An existing component almost fits, the difference is meaning (not looks) and appears twice | Add a variant, with its "when to choose" | Prompt rule 6 |
+| One screen wants something different | Change the screen, not the system; if it is a real gap, add it to What is missing | Prompt rule 6 |
+| It is only a different colour, size or radius | Nothing — use tokens; ask for a token change if a value is missing | Prompt rule 3 |
+
+Example of the second-use rule: the label–value list existed only inside `RequestSummary`; the payouts draft needed it again, so it became the primitive `DescriptionList` (A1, 2026-10-19).
+
+## Where code lives: components, screens, drafts (C8, D5)
+
+| What | Where | Name |
+|---|---|---|
+| Primitive | `packages/ui/src/components/<kebab-name>/` (component, `.stories.tsx`, `.mdx`) | `Primitives/<Name>` |
+| Product component | `packages/ui/src/product/e<NN>/` — folder per epic number (`e01`, `e02`, `e04`), not per feature name | `Product/E<NN> <Epic>/…` |
+| Shared product pieces | `packages/ui/src/product/shared/` | — |
+| Screen (a route of the app) | Composition in `packages/ui/.storybook/screens.tsx` + stories in `src/product/screens/E<NN>Screens.stories.tsx`, named `S<n> <Screen> · <state>`; the app route builds the same composition | `Product/E<NN> <Epic>/Screens` + state map (`npm run state-map`) |
+| Pattern | `packages/ui/src/patterns/<Name>.stories.tsx` + `.mdx` | `Patterns/<Name>` |
+| Draft (no spec yet, e.g. from an agent test) | `src/product/e<NN>/`, **not exported** from `src/product/index.ts`, title ends with „(draft)”, listed in What is missing | `Product/E<NN> <Epic> (draft)/…` |
+
+## What a new component must have
+
+1. Code in `src/components/<name>/` (primitives) or `src/product/<epic>/` (product), styles only from tokens, exported from `src/index.ts` or `src/product/index.ts`.
+2. A documentation page with the 13 sections (purpose; when; when not; anatomy; variants; states incl. how a disabled state explains itself; behaviour and accessibility; content; responsiveness 320/768/1440; API; code; do and don't; related). Product components: a row in the epic's Components page with screens, data states and rules.
+3. Stories: Playground, every variant, state matrix with `data-preview-state`, long content and 320 px, a play function for the main behaviour. Product components: loading, empty, error, partial, lots of data, long text where they make sense; forms: pending, field error, server error, no network, success.
+4. Every rule with a source (reference, anti-reference, brief or spec decision, WCAG, WAI-ARIA) or marked as a proposal.
+5. Example data from the brief and specs only; no lorem ipsum, no invented ratings or numbers; gender-neutral Polish (C12).
+
+## Changing a token
+
+1. Change the value only in `src/styles/tokens.css` and write its source in the comment.
+2. Open Foundations/Color — the contrast table must stay at 0 failing pairs; `Contrast check` runs it as a test.
+3. Run `npm run test:themes` (axe in both themes) and look at the state matrices of Button, RadioGroup, TextInput.
+4. Never rename a semantic token without updating `src/lib/cn.ts` (tailwind-merge groups) and `docs/design-system.md`.
+
+## Who approves
+
+Krzysztof Marczak (brief owner) approves new components, variants, tokens and copy; until stage 5 decisions were delegated to the coordinator agent and recorded with dates in `packages/ui/POSTEP.md`. Every decision goes to POSTEP.md.
+
+## Commands
+
+| Command (in `packages/ui`) | What it does |
+|---|---|
+| `npm run storybook` | Storybook on port 6006 |
+| `npm run build-storybook` | Static build in `storybook-static/` |
+| `npm test` | All stories as tests in Chromium (render, play, axe) |
+| `npm run test:themes` | The same in the light and the dark theme |
+| `npm run check:tokens` | Fails on colours outside tokens, palette classes, arbitrary values, numeric spacing |
+| `npm run typecheck` | TypeScript for the package |
+| `npm run state-map` | Regenerates the screen state maps from the built Storybook |
+
+From the repository root: `npm run storybook`, `npm run build-storybook`, `npm run test:storybook`, `npm run test:storybook:themes`, `npm run check:tokens`, `npm run typecheck:ui`, `npm run lint`.
+
+CI (`.github/workflows/ci.yml`): job `tokens` runs `npm run check:tokens` (packages/ui and app/); job `storybook` installs Chromium, runs `npm run typecheck:ui` and `npm run test:storybook:themes`. A red job blocks the merge.
+
+## Technical note: where the base comes from
+
+The primitives follow the structure of shadcn/ui (new-york style, Tailwind 4): `class-variance-authority` + `cn` (`clsx` + `tailwind-merge`) over `radix-ui` primitives (Label, Select, RadioGroup, AlertDialog, Slot). They were written by hand instead of with the shadcn CLI, because the CLI adds `tw-animate-css` and default variables that the tokens replace. Behaviour and accessibility come from Radix; the look comes only from DevMentor tokens and decisions (stage 2 table in POSTEP.md). Icons: lucide-react (P1). Fonts: Geist and Geist Mono, local files in Storybook (P3), `next/font` in the app.

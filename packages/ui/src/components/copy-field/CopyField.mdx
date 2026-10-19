@@ -1,0 +1,70 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./CopyField.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# CopyField
+
+## 1. Purpose
+Gives the user a link they must keep or share, in full, with one button to copy it.
+
+## 2. When to use
+- After publishing: the mentor's share link with „Kopiuj link” and the hint „Wklej go tam, gdzie ludzie już cię pytają”; focus moves to it (#14).
+- On `/r/{token}`: „Zapisz ten link — kopia jest też w e-mailu z potwierdzeniem” with „Kopiuj link” (#17).
+- In the empty request list: the share link again (#18).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| A link the user should click | `TextLink` | — |
+| Editable text | `TextInput` | — |
+
+## 4. Anatomy
+Label → read-only field (mono, `surface-code`, full value) + „Kopiuj link” button (icon + text) → optional hint → live message („Skopiowano.” / manual-copy instruction).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+One variant; the label and hint change with the place (share link, request link).
+
+## 6. States
+| State | Look | Source |
+|---|---|---|
+| Idle | Field + „Kopiuj link” (copy icon) | Spec #14 |
+| Copied | Check icon, „Skopiowano.” in `status-success`, announced politely | WCAG 4.1.3 |
+| Copy blocked | Link is selected; „Nie udało się skopiować — link jest zaznaczony, skopiuj go ręcznie (Ctrl+C).” in `status-danger` | S17 (proposal) |
+| Focus | Field: selects the whole link + 2 px `focus-ring`; button: see Button | WCAG 2.4.7 |
+| Hover, pressed | Of the button | — |
+| Disabled, loading | Not applicable — the link exists before the field is shown. | — |
+
+The copied and blocked states appear in the two test stories.
+
+## 7. Behaviour and accessibility
+- Field is a labelled, read-only textbox (selectable, readable by screen readers); focusing it selects the full link.
+- The result is announced through a polite live region; no toast (P5).
+- `autoFocus` only right after publishing, as the spec requires („focus moved to it”).
+
+## 8. Content
+- Show the full URL, never shortened. Label says what the link is; hint says what to do with it. Source: spec #14, #17.
+- Button: „Kopiuj link” (verb + object).
+
+## 9. Responsiveness
+At 320 px the button wraps under the field; the field scrolls its text, never cuts it.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<CopyField label="Twój link" value={shareUrl} hint="Wklej go tam, gdzie ludzie już cię pytają." autoFocus />`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Full link + „Kopiuj link” + a hint where to paste it. | Only a copy icon with no visible link. |
+| „Skopiowano.” next to the field. | A toast in a corner the user does not look at. |
+
+## 13. Related
+- Confused with: `TextInput` (readOnly), `TextLink`.
+- Used in: Share link pattern, Request status page, Grouped list (empty).

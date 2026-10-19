@@ -1,0 +1,91 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="How to choose" />
+
+# How to choose
+
+"If … then use …" tables with an example from DevMentor. When nothing fits, see **What is missing** — do not invent a component on the screen.
+
+## Button, link, icon button, menu of actions
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| it is the one action the screen exists for | `Button variant="primary"` | „Zapłać 150 zł i wyślij pytanie” | R01.5, P18 |
+| it is any other action | `Button variant="secondary"` | „Odrzucam”, „Zapisz szkic” | S4 |
+| it goes to another page or site | `TextLink` (or `Button asChild` when it must look like an action) | „Dostępność”, „github.com/annak” | WAI-ARIA link vs button |
+| it removes one item in a repeated row | `IconButton` with a named label | „×” „Usuń okno wtorek 18:00–20:00” | P1 |
+| it leaves DevMentor for the provider's page (a server action creates the link) | `HostedRedirectAction` (Button + hint „Otworzy się strona Stripe…”), not `TextLink` | „Skonfiguruj wypłaty w Stripe” | C2, A4 |
+| several actions belong to one object | Not in the system — show them as buttons; a menu is in What is missing | — | P5 |
+
+## Radio, select, field with search
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| 2–5 options that must all stay visible | `RadioGroup` (`segmented` for 2–3 short ones) | 25 / 50 min with prices | R07, tokeny.md |
+| more options, one per row | `RadioGroup` list with `groups` | slots by day | #16, #17 |
+| a long list the user knows by name | `Select` | time zone, hour | #15 |
+| hundreds of options found by typing | Combobox — not in the system (What is missing) | — | P5 |
+
+## Switch and checkbox
+
+| If… | Use | Source |
+|---|---|---|
+| an on/off setting or an agreement | Not needed in E01–E02; both are in What is missing. Do not use a RadioGroup with two options as a switch for settings. | P5 |
+
+## Dialog, confirmation, side panel, separate page, popover, tooltip
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| the action cannot be undone | `ConfirmDialog` | „Odrzucić to pytanie?” | #18, #19, P4 |
+| it is a form or more content | A separate page | page editor, availability | P5 (no generic dialog) |
+| it needs a side panel | Not in the system (no sidebar, R02.6) | — | R02.6 |
+| a short explanation is needed to act | Text on the page (hint, `Alert`) — never a tooltip or popover | „Tyle zapłaci deweloper.” | Prompt (tooltip with essential info = mistake), P5 |
+
+## Not available yet: StateMessage or disabled button
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| the whole feature waits for a business condition the user cannot meet on this screen | `StateMessage kind="empty"`: why + the next step, no disabled button | „Wypłaty skonfigurujesz po pierwszym opłaconym pytaniu” + share link | B3; D07, R13 |
+| one action waits for input on the same screen | `Button disabledReason` | „Wybierz termin, żeby przejść do płatności.” | B3; S6 |
+
+## Info, attention, danger
+
+| If… | Use | Source |
+|---|---|---|
+| worth knowing, nothing to do | `Alert info` / `StatusText neutral` | D7 |
+| someone else or time has to act | `StatusText waiting` | R01.6 |
+| the viewer must act before something continues, nothing failed | `Alert attention` / `StatusText attention` | B1 |
+| something failed | `Alert danger` / `StatusText danger` | WCAG 4.1.3 |
+
+## Field error, alert, toast
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| one field is wrong | `FormField error` | „Dodaj link do publicznej pracy” | WCAG 3.3.1 |
+| the whole form failed or something changed | `Alert` above the button | „Ten termin właśnie się zajął — wybierz inny” | #17 |
+| a region is empty or failed to load | `StateMessage` | „Nie udało się wczytać zapytań — odśwież” | #18 |
+| a quick confirmation after a click | Inline text next to the control | „Skopiowano.” | P5 |
+| an error needs action | **Never a toast** | — | Prompt |
+
+## Skeleton and spinner
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| content with a known shape is loading | `Skeleton` | slot list, request list | S8 |
+| the user waits for an answer to their action | `Button loading` or `Spinner` with words | „Czekamy na potwierdzenie płatności” | #17 |
+
+## Table, list, cards
+
+| If… | Use | Example | Source |
+|---|---|---|---|
+| many items of one kind | `List` + `ListRow` (grouped by state when it helps) | `/mentor/requests` | R01.1, R01.3 |
+| label–value facts of one object | `DescriptionList` (one fact may be `emphasis` — the main amount) | Termin, Sesja, Kwota; Do wypłaty | R01.3, A1, A3 |
+| a grid of cards | Never — cards with shadows and a catalogue are anti-references | — | A01, A04 |
+| a data table with columns | Not needed in E01–E02 (What is missing) | — | — |
+
+## Tabs and separate pages
+
+| If… | Use | Source |
+|---|---|---|
+| the mentor switches between Zapytania, Strona, Dostępność | Separate pages with `MentorNav` | R02.6, P22 |
+| grouping inside one page | Headings and space, not tabs (tabs are in What is missing) | P5 |

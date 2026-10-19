@@ -1,0 +1,98 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Button.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Button
+
+## 1. Purpose
+Lets the user start one clear action and see that it is happening — for example pay and send a question.
+
+## 2. When to use
+- The one main action of a screen: „Zapłać 150 zł i wyślij pytanie” (#17), „Akceptuję” (#18), „Opublikuj stronę” (#14), „Akceptuję zaproszenie” (#14) → `primary`.
+- Every other action next to it: „Odrzucam”, „Zapisz szkic”, „Wybierz inny termin”, „Anuluj i odzyskaj 150 zł” → `secondary`.
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Going to another page or site (navigation) | `TextLink` (or `Button asChild` only when it must look like an action, e.g. „Dostępność” in a banner) | WAI-ARIA (link vs button) |
+| A second `primary` on the same screen | `secondary` | R01.5, P18 |
+| Removing a row item without text | `IconButton` | P1 |
+| Choosing between options (25/50 min, a slot) | `RadioGroup` | WAI-ARIA radio group, tokeny.md (25/50 switch) |
+
+## 4. Anatomy
+Container (border, fill) → optional `Spinner` (only while `loading`) → label (required). Optional: reason text under the button when `disabledReason` is set.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| `primary` | Exactly one per screen: the action the screen exists for. | R01.5, P18, DK1 |
+| `secondary` | Every other action. Declining and cancelling are `secondary` too (no "danger" variant: the error colour is too close to the action colour). | S4 (proposal), tokeny.md |
+| `fullWidth` | Only the main action of the developer's narrow pages (`/m/{slug}`, `/r/{token}` — `PageLayout width="narrow"`), at every width (the column is narrow anyway). Mentor screens (`wide`) keep the natural width. No responsive variant: the prop stays boolean | K2; C7 (derived from K1 – dense mentor screens vs calm developer pages, 2026-10-19) |
+
+One size only (40 px high from tokens: 24 px line + 2 × 8 px). Source: S1 (proposal).
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | `primary`: action fill + `text-on-action`; `secondary`: panel fill + `border-control` | DK1, R01.3 |
+| Hover / pressed | `primary`: `action-primary-fill-hover`; `secondary`: `surface-code` | DK1; S5 (proposal) |
+| Focus | 2 px `focus-ring` outline with a 2 px gap | WCAG 2.4.7 |
+| Loading | Spinner before the unchanged label, `aria-busy`, clicks ignored → no double submit | Spec #17 |
+| Disabled | `aria-disabled` (stays focusable), muted look, and **the reason in words under the button** via `disabledReason` (also its accessible description). A disabled button without a reason is not allowed. | Prompt (stage 2), WCAG 3.3.2; look – S6 |
+| Selected, error | Not applicable: a button has no selected or error state; errors are shown at the field or in an `Alert`. | — |
+
+## 7. Behaviour and accessibility
+- Keyboard: Tab focuses, Enter and Space activate (native `<button>`). `type="button"` by default; set `type="submit"` in forms.
+- Focus order follows the DOM; with `disabledReason` the button stays in the tab order so the reason can be heard.
+- Screen reader: role button, the label as name; „busy” while loading; the reason as description.
+- Target: 40 px high, at least 24 × 24 px. Source: WCAG 2.5.8.
+
+## 8. Content
+- Verb + object, with the exact amount when money moves: „Zapłać 150 zł i wyślij pytanie”, never „OK” or „Dalej”. Source: R01.5, P29.
+- At most about 40 characters; the label wraps on narrow screens rather than being cut (see the 320 px story).
+- Amounts in the label use the same formatting as prices („150 zł”, `Intl.NumberFormat('pl-PL')`). Source: spec #16 Q6.
+- Translation: Polish labels are already long; keep the action word first so a longer language still starts with the verb.
+
+## 9. Responsiveness
+| Width | Behaviour |
+|---|---|
+| 320 px | Label wraps; `fullWidth` for the main action. |
+| 768 px | Natural width; actions in a row with `gap-in-group`. |
+| 1440 px | Natural width; never stretched across the page. |
+
+<Canvas of={Stories.LongLabelNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+Minimal:
+<Source language="tsx" code={`<Button variant="primary">Akceptuję</Button>`} />
+
+Typical (request form, #17):
+<Source language="tsx" code={`<Button
+  type="submit"
+  variant="primary"
+  fullWidth
+  loading={submitting}
+  disabledReason={slot ? undefined : "Wybierz termin, żeby przejść do płatności."}
+>
+  Zapłać {formatPLN(price)} i wyślij pytanie
+</Button>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| One `primary` („Akceptuję”) with a `secondary` („Odrzucam”) — the main action is obvious. | Two `primary` buttons side by side — nothing is the main action (R01.5). |
+| „Zapłać 150 zł i wyślij pytanie” — says what happens and how much. | „Dalej” / „OK” — says nothing about the money (P29). |
+| Loading state with the label kept — the user knows what is being sent. | Replacing the label with only a spinner — the user loses context. |
+| `disabledReason="Wybierz termin…"` — the user knows what to do. | A greyed-out button with no reason (prompt, What to avoid). |
+
+## 13. Related
+- Confused with: `TextLink` (navigation), `IconButton` (icon-only), `RadioGroup` segmented (choice).
+- Used in patterns: Form, Confirm irreversible decision, Request status page, Share link.

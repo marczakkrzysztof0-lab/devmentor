@@ -1,0 +1,66 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Usage and accessibility" />
+
+# Usage and accessibility
+
+Every rule has its source. Tests: every story runs axe with `a11y: { test: "error" }` in both themes (`npm run test:themes`).
+
+## Keyboard and focus
+
+| Rule | Source |
+|---|---|
+| Everything works with the keyboard: native `button`/`a`/`input`, Radix for radio groups, selects and dialogs | WCAG 2.1.1, WAI-ARIA APG |
+| Focus is always visible: 2 px `focus-ring` outline with a 2 px gap | WCAG 2.4.7, tokeny.md |
+| Focus order follows the reading order (DOM); no positive `tabindex` | WCAG 2.4.3 |
+| After a failed submit focus goes to the first invalid field (or the chosen radio) | #14, #17 |
+| After publishing focus goes to the share link | #14 |
+| Dialogs: focus moves in, starts on „Wróć”, Esc closes, focus returns to the trigger | WAI-ARIA alertdialog, S11 |
+| Wide code blocks are focusable so they can be scrolled | WCAG 2.1.1 |
+| Targets at least 24 × 24 px (controls are 40 px high) | WCAG 2.5.8, S1 |
+
+## Forms and messages
+
+| Rule | Source |
+|---|---|
+| Labels always visible; placeholders are examples | WCAG 3.3.2 |
+| Errors in words next to the field, linked by `aria-describedby`; form-level errors in an `Alert` (`role="alert"`) | WCAG 3.3.1, 4.1.3 |
+| Input is never lost on an error | #14, #17 |
+| Validate on blur and on submit | Prompt |
+| A disabled action says why in words (`disabledReason`) | Prompt, S6 |
+| Optional fields are marked „(opcjonalnie)”; required ones are not marked | S12 |
+
+## Colour, motion, content
+
+| Rule | Source |
+|---|---|
+| Text ≥ 4,5 : 1, UI parts ≥ 3 : 1 in both themes — measured on Foundations/Color | WCAG 1.4.3, 1.4.11 |
+| Colour is never the only signal: states are words, chosen options have a check icon, links are underlined | WCAG 1.4.1, R01.6 |
+| Motion 120/180/240 ms, 0 ms with reduced motion; nothing loops except a spinner, which stops with reduced motion | DK3, P7, S9 |
+| Status changes are announced politely; errors assertively | WCAG 4.1.3, S19 |
+| Icons next to text are hidden from screen readers; an icon alone has a name with the object | P1 |
+| Text is Polish (`lang="pl"`), documentation English | Specs |
+
+## Layout at different widths
+
+| Width | Rule | Source |
+|---|---|---|
+| 320 px | One column, no horizontal page scroll, 16 px gutter; long words and links break | WCAG 1.4.10, K2 |
+| 375 × 812 | On `/m/{slug}` identity, public work and both prices fit the first screen | K2, #16 |
+| 768 px | 32 px gutter | K2 |
+| 1440 px | Content within 1024 px (`max-w-page`), text within 65 ch, left-aligned | P6 |
+
+## Product rules the interface enforces
+
+| Rule | Where | Source |
+|---|---|---|
+| No ratings, reviews, stars, session counts anywhere | all screens | N02, A03 |
+| No catalogue, search or "other mentors"; `/m` has no list | share page | D03, A04 |
+| Prices visible before any question field | `/m/{slug}` | R07 |
+| The pay button shows the exact amount | request form | #17 |
+| Cancel only before acceptance; after it, say why there is no button | `/r/{token}` | D05, #19 |
+| Refund words follow the data („zlecony” only when requested) | `/r/{token}`, request detail | #18, C9 |
+| The mentor sees the developer's first name only, never the e-mail | mentor screens | #17 Q5 |
+| Only one counter: „N zapytań czeka na decyzję” in the mentor navigation | `MentorNav` | R01.6, P19 |
+| No emoji, no exclamation marks | all copy | R02.5, P29 |
+| No sign-up or password; access by invitation link | mentor screens | #14, D09 |

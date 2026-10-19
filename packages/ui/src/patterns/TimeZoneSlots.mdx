@@ -1,0 +1,34 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./TimeZoneSlots.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Time-zone-aware slots
+
+Mentor and developer can be in different zones; a slot is stored in UTC and always shown in the zone of the person looking at it (#15, #16, #17).
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| The developer sees slots in the browser's zone, and the zone is printed in the heading: „Najbliższe terminy (twoja strefa: Europe/Warsaw)” | Spec #16 |
+| Unknown or invalid zone → UTC, labelled „(czas UTC)” | Spec #16 |
+| The mentor edits and previews in the mentor's own zone; a window keeps its wall-clock time across DST („18:00” stays 18:00) | Spec #15 |
+| The date is always in the text of a slot, not only in the group heading (screen readers get „jutro, wtorek 20.10, 18:00”) | Spec #16 |
+| Choosing 50 min hides starts where 50 minutes do not fit | Spec #16 story 2 |
+| Times in Geist Mono; relative days only for today and tomorrow („dziś”, „jutro”), otherwise „czw. 22.10” | DK2; proposal C14 (day format) |
+
+## States
+
+| State | Story |
+|---|---|
+| Viewer's zone | viewer's zone in the heading |
+| Another zone | same slots seen from London |
+| Zone unknown | zone unknown → UTC, labelled |
+| DST change | DST change on 25.10 keeps the mentor's 18:00 |
+| Lots of slots | lots of slots, by day |
+
+<Canvas of={Stories.ZoneLondon} />
+<Canvas of={Stories.ZoneDst} />
+
+Components: `SlotList`, `SlotPreview`, `RadioGroup` (groups), `AvailabilityEditor`.

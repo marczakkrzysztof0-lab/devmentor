@@ -1,0 +1,246 @@
+/*
+ * DevMentor design tokens — the ONLY file allowed to contain literal colours,
+ * pixel sizes and durations (rule 3, checked by `npm run check:tokens`).
+ *
+ * Three layers (lekcja-06/tokeny.md):
+ *   1. raw        --raw-*   palette and scales. Never used outside this file.
+ *   2. semantic   --ds-*    named by purpose; the only layer components use.
+ *   3. component  --ds-*    only where a component needs its own value.
+ * Section 4 maps semantic tokens to Tailwind utilities (bg-surface-page,
+ * text-muted, border-control, gap-in-group, rounded-control, ...).
+ *
+ * Themes: light by default, dark from `prefers-color-scheme` (DK4) unless the
+ * document forces a theme with `data-theme="light|dark"` on <html> (rule 9).
+ * Source codes: R = reference, A = anti-reference, K = conflict, DK = decision
+ * (lekcja-06/referencje.md); P = stage-0 decision (packages/ui/POSTEP.md).
+ */
+
+/* 1. Raw layer ----------------------------------------------------------- */
+:root {
+  --raw-stone-50: #fafaf9;
+  --raw-stone-100: #f5f5f4;
+  --raw-stone-200: #e7e5e4;
+  --raw-stone-400: #a8a29e;
+  --raw-stone-500: #78716c;
+  --raw-stone-600: #57534e;
+  --raw-stone-800: #292524;
+  --raw-stone-900: #1c1917;
+  --raw-stone-950: #0c0a09;
+  --raw-white: #ffffff;
+  --raw-terracotta-300: #f0875a;
+  --raw-terracotta-400: #e8794a;
+  --raw-terracotta-600: #b4441c;
+  --raw-terracotta-800: #9a3412;
+  --raw-green-400: #4ade80;
+  --raw-green-700: #15803d;
+  --raw-rose-400: #fb7185;
+  --raw-rose-700: #be123c;
+
+  --raw-space-1: 4px;
+  --raw-space-2: 8px;
+  --raw-space-3: 12px;
+  --raw-space-4: 16px;
+  --raw-space-5: 24px;
+  --raw-space-6: 32px;
+  --raw-space-7: 48px;
+
+  /* rem so text follows the user's browser font size; 1rem = 16px */
+  --raw-size-14: 0.875rem;
+  --raw-size-16: 1rem;
+  --raw-size-20: 1.25rem;
+  --raw-size-24: 1.5rem;
+
+  --raw-weight-400: 400;
+  --raw-weight-600: 600;
+
+  --raw-icon-16: 16px;
+  --raw-icon-20: 20px;
+
+  --raw-radius-4: 4px;
+  --raw-border-1: 1px;
+  --raw-border-2: 2px;
+
+  --raw-ms-120: 120ms;
+  --raw-ms-180: 180ms;
+  --raw-ms-240: 240ms;
+  --raw-ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+  --raw-measure-65: 65ch;
+  --raw-width-1024: 64rem;
+}
+
+/* 2a. Semantic colour — light theme (default) ---------------------------- */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --ds-surface-page: var(--raw-stone-50); /* DK1, R01.4; was --background */
+  --ds-surface-panel: var(--raw-white); /* DK1, R01.3 */
+  --ds-surface-code: var(--raw-stone-100); /* R01.2 */
+  --ds-surface-scrim: color-mix(in srgb, var(--raw-stone-950) 60%, transparent); /* P2 */
+  --ds-text-primary: var(--raw-stone-900); /* DK1; was --foreground */
+  --ds-text-muted: var(--raw-stone-600); /* R02.3, R01.1 */
+  --ds-text-on-action: var(--raw-white); /* DK1 */
+  --ds-text-link: var(--raw-terracotta-600); /* DK1, R01.5 */
+  --ds-border-divider: var(--raw-stone-200); /* R01.3 — decorative only, < 3:1 */
+  --ds-border-control: var(--raw-stone-500); /* R01.3, WCAG 1.4.11 */
+  --ds-action-primary-fill: var(--raw-terracotta-600); /* DK1, R01.5, P18 */
+  --ds-action-primary-fill-hover: var(--raw-terracotta-800); /* DK1 */
+  --ds-focus-ring: var(--raw-terracotta-600); /* WCAG 2.4.7 */
+  --ds-status-success-text: var(--raw-green-700); /* DK1, P19 */
+  --ds-status-danger-text: var(--raw-rose-700); /* specs #16–#18 error states */
+}
+
+/* 2b. Semantic colour — dark theme --------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ds-surface-page: var(--raw-stone-950);
+    --ds-surface-panel: var(--raw-stone-900);
+    --ds-surface-code: var(--raw-stone-800); /* T1 (2026-10-19): differs from surface-panel in dark */
+    --ds-text-primary: var(--raw-stone-100);
+    --ds-text-muted: var(--raw-stone-400);
+    --ds-text-on-action: var(--raw-stone-950);
+    --ds-text-link: var(--raw-terracotta-400);
+    --ds-border-divider: var(--raw-stone-800);
+    --ds-border-control: var(--raw-stone-500);
+    --ds-action-primary-fill: var(--raw-terracotta-400);
+    --ds-action-primary-fill-hover: var(--raw-terracotta-300);
+    --ds-focus-ring: var(--raw-terracotta-400);
+    --ds-status-success-text: var(--raw-green-400);
+    --ds-status-danger-text: var(--raw-rose-400);
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ds-surface-page: var(--raw-stone-950);
+  --ds-surface-panel: var(--raw-stone-900);
+  --ds-surface-code: var(--raw-stone-800); /* T1 (2026-10-19) */
+  --ds-text-primary: var(--raw-stone-100);
+  --ds-text-muted: var(--raw-stone-400);
+  --ds-text-on-action: var(--raw-stone-950);
+  --ds-text-link: var(--raw-terracotta-400);
+  --ds-border-divider: var(--raw-stone-800);
+  --ds-border-control: var(--raw-stone-500);
+  --ds-action-primary-fill: var(--raw-terracotta-400);
+  --ds-action-primary-fill-hover: var(--raw-terracotta-300);
+  --ds-focus-ring: var(--raw-terracotta-400);
+  --ds-status-success-text: var(--raw-green-400);
+  --ds-status-danger-text: var(--raw-rose-400);
+}
+
+/* 2c. Semantic non-colour tokens (same in both themes) ------------------- */
+:root {
+  /* Typography — DK2, R01.2. next/font variables in the app, local Geist in Storybook (P3). */
+  --ds-font-ui: var(--font-geist-sans, "Geist"), ui-sans-serif, system-ui, sans-serif;
+  --ds-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, monospace;
+  --ds-font-weight-regular: var(--raw-weight-400); /* P2 */
+  --ds-font-weight-strong: var(--raw-weight-600); /* P2 */
+  --ds-text-meta: var(--raw-size-14); /* R02.3, R01.1 */
+  --ds-text-body: var(--raw-size-16); /* P2 (character: readable) */
+  --ds-text-heading-section: var(--raw-size-20); /* R01.5 */
+  --ds-text-heading-page: var(--raw-size-24); /* R01.5 */
+  --ds-leading-meta: 1.4;
+  --ds-leading-body: 1.5;
+  --ds-leading-heading: 1.3;
+
+  /* Spacing by relation — tokeny.md */
+  --ds-space-inline: var(--raw-space-1); /* element and its own label or hint */
+  --ds-space-in-group: var(--raw-space-2); /* inside one group */
+  --ds-space-inside-panel: var(--raw-space-4); /* padding inside a panel or field */
+  --ds-space-between-groups: var(--raw-space-5); /* between groups */
+  --ds-space-between-sections: var(--raw-space-7); /* between page sections */
+  --ds-space-page-gutter: var(--raw-space-4); /* K2: < 768 px */
+
+  /* Layout — proposals (P6, POSTEP.md) */
+  --ds-measure-text: var(--raw-measure-65); /* prompt: running text ≤ ~65 characters */
+  --ds-width-page: var(--raw-width-1024); /* proposal: max content width */
+
+  /* Shape and depth — A01, R01.3, P2 */
+  --ds-radius-control: var(--raw-radius-4);
+  --ds-border-width-hairline: var(--raw-border-1);
+  --ds-focus-ring-width: var(--raw-border-2); /* WCAG 2.4.7, tokeny.md rule 11 */
+
+  /* Motion — DK3, P2 */
+  --ds-duration-control: var(--raw-ms-120);
+  --ds-duration-menu: var(--raw-ms-180);
+  --ds-duration-dialog: var(--raw-ms-240);
+  --ds-ease-standard: var(--raw-ease-out);
+
+  /* 3. Component tokens — only where a component needs its own value */
+  --ds-list-row-padding-y: var(--raw-space-2); /* R01.1, K1 — mentor lists */
+  --ds-chat-message-gap: var(--raw-space-3); /* R02.1, K1 — E03 chat (not built yet) */
+  --ds-icon-size-sm: var(--raw-icon-16); /* P1: next to 14–16 px text */
+  --ds-icon-size-md: var(--raw-icon-20); /* P1: in buttons and alerts */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --ds-space-page-gutter: var(--raw-space-6); /* K2: ≥ 768 px */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ds-duration-control: 0ms; /* DK3: no motion when the user asks for less */
+    --ds-duration-menu: 0ms;
+    --ds-duration-dialog: 0ms;
+  }
+}
+
+/* 4. Tailwind mapping ----------------------------------------------------
+ * `inline` makes every utility reference the --ds-* variable directly, so a
+ * nested [data-theme] (e.g. a dark sample on a light docs page) works too. */
+@theme inline {
+  --background-color-surface-page: var(--ds-surface-page);
+  --background-color-surface-panel: var(--ds-surface-panel);
+  --background-color-surface-code: var(--ds-surface-code);
+  --background-color-surface-scrim: var(--ds-surface-scrim);
+  --background-color-action-primary-fill: var(--ds-action-primary-fill);
+  --background-color-action-primary-fill-hover: var(--ds-action-primary-fill-hover);
+
+  --text-color-primary: var(--ds-text-primary);
+  --text-color-muted: var(--ds-text-muted);
+  --text-color-on-action: var(--ds-text-on-action);
+  --text-color-link: var(--ds-text-link);
+  --text-color-status-success: var(--ds-status-success-text);
+  --text-color-status-danger: var(--ds-status-danger-text);
+
+  --border-color-divider: var(--ds-border-divider);
+  --border-color-control: var(--ds-border-control);
+  --border-color-action-primary-fill: var(--ds-action-primary-fill);
+  --border-color-action-primary-fill-hover: var(--ds-action-primary-fill-hover);
+  --border-color-status-danger: var(--ds-status-danger-text); /* field in error: 6,02 : 1, WCAG 1.4.11 */
+  --outline-color-focus-ring: var(--ds-focus-ring);
+
+  --font-ui: var(--ds-font-ui);
+  --font-mono: var(--ds-font-mono);
+  --font-weight-regular: var(--ds-font-weight-regular);
+  --font-weight-strong: var(--ds-font-weight-strong);
+
+  --text-meta: var(--ds-text-meta);
+  --text-meta--line-height: var(--ds-leading-meta);
+  --text-body: var(--ds-text-body);
+  --text-body--line-height: var(--ds-leading-body);
+  --text-heading-section: var(--ds-text-heading-section);
+  --text-heading-section--line-height: var(--ds-leading-heading);
+  --text-heading-page: var(--ds-text-heading-page);
+  --text-heading-page--line-height: var(--ds-leading-heading);
+
+  --spacing-inline: var(--ds-space-inline);
+  --spacing-in-group: var(--ds-space-in-group);
+  --spacing-inside-panel: var(--ds-space-inside-panel);
+  --spacing-between-groups: var(--ds-space-between-groups);
+  --spacing-between-sections: var(--ds-space-between-sections);
+  --spacing-page-gutter: var(--ds-space-page-gutter);
+  --spacing-list-row-y: var(--ds-list-row-padding-y);
+  --spacing-chat-message-gap: var(--ds-chat-message-gap);
+  --spacing-icon-sm: var(--ds-icon-size-sm);
+  --spacing-icon-md: var(--ds-icon-size-md);
+
+  --container-text: var(--ds-measure-text);
+  --container-page: var(--ds-width-page);
+
+  --radius-control: var(--ds-radius-control);
+  --ease-standard: var(--ds-ease-standard);
+}

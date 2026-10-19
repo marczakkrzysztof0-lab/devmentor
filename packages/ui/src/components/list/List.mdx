@@ -1,0 +1,91 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./List.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# List and ListRow
+
+## 1. Purpose
+Shows many items of one kind densely and readably, so the mentor sees what waits for a decision at a glance.
+
+## 2. When to use
+- `/mentor/requests`: „Kuba · 25 min — jutro 12:30–12:55 · zdecyduj przed 12:30” with its state (#18).
+- Availability: seven weekday rows with their windows (#15).
+- Slot preview after saving availability (#15).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Choosing one item | `RadioGroup` (list) | WAI-ARIA |
+| One block of content | `Panel` | — |
+| A grid of mentor cards | Never — no catalogue | A04 |
+
+## 4. Anatomy
+`List` (`<ul>`, top line) → `ListRow` (`<li>`, bottom 1 px `border-divider`, `py-list-row-y`) with title (600), optional meta line (muted, 14 px) and optional end slot (state word or one small action).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| Link row (`href`) | The row opens a detail page; the whole row is the target, one link in the DOM | R01.1; stretched link – S15 |
+| Static row | Display only, or with one action at the end (×) | #15 |
+| End: `StatusText` | State of the item, as a word | R01.6, P19 |
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | Rows separated by 1 px lines, no cards | R01.3 |
+| Hover (link rows) | `surface-code` row + underlined title | S5 |
+| Focus | 2 px `focus-ring` around the title link | WCAG 2.4.7 |
+| Empty | Not a list state — show `StateMessage` instead of an empty list („Nie masz jeszcze zapytań — udostępnij swój link”) | Spec #18 |
+| Error | `StateMessage` („Nie udało się wczytać zapytań — odśwież”), no partial data | Spec #18 |
+| Pressed, disabled, loading, selected | Not applicable. | — |
+
+Rule (C4): give a row `href` only when a detail page exists. A row without its own page is static — do not invent a link or a „Szczegóły” button.
+
+## 7. Behaviour and accessibility
+- Real list semantics (`ul`/`li`): screen readers announce „list, 3 items”. Name the list with `aria-label` when there is no heading right above it.
+- One tab stop per link row (the title link); an end action is a separate tab stop.
+- Rows are at least 40 px high (24 px line + 2 × 8 px); targets ≥ 24 × 24 (WCAG 2.5.8).
+
+## 8. Content
+- Title: who/what + length („Kuba · 25 min”); meta: when + what to do („zdecyduj przed 12:30”). Mentor sees only the developer's first name (#17 Q5).
+- Counters and pills next to rows are not allowed; the only counter lives in the mentor navigation („N zapytań czeka na decyzję”). Source: R01.6, P19.
+- Long titles and meta wrap; nothing is truncated.
+
+## 9. Responsiveness
+| Width | Behaviour |
+|---|---|
+| 320 px | Title, meta and end slot wrap; end slot stays on the right. |
+| 768 / 1440 px | One line per part; the list stays within `max-w-page`. |
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<List aria-label="Czeka na decyzję">
+  {requests.map((r) => (
+    <ListRow
+      key={r.id}
+      href={\`/mentor/requests/\${r.id}\`}
+      title={\`\${r.menteeName} · \${r.lengthMinutes} min\`}
+      meta={\`\${formatSlot(r.slotStart, r.slotEnd)} · zdecyduj przed \${formatTime(r.slotStart)}\`}
+      end={<StatusText tone="waiting">Czeka na decyzję</StatusText>}
+    />
+  ))}
+</List>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Rows with 1 px lines, state as a word. | A stack of cards with shadows and coloured pills (R01.6, A01). |
+| `StateMessage` when there is nothing to show. | An empty list with no explanation. |
+
+## 13. Related
+- Confused with: `RadioGroup` list, `Panel`.
+- Used in: Grouped list pattern (`/mentor/requests`), Availability editor, Slot preview.

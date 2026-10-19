@@ -1,0 +1,20 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "./reset-theme.css";
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "../src/styles/index.css";
+@import "./fonts.css";
+@import "./docs.css";
+
+/* Frozen state preview (documentation only): the SAME utility classes the components use
+ * for :hover, :focus-visible, :focus-within and :active also apply when the element has
+ * data-preview-state="hover|focus|active". The app build keeps the built-in variants. */
+@custom-variant hover (&:hover, &[data-preview-state~="hover"]);
+@custom-variant focus-visible (&:focus-visible, &[data-preview-state~="focus"]);
+@custom-variant focus-within (&:focus-within, &[data-preview-state~="focus"]);
+@custom-variant active (&:active, &[data-preview-state~="active"]);
+
+@source "../src";
+@source "../docs";
+@source "./blocks";

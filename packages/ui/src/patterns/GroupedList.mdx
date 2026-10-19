@@ -1,0 +1,39 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./GroupedList.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Grouped list
+
+Replaces the generic "list with filters" (P4): DevMentor has no filters or search (A04), and the mentor's list is short and grouped by what needs doing. Used in: `/mentor/requests` (#18).
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| Groups in this order: „Czeka na decyzję” (by slot, soonest first) · „Zaakceptowane” · „Zakończone” (last 30 days) | Spec #18 |
+| Any other list follows the same order: **needs the viewer's action → in progress / waiting for others → done**; open groups soonest first, the done group newest first (e.g. payouts: „Do wypłaty” → „Wypłacone”) | C3: #18 generalised with R01.5 (what matters first), 2026-10-19 |
+| Times in rows are in the viewer's zone; the zone is named once above the list | D3, Content |
+| How many finished items to show (limit, „Pokaż starsze”) is decided per list in its spec; without a spec: What is missing | B6 |
+| Each row: who and length, when and what to do, the state as a word; rows separated by 1 px lines, not cards | R01.1, R01.3, R01.6 |
+| Empty groups are not shown; no counters next to rows; the only counter is in the navigation | R01.6, P19 |
+| Nothing yet → why it is empty and the next step (the share link) | Spec #18, prompt (empty states) |
+| Load error → message and „odśwież”, no partial data | Spec #18 |
+| Loading → static skeleton of rows | P7, S8 |
+| Never list unpaid or abandoned requests | Spec #17, #18 |
+| A "no results for these filters" state does not exist: there are no filters (A04). If filters ever appear, it needs its own state with „Wyczyść filtry” — see What is missing | P4, prompt |
+
+## States
+
+| State | Story |
+|---|---|
+| Grouped, ready | grouped by state |
+| Loading | loading |
+| Nothing yet | nothing yet (with the next step) |
+| Load error | load error, no partial data |
+| Lots of data | lots of data |
+
+<Canvas of={Stories.GroupedReady} />
+<Canvas of={Stories.GroupedEmpty} />
+
+Components: `RequestList`, `List`, `ListRow`, `StatusText`, `StateMessage`, `Skeleton`, `CopyField`, `MentorNav`.

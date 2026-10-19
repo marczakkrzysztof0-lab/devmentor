@@ -1,0 +1,55 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ColorStories from "./color.stories";
+import { ColorTokens, ContrastTable } from "../../.storybook/blocks";
+
+<Meta of={ColorStories} />
+
+# Color
+
+Warm stone base and **one** action colour (terracotta). Warmth comes from the base and the words, never from gradients, glass or glow. Source: DK1, R01.4, K3, A01.
+
+Components use **semantic tokens only** (`bg-surface-panel`, `text-muted`, `border-control`). Raw values (`--raw-stone-600`) and Tailwind palette classes are not allowed outside `src/styles/tokens.css`; `npm run check:tokens` fails on them (prompt rule 3).
+
+## Roles
+
+<Unstyled>
+  <ColorTokens
+    tokens={[
+      { name: "surface-page", use: "Page background", source: "DK1, R01.4" },
+      { name: "surface-panel", use: "Fields, chat composer, page editor", source: "DK1, R01.3" },
+      { name: "surface-code", use: "Code blocks in questions and chat", source: "R01.2" },
+      { name: "surface-scrim", use: "Backdrop behind a dialog", source: "P2 (accepted proposal)" },
+      { name: "text-primary", use: "Body text, headings, code", source: "DK1" },
+      { name: "text-muted", use: "Times, hints under fields, row metadata", source: "R02.3, R01.1" },
+      { name: "text-on-action", use: "Label on the primary action only", source: "DK1" },
+      { name: "text-link", use: "Links (e.g. public work)", source: "DK1, R01.5" },
+      { name: "border-divider", use: "1 px line between list rows (decorative)", source: "R01.3" },
+      { name: "border-control", use: "Edge of fields and of the unselected 25/50 option", source: "R01.3, WCAG 1.4.11" },
+      { name: "action-primary-fill", use: "The one primary action per screen", source: "DK1, R01.5, P18" },
+      { name: "action-primary-fill-hover", use: "Hover and pressed primary action", source: "DK1" },
+      { name: "focus-ring", use: "2 px focus outline", source: "WCAG 2.4.7" },
+      { name: "status-success-text", use: "State words: Opłacone, Zaakceptowane", source: "DK1, P19" },
+      { name: "status-danger-text", use: "Error messages", source: "Specs #16–#18" },
+    ]}
+  />
+</Unstyled>
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| One `action-primary-fill` element per screen; any other action is secondary. | R01.5, P18 |
+| A state is a word ("Czeka na decyzję"), never only a colour or a pill. | R01.6, P19, WCAG 1.4.1 |
+| `status-danger-text` and `action-primary-fill` are close in hue (1,13 : 1 between them), so an error always says what happened in words. | tokeny.md, WCAG 1.4.1 |
+| `border-divider` is decorative (about 1,2 : 1). Never use it as the edge of a field or the only sign of a state; use `border-control`. | R01.3, WCAG 1.4.11 |
+| No gradients, `backdrop-blur`, glow or purple/indigo. | A01, K3 |
+| Green is reserved for success. | DK1 |
+| No `dark:` classes: semantic tokens switch with the theme. | DK4 |
+
+## Contrast, measured
+
+Every text pair needs at least 4,5 : 1, every UI pair (field edge, focus ring, button edge) 3 : 1 (WCAG 1.4.3, 1.4.11). The table is computed in your browser from the variables of both themes. The story **Contrast check** runs the same measurement as a test and fails when a pair drops below its threshold. Pairs below the threshold today: none.
+
+<Unstyled>
+  <ContrastTable />
+</Unstyled>

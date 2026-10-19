@@ -45,3 +45,7 @@ next-env.d.ts
 .ai/qa/artifacts_*/
 .ai/qa/test-env.json
 .ai/qa/test-env.env
+
+# workspaces and Storybook (packages/ui)
+node_modules/
+**/storybook-static/

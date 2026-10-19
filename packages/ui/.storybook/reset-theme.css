@@ -1,0 +1,17 @@
+/* Storybook only: remove Tailwind's default palette and scales, so a class outside our
+ * tokens (palette colours, default radii, shadows, sizes) renders nothing
+ * here. Numeric spacing stays available because 0-values (min-w-0, inset-0)
+ * need it; `check:tokens` rejects non-zero numeric spacing instead.
+ * The app keeps the defaults until app/page.tsx is migrated. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --font-weight-*: initial;
+  --text-*: initial;
+  --leading-*: initial;
+  --ease-*: initial;
+  --blur-*: initial;
+}

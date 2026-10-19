@@ -1,0 +1,79 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Alert.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Alert
+
+## 1. Purpose
+Tells the user, right where they are working, that something happened that changes what they should do next.
+
+## 2. When to use
+- Form-level problems on the request form: „Ten termin właśnie się zajął — wybierz inny”, „Cena zmieniła się na 180 zł” + confirm again, „Nie udało się otworzyć płatności — spróbuj ponownie” (#17).
+- Notices in the mentor editor: „Nie masz dostępności — nikt nie może wybrać terminu” with a link (#15).
+- A warning before saving: „Okna zachowają godziny (np. 18:00) w nowej strefie” (#15).
+- Refusals on decisions: „Nie można zaakceptować — zapytanie zostało anulowane przez dewelopera” (#18).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| A problem with one field | Error in `FormField` | WCAG 3.3.1, spec #17 |
+| A whole region is empty or failed | `StateMessage` | Spec #16, #18 |
+| The state of a request | `StatusText` | R01.6 |
+| A transient confirmation („Skopiowano.”) | Inline text next to the control (`CopyField`) — no toast in the system | P5 |
+| Anything that needs action, as a toast | Never: an error that needs action is never a toast | Prompt (How to choose) |
+
+## 4. Anatomy
+Background `surface-code` (no border, no shadow) → tone icon (16 px) → title (600, one line) → optional body (≤ 65 ch) → optional single action.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Tone | When | Announced | Source |
+|---|---|---|---|
+| `info` | Worth knowing; **nothing to do** („Okna zachowają godziny w nowej strefie”) | polite (`status`) | WAI-ARIA status; D7 |
+| `attention` | **The viewer must act** before something can continue, nothing failed („Stripe prosi o uzupełnienie danych — wypłaty są wstrzymane”, an interrupted provider flow). Triangle icon + words; no new colour | polite (`status`) | B1, D7 (2026-10-19) |
+| `success` | It worked and there is a next step | polite | DK1 (green = success) |
+| `danger` | Something failed and needs action | assertive (`alert`), title in `status-danger` | WAI-ARIA alert, WCAG 4.1.3 |
+
+`attention` replaces the earlier "no warning tone" note (S10 → B1, 2026-10-19). It uses only existing tokens: the difference from `info` is the icon and the words, which must name the action („uzupełnij”, „dokończ”). Choose: nothing to do → `info`; the viewer must act → `attention`; something failed → `danger`.
+
+## 6. States
+<Canvas of={Stories.States} />
+
+Not interactive by itself: hover, focus, pressed, disabled, loading, selected do not apply; the action inside carries them. The meaningful states are which parts are present (title only / with body / with action).
+
+## 7. Behaviour and accessibility
+- `danger` uses `role="alert"` and is announced immediately when it appears; `info`/`success` use `role="status"` (polite). Render the alert when the event happens — announcements fire on insertion.
+- Do not move focus to an alert, except the form pattern moves focus to the first invalid field (spec #17).
+- Colour is never the only signal: icon + words (WCAG 1.4.1).
+
+## 8. Content
+- Title = what happened, in one line; body = what it means or what to do. „Cena zmieniła się na 180 zł” + „Potwierdź nową kwotę.” Source: spec #17.
+- Money: always the exact amount and whether anything was charged („nic nie zostało pobrane”). Source: spec #17, #19.
+- No exclamation marks, no emoji. Source: P29, R02.5.
+
+## 9. Responsiveness
+Full width of its column; text wraps at 320 px, icon stays on the first line.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`{error === "slot_taken" && (
+  <Alert tone="danger" title="Ten termin właśnie się zajął — wybierz inny">
+    Twoje pytanie zostało w formularzu. Lista terminów jest odświeżona.
+  </Alert>
+)}`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Alert above the form: „Ten termin właśnie się zajął — wybierz inny”, input kept. | A toast that disappears while the developer still has to pick another slot. |
+| One action that resolves it. | Two or three buttons in one alert. |
+
+## 13. Related
+- Confused with: `StateMessage`, `StatusText`, field errors.
+- Used in: Form pattern (server errors), Mentor page editor, Request decision.

@@ -1,0 +1,52 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="What to avoid" />
+
+# What to avoid
+
+Each item: how to recognise it (also in code), why it is a problem, what to use instead. `npm run check:tokens` catches the code-level ones automatically.
+
+## 1. Anti-patterns of DevMentor (from the references)
+
+| Avoid | Recognise it | Why | Instead | Source |
+|---|---|---|---|---|
+| Ratings and reviews | stars, „4.9/5”, „(123 opinie)”, „Top mentor”; fields `rating`, `review`, `stars` | „każdy ma pięć gwiazdek”; trust comes from public work | Public-work link under the name | A03, N02 |
+| Catalogue and search of mentors | search box, filters, card grid, „Polecani mentorzy”, a list on `/m` | Mentors refuse to be listed next to strangers | Entry only through the mentor's link | A04, D03 |
+| Course look | progress bars, % done, badges, „Moduł 1/5”, „ścieżka nauki” | „I want an answer, not a course” | One question, one session | A02, N05 |
+| Subscriptions and relationship | plans table, „/miesiąc”, trial, „Obserwuj mentora” | „jak to subskrypcja, to nie otworzę drugi raz” | Two prices per session | A05, N05 |
+| Video call cues | camera/microphone icons, „Dołącz do rozmowy”, audio test | Sessions are text only | „Czat tekstowy · 12:30–12:55” | A06, N01 |
+| Gate before the question | sign-up, e-mail verification, „Zapytaj o cenę”, password field on `/m/{slug}` | The developer wants the price and the question in 5 minutes | Prices first, two fields, pay | A07, R07, D08 |
+| Pills and counters on every row | coloured badges, numbers next to rows | Noise; state hidden in colour | `StatusText` words; one counter in `MentorNav` | R01.6, P19 |
+| Notifications everywhere, emoji | push, sounds, emoji pickers, emoji in copy | „chcę odpowiedzieć i mieć spokój” | Transactional e-mails only, no emoji | R02.4, R02.5 |
+| Sidebar | a left column of sections | Three mentor screens do not need it | Top `MentorNav`; no nav for the developer | R02.6 |
+
+## 2. Generic AI look
+
+| Avoid | Recognise it in code | Why | Instead | Source |
+|---|---|---|---|---|
+| Gradients in background, text, buttons | `bg-gradient-to-*`, `bg-linear-*`, `from-purple-*`, `bg-clip-text` | Looks like everything else | Flat semantic fills | A01 |
+| Glass and blur | `backdrop-blur-*`, `bg-white/10` {/* check-tokens-ignore */} | Low contrast, "AI startup" | `surface-panel` with a 1 px line | A01 |
+| Glow | `shadow-*` with colour, `drop-shadow-*`, neon rings | Noise | No shadows at all (no token) | A01, P2 |
+| Emoji instead of icons | ✨, 🚀 in JSX strings | Not concrete, not accessible | lucide icon + words, or just words | R02.5, P1 |
+| Sparkles as "AI" | `Sparkles` import from lucide-react | Generic AI signature | Nothing | A01 |
+| Three identical cards with an icon | a `grid-cols-3` of feature cards | Template look, says nothing | One sentence or a list | A01 |
+| Everything in pills | `rounded-full` on chips and buttons | Pill-everything is A01 | `rounded-control` (4 px); circles only for radio | A01, S2 |
+| Card in a card | bordered box inside a bordered box | Hierarchy by boxes, not typography | Space and headings; `Panel` once | audyt.md |
+| Shadow as the only separation | `shadow-sm` cards on a grey page | Floating cards | 1 px `border-divider` rows | R01.3 |
+| Everything centred | `text-center`, `mx-auto` on every block | Hard to read, landing-page look | Left-aligned content in `max-w-page` | Prompt |
+| Eyebrow over the heading | uppercase, letter-spaced coloured line above h1 | Marketing pattern | The heading alone | audyt.md |
+
+## 3. Implementation mistakes
+
+| Avoid | Recognise it | Why | Instead | Source |
+|---|---|---|---|---|
+| Values outside the tokens | hex or `rgb()` in components, `bg-zinc-900`, `text-white`, `p-[13px]`, `p-4` {/* check-tokens-ignore */} | Breaks themes and consistency; `check:tokens` fails | Semantic classes (`bg-surface-panel`, `p-inside-panel`) | Prompt rule 3 |
+| A variant added "just for this screen" | new `variant` value in a component for one use | The system grows without a reason | Contributing: two uses first | Prompt rule 6 |
+| `div` instead of a button | `<div onClick>`, `role="button"` on a div | No keyboard, no focus | `Button`, `TextLink` | WCAG 2.1.1 |
+| Placeholder instead of a label | `<input placeholder="Imię">` with no label | Disappears while typing | `FormField label` | WCAG 3.3.2 |
+| State only by colour | green/red text without words or icon | Colour-blind users, screen readers | `StatusText` words + icon | WCAG 1.4.1, R01.6 |
+| Disabled button without a reason | `disabled` with nothing next to it | User cannot tell what to do | `disabledReason` | Prompt, S6 |
+| Toast with an error that needs action | toast libraries, auto-dismissing errors | Disappears before it is read | `Alert` next to the cause | Prompt |
+| Tooltip with information needed to act | `title=` or a tooltip on a price or rule | Hidden on touch, easy to miss | Hint text on the page | Prompt |
+| Gendered copy | „zrobiłeś”, „sprawdziłaś” | Excludes half of the users | 2nd person present, nouns, impersonal forms | C12 |
+| Rendering user text as HTML | `dangerouslySetInnerHTML` | XSS | Plain text, `QuestionText` | #16 |

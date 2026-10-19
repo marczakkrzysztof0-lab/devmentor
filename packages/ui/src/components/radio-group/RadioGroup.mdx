@@ -1,0 +1,86 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./RadioGroup.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# RadioGroup
+
+## 1. Purpose
+Lets the developer choose exactly one of a few options while seeing all of them — session length with its price, or a slot.
+
+## 2. When to use
+- Session length „25 min — 150 zł” / „50 min — 280 zł” on `/m/{slug}` → `segmented` (#16, #17).
+- Picking a slot from „Najbliższe terminy” → `list` (#17).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Many options (time zones, hours) | `Select` | Spec #15 |
+| An action | `Button` | WAI-ARIA |
+| On/off setting | Checkbox / switch — not in the system (P5) | P5 |
+
+## 4. Anatomy
+Visible legend (required) → options. `segmented`: bordered buttons side by side, the chosen one filled with a check icon. `list`: rows with a round indicator, label and optional description line. Optional error under the group.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| `segmented` | 2–3 short options that change what follows (25/50 min) | tokeny.md (25/50 switch: chosen = `action-primary-fill` + `text-on-action`, not chosen = `border-control`) |
+| `list` | Longer or more options, one per row (slots) | R01.1 (dense list); round indicator – S2 |
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Not chosen | `border-control` edge | tokeny.md, WCAG 1.4.11 |
+| Chosen | Segmented: action fill + check icon + `text-on-action`; list: filled dot. Never colour alone. | tokeny.md, WCAG 1.4.1, audyt.md |
+| Hover | `surface-code` (not chosen) | S5 |
+| Focus | 2 px `focus-ring` on the focused option | WCAG 2.4.7 |
+| Disabled option | `surface-code`, muted; say why nearby (e.g. „tylko 25 min”) | Prompt; spec #16 (50 min must fit) |
+| Error | Message in words under the group („Wybierz termin, żeby przejść do płatności.”) | WCAG 3.3.1 |
+| Loading | Not applicable — the slot list's loading is `Skeleton` (product, stage 3). | — |
+
+## 7. Behaviour and accessibility
+- WAI-ARIA radio group (Radix): Tab enters the group at the chosen option, arrows move **and** choose, Tab leaves the group. Space chooses.
+- The legend names the group (`aria-labelledby`); the error is its description.
+- The whole list row is the click target (`<label>`); segmented options are 40 px high (WCAG 2.5.8).
+- Times include the date in the text („jutro 18:00”), not only through grouping. Source: spec #16.
+
+## 8. Content
+- Length options always carry the price: „25 min — 150 zł”. Source: R07, spec #16.
+- Legend for slots names the viewer's zone: „Najbliższe terminy (twoja strefa: Europe/Warsaw)”. Source: spec #16.
+- Long labels wrap; nothing is truncated.
+
+## 9. Responsiveness
+Segmented options wrap to the next line on narrow screens; list rows take the full width.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<RadioGroup
+  legend="Długość sesji"
+  variant="segmented"
+  name="lengthMinutes"
+  options={[
+    { value: "25", label: \`25 min — \${formatPLN(price25)}\` },
+    { value: "50", label: \`50 min — \${formatPLN(price50)}\` },
+  ]}
+  value={length}
+  onValueChange={setLength}
+/>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Chosen option filled **and** marked with a check. | Chosen option differing only by colour (audyt.md, finding 7). |
+| A visible legend „Długość sesji”. | A heading that is not tied to the group — the radios have no name (audyt.md). |
+
+## 13. Related
+- Confused with: `Select`, `Button`.
+- Used in: Request form (E02), Mentor share page (E01), Pattern: Time-zone-aware slots.

@@ -1,0 +1,78 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Textarea.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Textarea
+
+## 1. Purpose
+Lets the developer describe the problem in their own words — including pasted code — so the mentor can decide before accepting.
+
+## 2. When to use
+- „Twoje pytanie” on the request form (#17; 20–4000 characters, R05).
+- „Twoje doświadczenie” (the mentor's description) in the page editor (#14).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| One short value (name, link, price) | `TextInput` | Spec #14, #17 |
+| Showing a question that was already sent | Text + `CodeBlock` (product `QuestionText`, stage 3) | R01.2 |
+| Chat composer (Ctrl/Cmd+Enter sends) | Not built — E03 has no spec (What is missing) | K4, P5 |
+
+## 4. Anatomy
+Box (panel fill, `border-control`, 4 px), vertical resize handle, text. Label, hint and error come from `FormField`.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+One variant. Height is set with `rows` (default 6); the user can make it taller.
+
+**Character counter (S14, decided 2026-10-19):** only when the spec defines a limit — pass it as `maxLength`: the question 4000 (#17), the mentor's description 2000 (#14). The counter („3201 / 4000 znaków”, Geist Mono) appears from 80 % of the limit; screen readers hear it through a polite live region one second after the user stops typing. No limit in the spec → no counter.
+
+<Canvas of={Stories.CounterNearLimit} />
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default / filled | Panel fill, `border-control` | tokeny.md, WCAG 1.4.11 |
+| Hover | No change | S13 |
+| Focus | 2 px `focus-ring` outline | WCAG 2.4.7 |
+| Error | `border-status-danger` + message in words („Opisz problem w co najmniej 20 znakach.”) | Spec #17 (R05), WCAG 3.3.1 |
+| Read-only | `surface-code` fill | S7 |
+| Disabled | `surface-code`, muted text — explain why next to it | Prompt |
+| Loading, selected, pressed | Not applicable. | — |
+
+## 7. Behaviour and accessibility
+- Native `<textarea>`: Enter makes a new line (code can be pasted and typed). Tab leaves the field.
+- Inside `FormField`: id, `aria-describedby`, `aria-invalid`, `required` are set automatically.
+- Input is kept after any error (spec #14, #17); never clear the field on a failed submit.
+
+## 8. Content
+- Placeholder is a prompt-like example („Co próbujesz zrobić, co już działa, a co nie?”), never the name.
+- Long text and code wrap and scroll inside the field; nothing is cut. Code keeps its line breaks.
+- Limits come from the spec (question 20–4000 characters after trim, #17); the minimum is checked on blur and submit, the maximum is enforced by `maxLength` and shown by the counter (S14).
+
+## 9. Responsiveness
+Full width at every width; at 320 px the field keeps 6 rows and grows with resize.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<FormField label="Twoje pytanie" hint="Mentor przeczyta je przed decyzją. Możesz wkleić kod." error={errors.question}>
+  <Textarea name="question" defaultValue={values.question} />
+</FormField>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Keep the question after a failed payment start. | Clear the field — the developer loses the text they wrote (spec #17). |
+| Visible label „Twoje pytanie”. | Placeholder-only field. |
+
+## 13. Related
+- Confused with: `TextInput`, `CodeBlock` (display only).
+- Used in: Form pattern, Request form (E02), Mentor page editor (E01).

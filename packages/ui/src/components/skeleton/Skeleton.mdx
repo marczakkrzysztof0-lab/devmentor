@@ -1,0 +1,60 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Skeleton.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Skeleton
+
+## 1. Purpose
+Keeps the shape of content that is loading, so the page does not jump and the user knows something is coming.
+
+## 2. When to use
+- The slot section of `/m/{slug}` while slots load in a Suspense boundary (#16; profile and prices are already shown).
+- The request list while it loads (#18).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Waiting for an action or the server's answer | `Spinner` with words / `Button loading` | Spec #17 |
+| Load failed | `StateMessage kind="error"` | Spec #16, #18 |
+| Profile and prices on `/m/{slug}` | Render them on the server — never a skeleton for what the developer needs first | K2, R07 |
+
+## 4. Anatomy
+Hidden label for screen readers → N grey blocks (`surface-code`, 24 px high, 4 px), the last one shorter.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+`lines`: match the expected content (3 for a slot list, 5 for a request list). No shimmer, no pulse (S8).
+
+## 6. States
+One state, loading. Static, so `prefers-reduced-motion` needs nothing extra. Hover, focus, pressed, disabled, selected and error do not apply. Source: P7, DK3.
+
+## 7. Behaviour and accessibility
+`role="status"` + `aria-busy="true"` with a hidden label („Wczytywanie terminów”); the blocks are `aria-hidden`. Not focusable.
+
+## 8. Content
+The label names what is loading, not „Ładowanie…”.
+
+## 9. Responsiveness
+Takes the width of its container at every width.
+
+<Canvas of={Stories.Narrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<Suspense fallback={<Skeleton label="Wczytywanie terminów" />}>
+  <SlotSection slug={slug} />
+</Suspense>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Static grey lines with a hidden label. | Pulsing or shimmering blocks (P7, A01). |
+| Skeleton only for the slot section. | Skeleton for the whole page while the prices are already known. |
+
+## 13. Related
+- Confused with: `Spinner`.
+- Used in: Mentor share page (E01), Grouped list.
