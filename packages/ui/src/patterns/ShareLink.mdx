@@ -1,0 +1,32 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./ShareLink.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Share link
+
+DevMentor has no catalogue: the mentor's link is the only way in (D03), and the developer's request link is the only way back (#17). Both must be easy to keep.
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| Show the full link, never shortened, in Geist Mono | Spec #14, DK2 |
+| One button „Kopiuj link”; confirmation „Skopiowano.” next to it, announced politely; no toast | Spec #14, P5 |
+| Say where to paste it: „Wklej go tam, gdzie ludzie już cię pytają” | Spec #14 |
+| After publishing, focus moves to the link | Spec #14 |
+| If the clipboard is blocked, select the link and say how to copy it by hand | S17 |
+| The request link also arrives by e-mail — say so | Spec #17 |
+
+## States
+
+| State | Story |
+|---|---|
+| After publishing | after publishing (focus on the link) |
+| Request link | save the request link |
+| Clipboard blocked | clipboard blocked |
+
+<Canvas of={Stories.ShareAfterPublish} />
+<Canvas of={Stories.ShareRequestLink} />
+
+Components: `CopyField`, `ShareLinkPanel`, `SaveLinkBox`, `Panel`.

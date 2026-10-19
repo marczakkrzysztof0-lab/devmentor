@@ -7,7 +7,7 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 | 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
 | 1. Fundamenty | zakończony, zatwierdzony 2026-10-19 (commit c21f37a) |
 | 2. Komponenty bazowe | zakończony, S1–S17 rozstrzygnięte 2026-10-19 (commity 5d09a9f, 32f559f, ce6412a) |
-| 3. Komponenty produktu, wzorce, ekrany | **w toku** – partie bez czekania na „dalej” |
+| 3. Komponenty produktu, wzorce, ekrany | **zakończony 2026-10-19** (commity b6da955, 8986564, partia C) – czeka na decyzje C1–C14, S18–S20 |
 | 4. Strony, które uczą | nie rozpoczęty |
 | 5. Sprawdzenie i raport | nie rozpoczęty |
 
@@ -56,6 +56,57 @@ W etapie 0 zapisano wyłącznie ten plik.
 - npm 11 zostawia pakiety Storybooka w `packages/ui/node_modules`, a `storybook` podnosi do root; dlatego `main.ts` podaje framework i dodatki jako ścieżki bezwzględne (wzorzec Storybooka dla monorepo).
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
+
+## Etap 3 – co powstało i co sprawdzone (2026-10-19)
+
+**Komponenty produktu** (`@devmentor/ui/product`, nowy eksport w `package.json`):
+
+| Epik | Komponenty | Ekrany |
+|---|---|---|
+| wspólne | `formatMoney`/`formatTime`/`formatDay`/`formatDayFull`/`displayUrl`, `Amount` (kwoty w Geist Mono), `PageLayout` | wszystkie |
+| E01 (#14–#16) | MentorIdentity, MentorDescription, PriceList, LengthToggle, SlotList, MentorNotFound, MentorNav, InvitationPanel, AccessMessage, MentorPageForm, ShareLinkPanel, NoAvailabilityNotice, AvailabilityEditor, SlotPreview | S1–S6 |
+| E02 (#17–#19) | RequestForm, RequestStatusView, RequestSummary, QuestionText, SaveLinkBox, QuestionCopyBox, CancelRequest, CancelNotPossible, RequestList, RequestDecision, RequestNotFound | S6–S9 |
+
+- Stany danych (gdzie mają sens): ładowanie, pusto, błąd, częściowe dane, dużo danych (30 zapytań, 10 dni × 16 terminów), długie teksty (opis 2000 znaków, długie imiona i adresy), 320 px.
+- Formularze: stany odpowiedzi akcji przez asynchroniczne `fn()` z kodami ze specyfikacji – sukces, oczekiwanie (podwójne kliknięcie ignorowane), błąd pola (fokus na pierwszym błędzie; w grupie radio – na zaznaczonej opcji), błąd serwera, brak sieci; #17 także `slot_taken`, `price_changed`, `checkout_failed`, `payments_unavailable`.
+- **Wzorce (8, każdy z MDX i stories na stan):** Form (8 stanów), Grouped list (5), Detail view (3), Confirm irreversible decision (3), Request status page (5), Share link (3), Invitation-only gate (4), Time-zone-aware slots (5, w tym zmiana czasu 25.10).
+- **Ekrany S1–S9 na pełny ekran:** 56 stories (E01: 21, E02: 35) + dwie strony „Screens state map” (tabela ekran → trasa → specyfikacja → stan → link do story), generowane skryptem `npm run state-map` z indeksu zbudowanego Storybooka. Kompozycje ekranów w `.storybook/screens.tsx` (tylko Storybook) – składają wyłącznie komponenty z pakietu.
+- Strony dokumentacji: „E01 … Components” i „E02 … Components” (tabela: komponent, ekran, stany, reguły ze źródłami, API).
+- Zmiany w bazie: `RadioGroup` dostał `groups` (nagłówki dni na liście terminów; nagłówki ukryte przed czytnikiem, data zawsze w tekście opcji – spec #16); `StatusText` – ikona 20 px wyśrodkowana na pierwszej linii (`h-lh`) zamiast 16 px przesuniętej w dół; `Textarea` – licznik S14.
+- Dane: tylko ze specyfikacji (Anna K., Kuba, Ola, Oliwia – founder z briefu; 150/280/180 zł; okna wt 18–20, czw 12–13; „teraz” = pon. 19.10.2026 19:00 Europe/Warsaw jak w #15).
+
+| Sprawdzenie (po partii C) | Wynik |
+|---|---|
+| typecheck pakietu, `npm run lint` | OK |
+| `check:tokens` | OK |
+| `test:themes` | jasny 278/278, ciemny 278/278 (axe + 92 play functions łącznie) |
+| `build-storybook` | OK; 278 stories, 37 stron dokumentacji |
+| `next build`, `npm test` (7/7) | OK |
+| Przeglądarka | S6 (kolejność: tożsamość → praca → opis → długość z cenami → terminy), S7 (stan na górze, „Zapisz ten link” jako treść główna), S8 (grupy, jeden licznik – w nawigacji); 12 stron wzorców i produktu renderuje się (tabele, płótna, 56 linków w mapach stanów) |
+| Test S6 przy 375 px | opcja „50 min — 280 zł” mieści się w pierwszych 812 px (K2, #16) |
+
+**Czego nie sprawdziłem:** czytnika ekranu na żywo; integracji z prawdziwymi server actions (tylko mocki z kodami ze specyfikacji); linków z map stanów kliknięciem (sprawdzona tylko obecność i format); ekranów przy 768 i 1440 px poza wybranymi.
+
+**Propozycje treści do decyzji (C1–C14)** – teksty, których specyfikacje nie podają:
+
+| # | Gdzie | Tekst |
+|---|---|---|
+| C1 | brak sieci (wszystkie formularze) | „Brak połączenia z internetem — sprawdź sieć i spróbuj ponownie. Wpisane dane zostały w formularzu.” |
+| C2 | błąd serwera w edytorze | „Nie udało się zapisać po naszej stronie — spróbuj ponownie za chwilę. Wpisane dane zostały w formularzu.” |
+| C3 | edytor po zapisie | „Szkic zapisany — strona nie jest jeszcze widoczna” / „Zmiany są już na twojej stronie — link się nie zmienił” |
+| C4 | dostępność | „Dostępność zapisana”; „Nie udało się zapisać dostępności — spróbuj ponownie. Twoje okna zostały na ekranie.” |
+| C5 | #17 `slot_not_offered` | „Tego terminu nie ma już w ofercie — wybierz inny” |
+| C6 | #17 `page_unavailable` | „Ten mentor nie przyjmuje teraz zapytań. Nic nie zostało pobrane.” |
+| C7 | #17 `payments_unavailable` | „Płatności są chwilowo niedostępne — spróbuj za chwilę. Nic nie zostało pobrane.” |
+| C8 | pod przyciskiem płatności | „Płacisz z góry. Jeśli mentor odrzuci pytanie albo nie zdecyduje przed terminem, zwrot jest automatyczny.” (D05) |
+| C9 | odmowy #18 poza „deweloper anulował” | „To pytanie jest już zaakceptowane / odrzucone”, „Termin już się zaczął — nie można już zdecydować”, „Termin minął — zwrot został zlecony automatycznie” |
+| C10 | brak dostępu do zapytania | „Nie ma takiego zapytania albo nie masz do niego dostępu” |
+| C11 | stany listy „Zakończone” | „Zakończone — odrzucone / przeterminowane / anulowane” |
+| C12 | etykiety pól edytora i podpowiedzi | „Imię i nazwisko” (Tak zobaczy cię deweloper, np. Anna K.), „Co już robiłeś”, „Adres strony” |
+| C13 | imiona w pytaniach dialogów | imię w mianowniku poza pytaniem („Odrzucić to pytanie?” + „Kuba, jutro 12:30.”) – polska odmiana nie jest generowana |
+| C14 | format dnia | „dziś”, „jutro”, inaczej „czw. 22.10”; czytnik: „jutro, wtorek 20.10, 18:00” |
+
+**Inne propozycje:** S18 – nagłówek „Ceny” nad `PriceList` (spec go nie nazywa); S19 – `RequestStatusView` ogłasza zmianę stanu przez `aria-live="polite"`; S20 – na S6 ceny pokazuje przełącznik długości (bez osobnej `PriceList`, żeby nie dublować kwot).
 
 ## Etap 2 – co powstało i co sprawdzone (2026-10-19)
 
@@ -267,5 +318,5 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 
 ## Następny krok
 
-1. Zbiorcza decyzja koordynatora o propozycjach S1–S17 (tabela „Etap 2 – różnice wobec domyślnej bazy shadcn”).
-2. Etap 3 – komponenty produktu E01/E02 ze stanami danych, wzorce (Form ze stanami API, Grouped list, Detail view, Confirm irreversible decision, Request status page, Share link, Invitation-only gate, Time-zone-aware slots) i ekrany na pełny ekran z mapą stanów.
+1. Decyzje o treściach C1–C14 i propozycjach S18–S20 (sekcja „Etap 3”).
+2. Etap 4 – strony, które uczą: Start here, Components, How to choose, Usage and accessibility, Content, What to avoid, What is missing (w tym: checkbox, przełącznik, menu, popover, podpowiedź, zakładki, awatar, toast, combobox stref, czat E03, ogólna lista z filtrami, migracja app/page.tsx), Contributing, strony epików; plik dla agentów docs/design-system.md + odwołanie w AGENTS.md.

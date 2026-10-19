@@ -1,0 +1,106 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+
+import { narrow } from "../../../.storybook/helpers";
+import { AvailabilityScreen, EditorScreen, InvitationScreen, NoSessionScreen, SignInScreen } from "../../../.storybook/screens";
+
+// Full-screen stories of E01 mentor screens S1–S5. State map: "E01 Mentor page/Screens – state map".
+const meta = {
+  title: "Product/E01 Mentor page/Screens",
+  component: InvitationScreen,
+  tags: ["!autodocs"],
+  parameters: { layout: "fullscreen" },
+  args: { state: "valid" },
+} satisfies Meta<typeof InvitationScreen>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/* S1 /invite/[token] */
+export const S1Valid: Story = { name: "S1 Invitation · valid link" };
+export const S1Accepting: Story = {
+  name: "S1 Invitation · accepting",
+  args: { state: "accepting" },
+  play: async ({ canvasElement }) => {
+    const button = within(canvasElement).getByRole("button", { name: "Akceptuję zaproszenie" });
+    await userEvent.click(button);
+    await expect(button).toHaveAttribute("aria-busy", "true");
+  },
+};
+export const S1Inactive: Story = { name: "S1 Invitation · expired, used or unknown", args: { state: "inactive" } };
+export const S1Network: Story = {
+  name: "S1 Invitation · no network",
+  args: { state: "network" },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Akceptuję zaproszenie" }));
+    await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
+  },
+};
+
+/* S2 /sign-in/[token] */
+export const S2Valid: Story = { name: "S2 Sign-in · valid link", render: () => <SignInScreen state="valid" /> };
+export const S2Inactive: Story = { name: "S2 Sign-in · inactive link", render: () => <SignInScreen state="inactive" /> };
+
+/* S3 /mentor without a session */
+export const S3NoSession: Story = { name: "S3 /mentor · no session (invitation only)", render: () => <NoSessionScreen /> };
+
+/* S4 /mentor editor */
+export const S4FirstVisit: Story = { name: "S4 Editor · first visit", render: () => <EditorScreen state="first-visit" /> };
+export const S4Publish: Story = {
+  name: "S4 Editor · publish → share link",
+  render: () => <EditorScreen state="filled-draft" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    const link = await canvas.findByRole("textbox", { name: "Twój link" });
+    await waitFor(() => expect(link).toHaveFocus());
+  },
+};
+export const S4Publishing: Story = {
+  name: "S4 Editor · publishing",
+  render: () => <EditorScreen state="publishing" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Opublikuj stronę" }));
+  },
+};
+export const S4SlugTaken: Story = {
+  name: "S4 Editor · address taken",
+  render: () => <EditorScreen state="slug-taken" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Opublikuj stronę" }));
+    await waitFor(() => expect(within(canvasElement).getByRole("textbox", { name: "Adres strony" })).toHaveFocus());
+  },
+};
+export const S4ServerError: Story = {
+  name: "S4 Editor · server error",
+  render: () => <EditorScreen state="server-error" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Opublikuj stronę" }));
+    await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
+  },
+};
+export const S4Network: Story = {
+  name: "S4 Editor · no network",
+  render: () => <EditorScreen state="network" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Zapisz szkic" }));
+    await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
+  },
+};
+export const S4Published: Story = { name: "S4 Editor · published, editing", render: () => <EditorScreen state="published" /> };
+export const S4NoAvailability: Story = { name: "S4 Editor · published, no availability", render: () => <EditorScreen state="published-no-availability" /> };
+export const S4Narrow: Story = { name: "S4 Editor · 320 px", decorators: [narrow], render: () => <EditorScreen state="published" /> };
+
+/* S5 /mentor/availability */
+export const S5Set: Story = { name: "S5 Availability · set", render: () => <AvailabilityScreen state="set" /> };
+export const S5Empty: Story = { name: "S5 Availability · empty", render: () => <AvailabilityScreen state="empty" /> };
+export const S5ZoneDiffers: Story = { name: "S5 Availability · zone being changed", render: () => <AvailabilityScreen state="zone-differs" /> };
+export const S5ServerError: Story = {
+  name: "S5 Availability · save failed",
+  render: () => <AvailabilityScreen state="server-error" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Zapisz" }));
+    await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
+  },
+};
+export const S5Narrow: Story = { name: "S5 Availability · 320 px", decorators: [narrow], render: () => <AvailabilityScreen state="set" /> };

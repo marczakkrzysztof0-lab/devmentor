@@ -1,0 +1,32 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./InvitationGate.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Invitation-only gate
+
+Mentors get in only through a personal link from a founder (D09); there are no passwords and no sign-up (#14 Q1).
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| A valid link shows one button („Akceptuję zaproszenie” / „Zaloguj”) and its expiry — opening the link never does anything by itself (mail scanners) | Spec #14 |
+| No form, no password, no bank or payout fields | Spec #14, R13, D07 |
+| Expired, revoked, used or unknown links all show the same neutral „Ten link jest nieaktywny — poproś zespół o nowy” | Spec #14 |
+| `/mentor` without a session: „Dostęp tylko przez zaproszenie — poproś zespół o link do logowania”, nothing else | Spec #14, D09 |
+| Accepting is a server action with a loading state; no network → say so and keep the button | Form pattern |
+
+## States
+
+| State | Story |
+|---|---|
+| Invitation | invitation |
+| Sign-in link | sign-in link |
+| Inactive link | inactive link (no reason given) |
+| No session | no session, no sign-up |
+
+<Canvas of={Stories.GateInvite} />
+<Canvas of={Stories.GateInactive} />
+
+Components: `InvitationPanel`, `AccessMessage`, `StateMessage`, `Button`.

@@ -26,7 +26,12 @@ export function StatusText({ tone = "neutral", withIcon = false, className, chil
   const Icon = toneIcon[tone];
   return (
     <span className={cn("inline-flex items-start gap-inline font-ui font-strong", toneClass[tone], className)} {...props}>
-      {withIcon && Icon ? <Icon aria-hidden="true" className="mt-inline size-icon-sm shrink-0" /> : null}
+      {withIcon && Icon ? (
+        // One line box high, so the icon sits on the first line at any text size (meta … page heading).
+        <span aria-hidden="true" className="inline-flex h-lh shrink-0 items-center">
+          <Icon className="size-icon-md" />
+        </span>
+      ) : null}
       <span>{children}</span>
     </span>
   );

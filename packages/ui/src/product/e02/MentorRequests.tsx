@@ -117,7 +117,7 @@ export type RequestDecisionProps = {
   onDecline: (id: string) => Promise<DecisionResult>;
 };
 
-/** Refusal messages (#18 codes); the cancelled one is worded in the spec, the rest are proposals C8–C12. */
+/** Refusal messages (#18 codes); the cancelled one is worded in the spec, the rest are proposals C9–C10 (POSTEP.md). */
 export const REFUSAL_MESSAGE: Record<DecisionRefusal, string> = {
   cancelled: "Nie można zaakceptować — deweloper anulował zapytanie",
   declined: "To pytanie jest już odrzucone",

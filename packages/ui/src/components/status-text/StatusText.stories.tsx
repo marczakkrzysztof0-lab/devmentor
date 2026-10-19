@@ -54,6 +54,6 @@ export const ReadsAsText: Story = {
     const text = within(canvasElement).getByText("Zwrot wykonany");
     await expect(text).toBeVisible();
     const svg = canvasElement.querySelector("svg");
-    await expect(svg).toHaveAttribute("aria-hidden", "true");
+    await expect(svg?.closest("[aria-hidden=\"true\"]")).not.toBeNull();
   },
 };

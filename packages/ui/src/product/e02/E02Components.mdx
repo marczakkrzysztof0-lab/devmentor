@@ -22,7 +22,7 @@ Import: `import { … } from "@devmentor/ui/product"`. Specs: #17 (prepaid reque
 | `RequestList` | S8 `/mentor/requests` | ready (grouped) · loading · empty → share link · load error (no partial data) · partial · 30 rows · 320 px | Groups „Czeka na decyzję” (by slot), „Zaakceptowane”, „Zakończone”; never unpaid requests; state as a word (#18, R01.6) |
 | `RequestDecision` / `RequestNotFound` | S9 `/mentor/requests/[id]` | awaiting · accept · decline · pending · developer cancelled (refusal) · no network · slot started (no buttons) · already accepted · 320 px · not found | Question, length and slot before any button; irreversible decisions confirmed; refusal messages from a fresh read (#18) |
 
-Copy not worded by the specs (network, `slot_not_offered`, `page_unavailable`, `payments_unavailable`, refusal messages other than „deweloper anulował”, „Płacisz z góry…”) is marked C5–C12 in POSTEP.md.
+Copy not worded by the specs (network, `slot_not_offered`, `page_unavailable`, `payments_unavailable`, refusal messages other than „deweloper anulował”, „Płacisz z góry…”) is marked C1 and C5–C11 in POSTEP.md.
 
 ## Developer side
 

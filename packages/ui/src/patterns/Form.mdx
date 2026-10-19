@@ -1,0 +1,41 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Form.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Form
+
+Every form in DevMentor sends data to a server action and must never lose what the user typed. Used in: page editor (#14), availability (#15), request form (#17).
+
+## Rules
+
+| Rule | How | Source |
+|---|---|---|
+| The label is always visible; a placeholder is only an example | `FormField` + control | Prompt (Form pattern), WCAG 3.3.2 |
+| Validate when the user leaves a field and again on submit | `onBlur` checks format of filled fields; submit checks everything | Prompt; specs #14, #17 |
+| After a failed submit, focus goes to the first invalid field (or the chosen radio of a group) | `useFocusFirstError` | Specs #14, #17 |
+| Typed data stays after every error | State is never reset on failure | Specs #14, #17 |
+| No double submit | Button `loading` + a guard while pending | Spec #17 („Button disabled while submitting”, `submissionId`) |
+| Success only after the server confirms | Share link / redirect appears when the action resolves `ok` | Prompt |
+| Errors in words, next to their cause: field errors under fields, others in an `Alert` (never a toast) | `FormField error`, `Alert tone="danger"` | WCAG 3.3.1, prompt (How to choose) |
+| Server actions are props; Storybook simulates them with async `fn()` returning the codes of the spec | `action={fn(async () => ({ ok: false, code: "slot_taken" }))}` | Plan (no MSW: server actions, not fetch) |
+
+## States (one story each)
+
+| # | State | Story |
+|---|---|---|
+| 1 | Idle | Idle |
+| 2 | Validation on blur | Validation when leaving a field |
+| 3 | Waiting for the server | Waiting for the server |
+| 4 | Field error from the server | Field error, focus on the first error |
+| 5 | Server error | Server error, input kept |
+| 6 | No network | No network, input kept |
+| 7 | Success | Success only after the server confirms |
+| 8 | Same pattern on the payment form | Price changed (#17) |
+
+<Canvas of={Stories.FieldError} />
+<Canvas of={Stories.NoNetwork} />
+
+## Copy
+
+Field errors say what to do („Dodaj link do publicznej pracy”, „Ten adres jest zajęty” — #14). Network: „Brak połączenia z internetem — sprawdź sieć i spróbuj ponownie. Wpisane dane zostały w formularzu.” (proposal C1). Server: „Nie udało się zapisać po naszej stronie — spróbuj ponownie za chwilę…” (proposal C2).

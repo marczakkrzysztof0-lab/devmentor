@@ -1,0 +1,31 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./ConfirmDecision.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Pattern: Confirm irreversible decision
+
+Replaces "delete confirmation" (P4): nothing is deleted in E01–E02, but three decisions cannot be undone and move money. Used in: „Akceptuję”, „Odrzucam” (#18), „Anuluj i odzyskaj 150 zł” (#19).
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| Ask once, in a `ConfirmDialog`, naming the object („Odrzucić to pytanie?”) and the consequence with the amount („Odrzucenie zwraca pieniądze deweloperowi (150 zł)”) | Spec #18 (consequence text), #19 („Na pewno? Mentor nie zobaczy już tego pytania”) |
+| The confirm button is a verb with an object („Odrzucam pytanie”, „Anuluj i odzyskaj 150 zł”), never „OK” | Prompt (confirmation) |
+| „Wróć” is easy to find and gets focus first; Esc = „Wróć”; clicking outside does nothing | WAI-ARIA alertdialog, S11 |
+| While the action runs, the dialog stays open with a spinner on the confirm button | Spec #17 (no double submit) |
+| If the other side was faster, show what happened in words, never a generic error („Nie można zaakceptować — deweloper anulował zapytanie”, „Mentor właśnie zaakceptował — sesja się odbędzie”) | Specs #18, #19 |
+| Name names in the nominative or leave them out of the question — Polish cases cannot be generated safely („Odrzucić to pytanie?” + „Kuba, jutro 12:30.”) | Proposal C13 |
+
+## States
+
+| State | Story |
+|---|---|
+| Decline: object and consequence, focus on „Wróć” | decline names the object and the consequence |
+| Developer cancels with a refund | developer cancels with a refund |
+| The other side was faster | the other side was faster |
+
+<Canvas of={Stories.ConfirmCancel} />
+
+Components: `ConfirmDialog`, `Button`, `Alert`, `RequestDecision`, `CancelRequest`.

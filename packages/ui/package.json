@@ -19,7 +19,8 @@
     "test:themes": "node scripts/test-themes.mjs",
     "check:tokens": "node scripts/check-tokens.mjs",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "state-map": "node scripts/state-map.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",
