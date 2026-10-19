@@ -8,6 +8,8 @@ A mentor can publish a page and availability (#14, #15), but the share link `/m/
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-19 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat: „Potwierdzam wszystkie decyzje ⚠ ze specyfikacji lekcji 05 tak, jak są zapisane”). Remaining ⚠ marks below are historical.
+
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Are slots selectable here, before #17 exists? | Slots are shown grouped by day with a 25/50 toggle, as plain text; #17 turns each slot into its request link. No dead "Book" button ships. | One capability per spec; a button that leads nowhere would fail QA. | — |
