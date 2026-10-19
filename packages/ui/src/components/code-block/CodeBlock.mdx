@@ -1,0 +1,71 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./CodeBlock.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# CodeBlock and InlineCode
+
+## 1. Purpose
+Shows code, paths and slugs exactly as written, so the mentor can read a pasted config before deciding.
+
+## 2. When to use
+- Code inside a question on the mentor's request detail and on `/r/{token}` (#17, #18; „wkleję yamla”, A08).
+- `InlineCode` for slugs and paths in sentences: `/m/anna-k`, `values.yaml` (#14).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Typing code | `Textarea` | Spec #17 |
+| Prices and times | `font-mono` text, no box | DK2 |
+| Emphasis of ordinary words | Never | A01 |
+
+## 4. Anatomy
+`CodeBlock`: `<pre tabindex=0>` on `surface-code`, 16 px padding, 4 px radius → `<code>`. `InlineCode`: `<code>` with 4 px side padding.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When | Source |
+|---|---|---|
+| `CodeBlock` | Multi-line code | R01.2 |
+| `InlineCode` | A path, slug or file name in a sentence | R01.2, DK2 |
+
+No syntax colouring (the palette has one action colour and status colours only). Source: DK1, S16 (proposal).
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Default | `surface-code`, mono, 14 px | R01.2 |
+| Focus (block) | 2 px `focus-ring` — the block is focusable so it can be scrolled with arrow keys | WCAG 2.1.1 |
+| Hover, pressed, disabled, loading, selected, error | Not applicable (display only). | — |
+
+## 7. Behaviour and accessibility
+- Code is rendered as text, never as HTML (no `dangerouslySetInnerHTML`). Source: spec #16.
+- A wide block scrolls horizontally instead of wrapping (line breaks matter in code); it is focusable and named (`label`). Source: WCAG 2.1.1, 1.4.10 exception for code.
+
+## 8. Content
+Exactly as typed — no trimming, no reformatting. Long tokens in `InlineCode` may break anywhere.
+
+## 9. Responsiveness
+Block scrolls sideways at 320 px; the page itself never scrolls sideways.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<CodeBlock label="Kod z pytania" code={codeFromQuestion} />
+<p>Twoja strona: <InlineCode>/m/{slug}</InlineCode></p>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| Keep line breaks and scroll a long line. | Wrap code — a YAML file becomes unreadable. |
+| Name the block („Kod z pytania”). | An unnamed scrollable region (axe: scrollable-region-focusable). |
+
+## 13. Related
+- Confused with: `Textarea` (input).
+- Used in: Question text (E02 product component), Mentor page editor (slug).

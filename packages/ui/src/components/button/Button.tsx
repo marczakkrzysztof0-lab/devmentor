@@ -16,6 +16,8 @@ export const buttonVariants = cva(
     "aria-busy:cursor-progress",
     // Unavailable with a reason (not while loading: a loading button keeps its look, spec #17).
     "data-disabled:cursor-not-allowed data-disabled:border-control data-disabled:bg-surface-code data-disabled:text-muted",
+    // Native disabled only inside a context that already explains it (e.g. "Wróć" while a dialog action runs).
+    "disabled:cursor-not-allowed disabled:border-control disabled:bg-surface-code disabled:text-muted",
   ],
   {
     variants: {

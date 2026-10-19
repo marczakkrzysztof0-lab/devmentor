@@ -1,0 +1,66 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./StateMessage.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# StateMessage
+
+## 1. Purpose
+Explains why a place on the screen has no content — nothing yet, failed to load, or does not exist — and offers the next step.
+
+## 2. When to use
+| Kind | Product example | Source |
+|---|---|---|
+| `empty` | „Nie masz jeszcze zapytań — udostępnij swój link” (+ the link); „Brak wolnych terminów w najbliższych 14 dniach” | Spec #18, #16 |
+| `error` | „Nie udało się wczytać terminów — odśwież stronę”; „Nie udało się wczytać zapytań — odśwież” | Spec #16, #18 |
+| `not-found` | „Nie ma takiej strony mentora”; „Ten link jest nieaktywny — poproś zespół o nowy”; „Dostęp tylko przez zaproszenie — poproś zespół o link do logowania” | Spec #16, #14 |
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Something changed and the user must react inside a working form | `Alert` | — |
+| Content is still loading | `Skeleton` / `Spinner` | — |
+| A marketing empty state with illustrations | Never | A01 |
+
+## 4. Anatomy
+Icon (20 px, muted; danger for errors) → title (section heading, or h1 when the state is the whole page) → optional detail → optional one action.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+Left-aligned, not centred; no illustration. Source: A01 (not everything centred), P3.
+
+## 6. States
+Not interactive itself; its action carries hover, focus and loading. Hover, focus, pressed, disabled, selected do not apply.
+
+## 7. Behaviour and accessibility
+- `error` is `role="alert"` (announced when it appears). `empty` and `not-found` are plain content.
+- The title is a real heading (`titleAs`), so the page outline stays correct; on a not-found page it is the `h1`.
+- A not-found state shows no data of the missing object (no name, price or slot). Source: spec #16.
+
+## 8. Content
+- Title = why it is like this; action = the one next step: „Odśwież”, „Udostępnij swój link”. Source: prompt (Content: empty states).
+- Neutral for not-found/expired links: never say which reason applies (expired, revoked, unknown). Source: spec #14.
+- No apologies or exclamation marks. Source: P29.
+
+## 9. Responsiveness
+Same layout at every width, text ≤ 65 ch; wraps at 320 px.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<StateMessage kind="error" title="Nie udało się wczytać terminów — odśwież stronę"
+  action={<Button onClick={() => router.refresh()}>Odśwież</Button>} />`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| „Nie masz jeszcze zapytań — udostępnij swój link” with the link. | An empty list with no words. |
+| „Nie ma takiej strony mentora” and nothing else. | Showing the mentor's name on an unpublished page (spec #16). |
+
+## 13. Related
+- Confused with: `Alert`, `Skeleton`.
+- Used in: Grouped list (empty, error), Detail view („nie istnieje albo brak dostępu”), Invitation-only gate, Share page slot section.

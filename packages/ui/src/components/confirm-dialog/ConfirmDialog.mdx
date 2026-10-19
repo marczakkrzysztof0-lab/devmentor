@@ -1,0 +1,87 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./ConfirmDialog.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# ConfirmDialog
+
+## 1. Purpose
+Stops the user once before a decision that cannot be undone and tells them exactly what will happen — for example that declining refunds the developer.
+
+## 2. When to use
+- Mentor: „Akceptuję” and „Odrzucam” on a request (#18 — „accept and decline cannot be undone; confirm click and consequence text”).
+- Developer: „Anuluj i odzyskaj 150 zł” on `/r/{token}` (#19 — „Na pewno? Mentor nie zobaczy już tego pytania”).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| A reversible action (save a draft, change availability) | Just do it — no confirmation | P3 (calm), spec #15 |
+| Showing information or a form | A page (no generic dialog in the system) | P5 |
+| Deleting data | No deletion in E01–E02; this component is the "irreversible decision" pattern | P4 |
+
+## 4. Anatomy
+Scrim (`surface-scrim`) → dialog (panel, 1 px `border-control`, 4 px, no shadow, max 65 ch) → title (question naming the object) → description (consequence) → „Wróć” (secondary, gets focus first) + confirm (primary, verb + object).
+
+## 5. Variants
+Open the dialog with the trigger:
+
+<Canvas of={Stories.Playground} />
+
+| Decision | Title | Confirm label | Source |
+|---|---|---|---|
+| Decline | „Odrzucić pytanie Kuby?” | „Odrzucam pytanie” | Spec #18 |
+| Accept | „Zaakceptować pytanie Kuby?” | „Akceptuję pytanie” | Spec #18 |
+| Cancel | „Anulować zapytanie?” | „Anuluj i odzyskaj 150 zł” | Spec #19 |
+
+The open versions are separate stories (Variants, Variant: accept) so they do not open on this page.
+
+## 6. States
+| State | Behaviour | Source |
+|---|---|---|
+| Closed | Only the trigger | — |
+| Open | Scrim fades in over `duration-dialog` (0 ms with reduced motion); focus on „Wróć” | DK3; S11 |
+| Action in progress | Confirm shows a spinner (`loading`), „Wróć” is disabled, Esc and outside clicks do nothing | Spec #17 (no double submit) |
+| Error after confirm | Close the dialog and show an `Alert` with the refusal („Nie można zaakceptować — deweloper anulował zapytanie”) | Spec #18 |
+| Hover, focus, pressed | Of the two buttons — see Button | — |
+
+## 7. Behaviour and accessibility
+- WAI-ARIA alertdialog (Radix AlertDialog): focus moves into the dialog, Tab cycles inside it, Esc = „Wróć”, focus returns to the trigger on close. The page behind is hidden from assistive tech.
+- Title and description are the dialog's name and description, so the consequence is read out before the buttons.
+- Clicking the scrim does not close it (an irreversible decision needs an explicit answer).
+- Buttons are 40 px high; on narrow screens they stack with the confirm action on top.
+
+## 8. Content
+- Title: a question with the object („Odrzucić pytanie Kuby?”). Description: the consequence with the amount („Odrzucenie zwraca pieniądze deweloperowi (150 zł). Tego nie da się cofnąć.”). Source: spec #18, #19.
+- Confirm label: verb + object, never „OK” / „Tak”. Cancel: „Wróć”. Source: prompt (confirmation pattern), P29.
+- Long titles wrap; the dialog grows in height and scrolls with the page if needed.
+
+## 9. Responsiveness
+| Width | Behaviour |
+|---|---|
+| 320 px | Dialog fills the width minus the 16 px gutter; buttons wrap, confirm above „Wróć”. |
+| 768 / 1440 px | Dialog at most 65 ch wide, centred; buttons on one line, right-aligned. |
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<ConfirmDialog
+  trigger={<Button variant="secondary">Odrzucam</Button>}
+  title={\`Odrzucić pytanie \${menteeName}?\`}
+  description={\`Odrzucenie zwraca pieniądze deweloperowi (\${formatPLN(amount)}). Tego nie da się cofnąć.\`}
+  confirmLabel="Odrzucam pytanie"
+  open={open}
+  onOpenChange={setOpen}
+  loading={pending}
+  onConfirm={() => startTransition(async () => { await declineRequest(id); setOpen(false); })}
+/>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| „Odrzucam pytanie” + „Wróć”, focus on „Wróć”. | „OK” / „Anuluj” — „Anuluj” is ambiguous next to „Anuluj zapytanie”. |
+| The consequence with the amount in the description. | „Czy na pewno?” with no consequence. |
+
+## 13. Related
+- Confused with: `Alert` (no decision), a generic dialog (not in the system).
+- Used in: Confirm irreversible decision pattern, Request detail (E02), Request status page (E02).

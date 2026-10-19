@@ -6,7 +6,7 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 |---|---|
 | 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
 | 1. Fundamenty | zakończony, zatwierdzony 2026-10-19 (commit c21f37a) |
-| 2. Komponenty bazowe | **w toku** – partie bez czekania na „dalej” (decyzja koordynatora 2026-10-19) |
+| 2. Komponenty bazowe | **zakończony 2026-10-19** (commity 5d09a9f, 32f559f, partia 3 – patrz niżej) – czeka na zbiorczą decyzję S1–S17 |
 | 3. Komponenty produktu, wzorce, ekrany | nie rozpoczęty |
 | 4. Strony, które uczą | nie rozpoczęty |
 | 5. Sprawdzenie i raport | nie rozpoczęty |
@@ -57,6 +57,35 @@ W etapie 0 zapisano wyłącznie ten plik.
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
 
+## Etap 2 – co powstało i co sprawdzone (2026-10-19)
+
+**Komponenty bazowe (18 stron dokumentacji, eksport z `@devmentor/ui`):**
+
+| Partia | Komponenty | Commit |
+|---|---|---|
+| 1 | Button, IconButton, TextLink, Spinner, FormField + Label, TextInput | 5d09a9f |
+| 2 | Textarea, Select, RadioGroup (list, segmented), Panel, List + ListRow, StatusText | 32f559f |
+| 3 | Alert, ConfirmDialog, StateMessage, Skeleton, CodeBlock + InlineCode, CopyField | (ten commit) |
+
+- Każda strona ma 13 sekcji (sprawdzone w zbudowanym Storybooku: 13 nagłówków sekcji na każdej z 18 stron, tabele MDX jako HTML, tabela API z react-docgen).
+- Stories: 95 (Primitives) + 1 (Foundations) = 96; w każdym komponencie Playground, warianty, macierz stanów (`data-preview-state` – te same klasy `hover:`/`focus-visible:`/`focus-within:`/`active:`, w CSS Storybooka `@custom-variant`), długa treść / 320 px, test interakcji. Testów z play function: 23 (22 komponentowe + kontrast).
+- Komponenty bez stanów interaktywnych (Panel, StatusText, StateMessage, Skeleton) mają story „States (static)” z wyjaśnieniem, dlaczego macierz nie dotyczy; CopyField pokazuje stany „skopiowano” i „schowek zablokowany” w dwóch testach.
+- **Wyjątek a11y (opisany):** `Select › Open list` – reguła `aria-hidden-focus` wyłączona tylko w tej story (Radix ukrywa resztę strony i pułapkuje fokus w liście; WAI-ARIA listbox). Pozostałe 95 stories: axe bez naruszeń w obu motywach.
+- Zmiany infrastruktury: `cn` z `tailwind-merge` znającym nazwy tokenów; `check:tokens` wykrywa też numeryczne odstępy (`p-4`, `gap-2`) i pomija warianty arbitralne (`data-[state=checked]:`); Storybook nie resetuje już domyślnej skali odstępów (wartości 0 – `min-w-0`, `inset-0` – muszą działać tak samo jak w aplikacji); `optimizeDeps` dla stabilnego pierwszego uruchomienia testów; favicon produktu (P9); tokeny `border-action-primary-fill-hover` i `border-status-danger` (mapowanie istniejących wartości, bez nowych kolorów).
+- Dane w przykładach: tylko imiona, kwoty, teksty i adresy ze specyfikacji (Anna K., Kuba, Ola, 150/280/180 zł, „Ten termin właśnie się zajął…”); adres aplikacji z `.env.example` (`http://localhost:3000`).
+
+| Sprawdzenie (po partii 3) | Wynik |
+|---|---|
+| `npm run typecheck` (pakiet) | OK |
+| `npm run lint` (root) | OK |
+| `npm run check:tokens` | OK (3 opisane linie ignorowane w parserze bloku kontrastu) |
+| `npm run test:themes` | jasny 96/96, ciemny 96/96 |
+| `npm run build-storybook` | OK |
+| `next build` (aplikacja) | OK |
+| Przeglądarka | 18 stron komponentów: 13 sekcji, tabele, API; dialog w ciemnym motywie (portal dostaje motyw z `<html>`), dialog przy 320 px (przyciski w kolumnie, akcja na górze); macierze stanów Button i RadioGroup; favicon i tytuł „DevMentor” |
+
+**Czego nie sprawdziłem:** czytnika ekranu na żywo (tylko role/nazwy w testach), Safari/Firefox (testy tylko w Chromium), trybu „System” przy ciemnym motywie systemu, wszystkich stories na 768 i 1440 px (sprawdzane wybiórczo).
+
 ## Etap 2 – różnice wobec domyślnej bazy shadcn
 
 Baza: shadcn/ui (styl „new-york”, Tailwind 4) na `radix-ui`. Od Radix bierzemy zachowanie i dostępność; wygląd w całości z tokenów. Komponenty napisane na wzór plików shadcn (ta sama budowa: `cva` + `cn` + prymitywy Radix), bez CLI shadcn – CLI dodaje `tw-animate-css` i domyślne zmienne (`--primary`, `--ring`…), które i tak trzeba by usunąć (zasada 6). Pochodzenie zapisane też w notatce technicznej (strona „Contributing”, etap 4).
@@ -86,6 +115,11 @@ Oznaczenia: **źródło** = decyzja z materiałów; **S#** = propozycja agenta (
 | Alert | ramka + ikona, wariant destructive | tło `surface-code`, bez ramki (ramka tylko na tym, co się klika – Shape and depth), ikona + słowa; `role="alert"` tylko dla błędów | A01, audyt; S10 |
 | Dialog potwierdzenia | `shadow-lg`, `rounded-lg`, przyciski „Cancel” / „Continue” | bez cienia, `border-control`, 4 px; „Wróć” (fokus startowy) + czasownik z obiektem („Odrzucam pytanie”) | P2, prompt (potwierdzenie), P4; fokus na rezygnacji – S11 |
 | Pole wymagane / opcjonalne | brak konwencji | wymagane bez znaku; opcjonalne opisane słowem „(opcjonalnie)” przy etykiecie | S12 (formularze produktu mają prawie same pola wymagane – spec #14, #17) |
+| Pole bez zmiany przy najechaniu | `hover:border-ring` (zależnie od wersji) | pola i trigger selecta bez zmiany na hover | S13 (pole nie musi „zapraszać” do kliknięcia; spokojny – P3) |
+| Licznik znaków w polu pytania | brak | brak, dopóki specyfikacja go nie wymaga (limit 4000 egzekwuje serwer) | S14 |
+| Wiersz listy jako link | brak | „stretched link”: cały wiersz klikalny, w DOM jeden link na wiersz | S15 |
+| Kolorowanie składni | brak | brak – paleta ma jeden kolor akcji i kolory statusów | S16 (DK1) |
+| Zablokowany schowek w CopyField | brak | link zaznaczony + instrukcja „skopiuj go ręcznie (Ctrl+C)” | S17 |
 | Podgląd stanów w dokumentacji | brak | w Storybooku warianty `hover:`, `focus-visible:`, `active:` działają też dla `data-preview-state` (te same klasy, inna reguła tylko w CSS Storybooka) | prompt (etap 2) |
 
 ## Inwentaryzacja repozytorium
@@ -135,7 +169,7 @@ Zdecydował: K. Marczak (delegacja do agenta-koordynatora), 2026-10-19.
 
 ## Otwarte pytania (do decyzji Krzysztofa)
 
-P1–P10 rozstrzygnięte (sekcja „Zatwierdzone decyzje”). Historia pytań etapu 1 poniżej; propozycje etapu 2 – w sekcji „Etap 2 – różnice wobec shadcn” (S1–S…).
+P1–P10 rozstrzygnięte (sekcja „Zatwierdzone decyzje”). Historia pytań etapu 1 poniżej; propozycje etapu 2 – w sekcji „Etap 2 – różnice wobec shadcn” (S1–S17, do zbiorczej decyzji).
 
 | # | Pytanie | Moja rekomendacja (propozycja) |
 |---|---|---|
@@ -229,4 +263,5 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 
 ## Następny krok
 
-Po „dalej” i decyzjach P6–P10: etap 2 – najpierw lista różnic kształtu, gęstości i stanów względem domyślnego shadcn (z decyzjami), potem komponenty bazowe partiami po ok. 6, z 13-sekcyjną stroną dokumentacji i macierzą stanów (`data-preview-state`).
+1. Zbiorcza decyzja koordynatora o propozycjach S1–S17 (tabela „Etap 2 – różnice wobec domyślnej bazy shadcn”).
+2. Etap 3 – komponenty produktu E01/E02 ze stanami danych, wzorce (Form ze stanami API, Grouped list, Detail view, Confirm irreversible decision, Request status page, Share link, Invitation-only gate, Time-zone-aware slots) i ekrany na pełny ekran z mapą stanów.

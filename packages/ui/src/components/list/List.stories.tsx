@@ -49,7 +49,7 @@ export const LongNarrow: Story = {
   name: "Long title and meta, 320 px",
   decorators: [narrow],
   args: {
-    title: "Krzysztof-Aleksander · 50 min",
+    title: "Kuba · 50 min",
     meta: "wtorek 20 października 2026, 18:00–18:50 · zdecyduj przed 18:00 · Europe/Warsaw",
     end: <StatusText tone="waiting">Czeka na decyzję</StatusText>,
   },

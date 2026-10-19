@@ -25,6 +25,8 @@ const config: StorybookConfig = {
     abs("@storybook/addon-a11y"),
     abs("@storybook/addon-vitest"),
   ],
+  // P9: the product favicon (copy of app/favicon.ico) instead of the Storybook logo.
+  staticDirs: ["./public"],
   framework: { name: abs("@storybook/react-vite") as "@storybook/react-vite", options: {} },
   core: {
     disableTelemetry: true,
