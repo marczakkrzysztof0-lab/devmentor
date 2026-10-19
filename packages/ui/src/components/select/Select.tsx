@@ -33,7 +33,9 @@ export type SelectProps = {
 const itemClass = cn(
   "relative flex cursor-pointer select-none items-center justify-between gap-in-group rounded-control",
   "px-inside-panel py-in-group text-body text-primary outline-none",
-  "data-highlighted:bg-surface-code data-disabled:cursor-not-allowed data-disabled:text-muted",
+  // Highlight = background AND an inset focus outline: in the dark theme surface-code equals surface-panel (stage 5 finding).
+  "data-highlighted:bg-surface-code data-highlighted:outline-2 data-highlighted:-outline-offset-2 data-highlighted:outline-focus-ring",
+  "data-disabled:cursor-not-allowed data-disabled:text-muted",
 );
 
 function Item({ option }: { option: SelectOption }) {

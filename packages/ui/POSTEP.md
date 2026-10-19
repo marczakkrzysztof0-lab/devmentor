@@ -9,7 +9,7 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 | 2. Komponenty bazowe | zakończony, S1–S17 rozstrzygnięte 2026-10-19 (commity 5d09a9f, 32f559f, ce6412a) |
 | 3. Komponenty produktu, wzorce, ekrany | zakończony; C1–C14, S18–S20 rozstrzygnięte 2026-10-19 (commity b6da955, 8986564, 869c487) |
 | 4. Strony, które uczą | zakończony 2026-10-19 (Start here, Components, How to choose, Usage and accessibility, Content, What to avoid, What is missing, Contributing, Epics E01/E02; docs/design-system.md + AGENTS.md) |
-| 5. Sprawdzenie i raport | nie rozpoczęty |
+| 5. Sprawdzenie i raport | zakończony 2026-10-19 (pkt 1–4 i 6; pkt 5 – opis ekranu do testu agentem, test nie wykonany) – czeka na decyzje T1, CI, A1 |
 
 W etapie 0 zapisano wyłącznie ten plik.
 
@@ -56,6 +56,71 @@ W etapie 0 zapisano wyłącznie ten plik.
 - npm 11 zostawia pakiety Storybooka w `packages/ui/node_modules`, a `storybook` podnosi do root; dlatego `main.ts` podaje framework i dodatki jako ścieżki bezwzględne (wzorzec Storybooka dla monorepo).
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
+
+## Etap 5 – sprawdzenie i raport (2026-10-19)
+
+### 1. Build, typecheck, lint
+
+| Polecenie | Wynik |
+|---|---|
+| `npm run build-storybook` | OK (282 stories, 47 stron dokumentacji) |
+| `npm run typecheck` (pakiet) | OK |
+| `next build` (aplikacja, z TypeScript) | OK |
+| `npm run lint` (root, obejmuje pakiet i stories) | OK, 0 ostrzeżeń |
+| `npm test` (node:test) | 7/7 |
+
+### 2. Wartości spoza tokenów
+
+- `packages/ui` (src, docs, .storybook): **0 błędów**. 14 linii jawnie wyłączonych komentarzem `check-tokens-ignore`: 11 to przykłady „czego nie pisać” w Start here / What to avoid / What is missing (`docs/guide/StartHere.mdx:19`, `WhatIsMissing.mdx:49`, `WhatToAvoid.mdx:28`, `WhatToAvoid.mdx:43`), 3 to parser kolorów w bloku tabeli kontrastu (`.storybook/blocks/contrast.ts:49–50`).
+- **Poprawka znaleziona przy tym kroku:** reguła „numeryczne odstępy” w `check-tokens.mjs` straciła ukośniki przy edycji w etapie 2 (`\d`, `\w`) i łapała tylko część przypadków (np. `py-2` zamiast `py-24`). Naprawiona; pakiet nadal 0 błędów, test na pliku tymczasowym (`p-4`, `gap-2`, `py-24` – błąd; `min-w-0`, `inset-0`, `max-w-3xl`, `top-1/2` – OK).
+- `app/` (poza zakresem skryptu w CI, uruchomione ręcznie: `node scripts/check-tokens.mjs ../../app`): **18 wartości, wszystkie w `app/page.tsx`** – l. 3: `dark:bg-black`, `px-6`, `py-24`; l. 4: `bg-white`, `dark:bg-zinc-950`, `px-8`, `py-16`, `sm:px-16`; l. 5: `text-blue-600`, `dark:text-blue-400`, `mb-4`, `tracking-[0.2em]`; l. 8: `text-zinc-950`, `dark:text-zinc-50`; l. 11: `text-zinc-600`, `dark:text-zinc-400`, `mt-6` (+ `bg-zinc-50` l. 3). Wpisane w „What is missing” (migracja strony głównej).
+
+### 3. Dostępność wszystkich stories
+
+- `npm run test:themes`: **282/282 w jasnym i 282/282 w ciemnym** (33 pliki), axe z `a11y: { test: "error" }` na każdej story.
+- Jedyny opisany wyjątek: `Primitives/Select › Open list` – reguła `aria-hidden-focus` wyłączona (Radix ukrywa stronę i pułapkuje fokus w liście). Pozostałe stories – 0 naruszeń.
+- Strony MDX (dokumentacja) nie są testowane przez axe – tylko stories.
+
+### 4. Przeglądarka
+
+| Sprawdzenie | Wynik |
+|---|---|
+| 9 ekranów (S1, S3, S4, S5, S6, S7 ×2, S8 z 30 zapytaniami, S9) × 320/768/1440 px × jasny/ciemny = 54 renderów | brak poziomego przewijania strony i elementów wychodzących poza ekran (poza celowo przewijanymi blokami kodu); tło zgodne z motywem w każdym renderze |
+| S6 320 px, ciemny – zrzut | kolejność tożsamość → praca → opis → przełącznik z obiema cenami → terminy |
+| Klawiatura S6 | Tab: link pracy (fokus 2 px, terakota) → długość (25 min) → grupa terminów (jeden przystanek) → Imię → Pytanie → „Zapłać 150 zł i wyślij pytanie” |
+| Nakładka: dialog S9, 768 px, ciemny | Enter na „Odrzucam” → dialog w ciemnym motywie (portal), scrim 60 %, fokus na „Wróć”; Esc zamyka, fokus wraca na „Odrzucam” |
+| Nakładka: Select S5, 320 px, ciemny | lista w portalu w ciemnym motywie, mieści się w 320 px, zaznaczenie z ikoną |
+| **Znalezisko:** w ciemnym motywie `surface-code` = `surface-panel` (oba stone-900 w tokeny.md) | podświetlenie opcji Selecta było niewidoczne → **poprawione w komponencie** (podświetlenie = tło + wewnętrzny obrys `focus-ring`); hover przycisku drugorzędnego w ciemnym motywie nadal niewidoczny → propozycja T1 |
+
+### 5. Test agentem – przygotowany, nie wykonany
+
+Ekran do zbudowania przez agenta w nowej sesji, wyłącznie z `docs/design-system.md` i Storybooka (nie ma go w Storybooku):
+
+**„Wypłaty mentora” – `/mentor/payouts` (E04-S01, #22; T01 #25).** Źródła dla agenta: `.ai/specs/backlog.md` (#22: „After the first paid request a mentor sets up payouts and receives the money owed”), brief (D07: dane do wypłat dopiero po pierwszej rezerwacji; R13: żadnych pól bankowych przy publikacji), `docs/design-system.md`. Specyfikacji #22 nie ma – agent nie może jej zakładać.
+- Kto: zalogowany mentor (nawigacja mentora; czwarta pozycja nawigacji jest decyzją do zgłoszenia, nie do zgadywania).
+- Co ma pokazać: stan konfiguracji wypłat (nie rozpoczęta / w toku u dostawcy płatności / gotowa / dostawca prosi o uzupełnienie), kwotę należną mentorowi (PLN, Geist Mono), listę zakończonych sesji z kwotą i stanem wypłaty, jedną główną akcję uruchamiającą konfigurację u dostawcy (hostowana strona Stripe – bez pól bankowych w DevMentorze).
+- Stany: ładowanie, błąd wczytania, brak opłaconych pytań (konfiguracja jeszcze niedostępna – dlaczego i co dalej), pierwsza konfiguracja, w toku, gotowe, wymagane uzupełnienie, dużo pozycji, 320 px, oba motywy; powrót z dostawcy (sukces / przerwane).
+- Kryterium testu: agent nie pyta o nic, co jest w dokumentacji; każde miejsce, w którym zgaduje (np. słowa stanów wypłaty, czwarta pozycja nawigacji, tabela czy lista, ton komunikatu o prowizji – Q01 otwarte), zapisuje osobno. Te miejsca trafią do dokumentacji albo do „What is missing”.
+- Prompt testu przygotuje koordynator w nowej sesji (ta sesja zna odpowiedzi spoza plików).
+
+### 6. Liczby
+
+| Co | Liczba |
+|---|---|
+| Strony dokumentacji (MDX) | 47 – przewodniki 8, epiki 2, Foundations 7, komponenty bazowe 18, produkt 4 (2 × komponenty, 2 × mapa stanów), wzorce 8 |
+| Komponenty | 18 bazowych (z Label i InlineCode – 20 eksportów) + 25 produktu (E01: 14, E02: 11) + 3 wspólne (Amount, PageLayout, formatowanie) |
+| Stories | 282 – Foundations 1, Primitives 96, Product 149 (w tym ekrany S1–S9: 56), Patterns 36 |
+| Testy interakcji (play functions) | 96 |
+| Testy w przebiegu | 282 × 2 motywy = 564, wszystkie zielone |
+| Wyjątki a11y | 1 (opisany) |
+
+### Propozycje do decyzji po etapie 5
+
+| # | Propozycja | Uzasadnienie |
+|---|---|---|
+| T1 | Ciemny motyw: `surface-code` = stone-800 (`#292524`) zamiast stone-900 | dziś równe `surface-panel`, więc hover przycisku drugorzędnego, bloki kodu na panelu i odczyt „tylko do odczytu” w ciemnym motywie zlewają się z tłem; kontrast po zmianie: `text-primary` 13,90, `text-muted` 6,01, `text-link` 5,25 (≥ 4,5) |
+| CI | Dodać do `.github/workflows/ci.yml`: `check:tokens`, `typecheck:ui`, `npx playwright install --with-deps chromium`, `test:storybook:themes` | P10 (przyjęte „w etapie 5”; nie zmieniałem workflow bez polecenia – plik CI poza pakietem) |
+| A1 | Rozszerzyć `check:tokens` na `app/` po migracji `app/page.tsx` | dziś 18 wartości spoza tokenów w aplikacji |
 
 ## Etap 3 – co powstało i co sprawdzone (2026-10-19)
 
@@ -324,5 +389,5 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 
 ## Następny krok
 
-1. Decyzje o treściach C1–C14 i propozycjach S18–S20 (sekcja „Etap 3”).
-2. Etap 4 – strony, które uczą: Start here, Components, How to choose, Usage and accessibility, Content, What to avoid, What is missing (w tym: checkbox, przełącznik, menu, popover, podpowiedź, zakładki, awatar, toast, combobox stref, czat E03, ogólna lista z filtrami, migracja app/page.tsx), Contributing, strony epików; plik dla agentów docs/design-system.md + odwołanie w AGENTS.md.
+1. Decyzje T1 (ciemny `surface-code`), CI (P10) i A1.
+2. Test agentem w nowej sesji: ekran „Wypłaty mentora” (sekcja „Etap 5”, pkt 5); każde zgadywanie → dokumentacja albo „What is missing”.

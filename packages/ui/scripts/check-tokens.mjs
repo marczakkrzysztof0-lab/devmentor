@@ -33,7 +33,7 @@ export const RULES = [
   },
   {
     name: "numeric Tailwind spacing (use a spacing token)",
-    re: /(?<![w-])(?:[w-]+:)*-?(?:p|px|py|pt|pr|pb|pl|ps|pe|m|mx|my|mt|mr|mb|ml|ms|me|gap|gap-x|gap-y|space-x|space-y|inset|inset-x|inset-y|top|right|bottom|left|start|end|w|h|size|min-w|min-h|max-w|max-h|translate-x|translate-y|scroll-m|scroll-p|indent|basis)-(?:[1-9]d*(?:.5)?|0.5)(?![w./-])/g,
+    re: /(?<![\w-])(?:[\w-]+:)*-?(?:p|px|py|pt|pr|pb|pl|ps|pe|m|mx|my|mt|mr|mb|ml|ms|me|gap|gap-x|gap-y|space-x|space-y|inset|inset-x|inset-y|top|right|bottom|left|start|end|w|h|size|min-w|min-h|max-w|max-h|translate-x|translate-y|scroll-m|scroll-p|indent|basis)-(?:[1-9]\d*(?:\.5)?|0\.5)(?![\w./-])/g,
   },
   {
     name: "Tailwind arbitrary value",

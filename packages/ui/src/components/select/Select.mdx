@@ -38,7 +38,7 @@ Trigger (looks like a field: value or placeholder + chevron) → popover list (p
 | Placeholder | Muted text | WCAG 3.3.2 (label is separate) |
 | Chosen | Value in primary text; in the list a check icon next to it (not colour only) | WCAG 1.4.1 |
 | Hover | Trigger: no change (S13); item: `surface-code` | S13 |
-| Focus | Trigger: 2 px `focus-ring`; item: `surface-code` highlight | WCAG 2.4.7 |
+| Focus | Trigger: 2 px `focus-ring`; item: `surface-code` + inset 2 px `focus-ring` (visible in the dark theme, where `surface-code` equals the panel) | WCAG 2.4.7 |
 | Open | List fades in over `duration-menu` (0 ms with reduced motion); no zoom, no slide | DK3, P7 |
 | Error | `border-status-danger` + message from `FormField` | WCAG 3.3.1 |
 | Disabled | `surface-code`, muted | Prompt (explain nearby) |
