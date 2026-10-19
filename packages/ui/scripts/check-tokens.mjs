@@ -3,7 +3,7 @@
 //   2. Tailwind palette classes (bg-zinc-900, text-white, ...),
 //   3. Tailwind arbitrary values (p-[13px], text-[#fff], ...),
 //   4. numeric Tailwind spacing other than 0 (p-4, gap-2, mt-6, w-64 ...) — use spacing tokens.
-// Usage: node scripts/check-tokens.mjs [paths...]   (default: src, docs, .storybook)
+// Usage: node scripts/check-tokens.mjs [paths...]   (default: src, docs, .storybook and the app in ../../app — A1)
 // A line may opt out with the comment `check-tokens-ignore` (e.g. a "what to avoid" example);
 // every opt-out is printed so it stays visible in review.
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -72,7 +72,7 @@ export function checkFile(file) {
 
 function main() {
   const args = process.argv.slice(2);
-  const targets = (args.length ? args : ["src", "docs", ".storybook"]).map((t) => path.resolve(root, t));
+  const targets = (args.length ? args : ["src", "docs", ".storybook", "../../app"]).map((t) => path.resolve(root, t));
   const findings = [];
   const ignored = [];
   for (const target of targets) {

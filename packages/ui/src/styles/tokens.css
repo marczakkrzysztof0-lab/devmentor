@@ -96,7 +96,7 @@
     color-scheme: dark;
     --ds-surface-page: var(--raw-stone-950);
     --ds-surface-panel: var(--raw-stone-900);
-    --ds-surface-code: var(--raw-stone-900);
+    --ds-surface-code: var(--raw-stone-800); /* T1 (2026-10-19): differs from surface-panel in dark */
     --ds-text-primary: var(--raw-stone-100);
     --ds-text-muted: var(--raw-stone-400);
     --ds-text-on-action: var(--raw-stone-950);
@@ -115,7 +115,7 @@
   color-scheme: dark;
   --ds-surface-page: var(--raw-stone-950);
   --ds-surface-panel: var(--raw-stone-900);
-  --ds-surface-code: var(--raw-stone-900);
+  --ds-surface-code: var(--raw-stone-800); /* T1 (2026-10-19) */
   --ds-text-primary: var(--raw-stone-100);
   --ds-text-muted: var(--raw-stone-400);
   --ds-text-on-action: var(--raw-stone-950);

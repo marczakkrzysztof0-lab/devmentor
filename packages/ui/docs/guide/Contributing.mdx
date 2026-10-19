@@ -46,6 +46,8 @@ Krzysztof Marczak (brief owner) approves new components, variants, tokens and co
 
 From the repository root: `npm run storybook`, `npm run build-storybook`, `npm run test:storybook`, `npm run test:storybook:themes`, `npm run check:tokens`, `npm run typecheck:ui`, `npm run lint`.
 
+CI (`.github/workflows/ci.yml`): job `tokens` runs `npm run check:tokens` (packages/ui and app/); job `storybook` installs Chromium, runs `npm run typecheck:ui` and `npm run test:storybook:themes`. A red job blocks the merge.
+
 ## Technical note: where the base comes from
 
 The primitives follow the structure of shadcn/ui (new-york style, Tailwind 4): `class-variance-authority` + `cn` (`clsx` + `tailwind-merge`) over `radix-ui` primitives (Label, Select, RadioGroup, AlertDialog, Slot). They were written by hand instead of with the shadcn CLI, because the CLI adds `tw-animate-css` and default variables that the tokens replace. Behaviour and accessibility come from Radix; the look comes only from DevMentor tokens and decisions (stage 2 table in POSTEP.md). Icons: lucide-react (P1). Fonts: Geist and Geist Mono, local files in Storybook (P3), `next/font` in the app.

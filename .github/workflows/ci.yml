@@ -16,3 +16,32 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  # Design system: values outside the tokens in packages/ui and app/ (A1, P10).
+  tokens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check:tokens
+
+  # Design system: TypeScript of packages/ui and every story as a test (render, play, axe)
+  # in the light and the dark theme (P10).
+  storybook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck:ui
+      - run: npm run test:storybook:themes

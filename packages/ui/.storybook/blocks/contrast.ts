@@ -29,9 +29,11 @@ export const PAIRS: Pair[] = [
   { fg: "status-danger-text", bg: "surface-panel", kind: "text" },
   { fg: "border-control", bg: "surface-page", kind: "ui" },
   { fg: "border-control", bg: "surface-panel", kind: "ui" },
+  { fg: "border-control", bg: "surface-code", kind: "ui", note: "read-only field (T1)" },
   { fg: "action-primary-fill", bg: "surface-page", kind: "ui", note: "button edge" },
   { fg: "focus-ring", bg: "surface-page", kind: "ui" },
   { fg: "focus-ring", bg: "surface-panel", kind: "ui" },
+  { fg: "focus-ring", bg: "surface-code", kind: "ui", note: "focus on code blocks (T1)" },
   {
     fg: "border-divider",
     bg: "surface-page",

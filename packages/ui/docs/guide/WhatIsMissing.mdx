@@ -46,9 +46,8 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 
 | Gap | Detail | Next step |
 |---|---|---|
-| `app/page.tsx` uses palette classes and generic marketing | `bg-zinc-50`, `text-blue-600`, `rounded-3xl`, `shadow-sm`, `tracking-[0.2em]` {/* check-tokens-ignore */}; copy „Rozwijaj się w IT” (audyt.md) | Rebuild the home page with tokens; run `check:tokens` on `app/` |
-| `check:tokens` scans only `packages/ui` | The app is not checked yet | Add `app/` after the home page is migrated; CI in stage 5 (P10) |
-| CI does not run Storybook tests | `ci.yml` runs only `npm test` | Add `check:tokens`, `typecheck:ui`, `test:storybook:themes` + Chromium (P10) |
+| `app/page.tsx` copy is still generic marketing | Values now come from tokens (A1, 2026-10-19), but the text „Rozwijaj się w IT”, „wiedzę, inspirację i wsparcie” and the centred eyebrow contradict 1.0 scope and What to avoid (audyt.md) | Rewrite the home page content: one sentence about what 1.0 does, no eyebrow |
+| Tests run only in Chromium | CI jobs `tokens` and `storybook` run `check:tokens` (packages/ui + app/) and every story with axe in both themes | Add WebKit/Firefox if the pilot shows Safari users |
 
 ## Not verified
 

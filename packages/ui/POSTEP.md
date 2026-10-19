@@ -9,7 +9,7 @@ Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
 | 2. Komponenty bazowe | zakończony, S1–S17 rozstrzygnięte 2026-10-19 (commity 5d09a9f, 32f559f, ce6412a) |
 | 3. Komponenty produktu, wzorce, ekrany | zakończony; C1–C14, S18–S20 rozstrzygnięte 2026-10-19 (commity b6da955, 8986564, 869c487) |
 | 4. Strony, które uczą | zakończony 2026-10-19 (Start here, Components, How to choose, Usage and accessibility, Content, What to avoid, What is missing, Contributing, Epics E01/E02; docs/design-system.md + AGENTS.md) |
-| 5. Sprawdzenie i raport | zakończony 2026-10-19 (pkt 1–4 i 6; pkt 5 – opis ekranu do testu agentem, test nie wykonany) – czeka na decyzje T1, CI, A1 |
+| 5. Sprawdzenie i raport | zakończony 2026-10-19; T1, A1, CI wdrożone (pkt 5 – test agentem przygotowany, niewykonany) |
 
 W etapie 0 zapisano wyłącznie ten plik.
 
@@ -56,6 +56,39 @@ W etapie 0 zapisano wyłącznie ten plik.
 - npm 11 zostawia pakiety Storybooka w `packages/ui/node_modules`, a `storybook` podnosi do root; dlatego `main.ts` podaje framework i dodatki jako ścieżki bezwzględne (wzorzec Storybooka dla monorepo).
 - `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
 - Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
+
+## Po etapie 5 – T1, A1, CI (2026-10-19)
+
+| # | Decyzja (K. Marczak przez delegację, 2026-10-19) | Wdrożenie |
+|---|---|---|
+| T1 | Ciemny `surface-code` = stone-800 | `tokens.css` (oba bloki ciemnego motywu); `lekcja-06/tokeny.md` zaktualizowane (wartość + pary); tabela kontrastu: dodane pary `border-control`/`surface-code` i `focus-ring`/`surface-code` |
+| C12-specs | Odejście od dosłownych tekstów #17–#19 na rzecz form neutralnych – przyjęte | notka „copy neutralized per design system Content rule C12, 2026-10-19” w #17 (UI/UX) oraz #18 i #19 (te nie mają sekcji UI/UX – notka na początku „Proposed Solution”) |
+| A1 | `app/page.tsx` na tokenach; `check:tokens` obejmuje `app/` | 0 błędów w `packages/ui` i `app/` |
+| P10 / CI | Joby `tokens` i `storybook` w `.github/workflows/ci.yml`, job `test` bez zmian | lokalnie te same komendy – zielone |
+
+**Kontrast po T1 (ciemny motyw, `surface-code` #292524):** `text-primary` 13,90 · `text-muted` 6,01 · `text-link` 5,25 · `focus-ring` 5,25 (UI) · `border-control` 3,16 (UI) – wszystkie ≥ progów; jasny motyw bez zmian (`border-control`/`surface-code` 4,40, `focus-ring`/`surface-code` 5,09). Story „Contrast check” mierzy teraz 23 pary × 2 motywy – 0 poniżej progu.
+
+**A1 – mapowanie wartości z `app/page.tsx` (żaden nowy token nie był potrzebny):**
+
+| Linia (przed) | Wartość | Token znaczeniowy | Uzasadnienie |
+|---|---|---|---|
+| 3 | `bg-zinc-50` + `dark:bg-black` | `bg-surface-page` (oba motywy z tokenu) | DK1, DK4 |
+| 3 | `px-6` | `px-page-gutter` | K2 |
+| 3 | `py-24` | `py-between-sections` | tokeny.md (relacje) |
+| 4 | `bg-white` + `dark:bg-zinc-950` | `bg-surface-panel` | DK1 |
+| 4 | `px-8`, `sm:px-16` | `px-between-groups` | relacje odstępów |
+| 4 | `py-16` | `py-between-sections` | relacje odstępów |
+| 5 | `mb-4` | `mb-in-group` | relacje odstępów |
+| 5 | `text-blue-600` + `dark:text-blue-400` | `text-muted` (to nie link – `text-link` tylko dla linków) | DK1, A01 |
+| 5 | `tracking-[0.2em]` | usunięte – brak tokenu rozstrzelenia; rozstrzelony nadtytuł to znak A01 (audyt.md) | A01 |
+| 8 | `text-zinc-950` + `dark:text-zinc-50` | `text-primary` | DK1 |
+| 11 | `text-zinc-600` + `dark:text-zinc-400` | `text-muted` | R02.3 |
+| 11 | `mt-6` | `mt-between-groups` | relacje odstępów |
+| dodatkowo (nie łapane przez skrypt, też spoza tokenów) | `font-sans` → `font-ui`; `rounded-3xl` → `rounded-control`; `shadow-sm` → `border border-divider`; `max-w-3xl` → `max-w-page`; `max-w-xl` → `max-w-text`; `text-sm` → `text-meta`; `text-5xl`/`sm:text-6xl` → `text-heading-page`; `text-lg leading-8` → `text-body`; `font-semibold`/`font-bold` → `font-strong`; `tracking-tight` – usunięte | P2, P6, A01, tokeny.md |
+
+Treść strony głównej („Rozwijaj się w IT…”) bez zmian – nadal do przepisania (What is missing).
+
+**Uruchomione lokalnie (komendy z CI, z katalogu głównego):** `npm ci --dry-run` – lockfile zgodny (pełne `npm ci` pominięte: `node_modules` aktualne); `npm test` 7/7; `npm run check:tokens` OK (11 opisanych linii ignorowanych); `npx playwright install chromium` OK (już zainstalowany; `--with-deps` dotyczy Linuksa w CI); `npm run typecheck:ui` OK; `npm run test:storybook:themes` 282/282 jasny + 282/282 ciemny; dodatkowo `npm run lint`, `next build`, `build-storybook` – OK. Uwaga dla CI: npm 11 pomija skrypty instalacyjne `esbuild` i `unrs-resolver` (ostrzeżenie `install-scripts`); lokalnie Storybook i Vitest działają bez nich.
 
 ## Etap 5 – sprawdzenie i raport (2026-10-19)
 
@@ -389,5 +422,4 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 
 ## Następny krok
 
-1. Decyzje T1 (ciemny `surface-code`), CI (P10) i A1.
-2. Test agentem w nowej sesji: ekran „Wypłaty mentora” (sekcja „Etap 5”, pkt 5); każde zgadywanie → dokumentacja albo „What is missing”.
+Test agentem w nowej sesji: ekran „Wypłaty mentora” (sekcja „Etap 5”, pkt 5); każde zgadywanie → dokumentacja albo „What is missing”. Potem przepisanie treści strony głównej.

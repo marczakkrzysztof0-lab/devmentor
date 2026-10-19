@@ -33,7 +33,7 @@
 |---|---|---|---|---|---|
 | `surface-page` | semantyczna (mapuje `--background`) | `stone-50 #fafaf9` / `stone-950 #0c0a09` | DK1, R01.4 | tło stron | jako tło przycisków i pól |
 | `surface-panel` | semantyczna | `white #ffffff` / `stone-900 #1c1917` | DK1, R01.3 | pola formularza, pole pisania czatu, edytor strony mentora | do „kart z cieniem” (A01) |
-| `surface-code` | semantyczna | `stone-100 #f5f5f4` / `stone-900 #1c1917` | R01.2 | bloki kodu w pytaniu i czacie | zwykły tekst, wyróżnianie akapitów |
+| `surface-code` | semantyczna | `stone-100 #f5f5f4` / `stone-800 #292524` (T1, 2026-10-19; wcześniej `stone-900`, równe `surface-panel`) | R01.2, T1 | bloki kodu w pytaniu i czacie | zwykły tekst, wyróżnianie akapitów |
 | `text-primary` | semantyczna (mapuje `--foreground`) | `stone-900 #1c1917` / `stone-100 #f5f5f4` | DK1 | treść, nagłówki, kod | na `action-primary-fill` |
 | `text-muted` | semantyczna | `stone-600 #57534e` / `stone-400 #a8a29e` | R02.3, R01.1 | godziny wiadomości, podpowiedzi pod polami, metadane wierszy | treść pytania, ceny, stany |
 | `text-on-action` | semantyczna | `white #ffffff` / `stone-950 #0c0a09` | DK1 | etykieta na przycisku głównym i wybranym przełączniku 25/50 | gdziekolwiek poza `action-primary-fill` |
@@ -73,15 +73,15 @@ Liczba tokenów semantycznych i komponentowych: 35 (2 zmapowane z istniejących:
 |---|---|---|---|---|
 | `text-primary` / `surface-page` | 16,74 | 18,11 | 4,5 | OK |
 | `text-primary` / `surface-panel` | 17,49 | 16,03 | 4,5 | OK |
-| `text-primary` / `surface-code` | 16,03 | 16,03 | 4,5 | OK |
+| `text-primary` / `surface-code` | 16,03 | 13,90 | 4,5 | OK |
 | `text-muted` / `surface-page` | 7,30 | 7,83 | 4,5 | OK |
 | `text-muted` / `surface-panel` | 7,63 | 6,93 | 4,5 | OK |
-| `text-muted` / `surface-code` | 6,99 | 6,93 | 4,5 | OK |
+| `text-muted` / `surface-code` | 6,99 | 6,01 | 4,5 | OK |
 | `text-on-action` / `action-primary-fill` | 5,55 | 6,83 | 4,5 | OK |
 | `text-on-action` / `action-primary-fill-hover` | 7,31 | 7,83 | 4,5 | OK |
 | `text-link` / `surface-page` | 5,31 | 6,83 | 4,5 | OK |
 | `text-link` / `surface-panel` | 5,55 | 6,05 | 4,5 | OK |
-| `text-link` / `surface-code` | 5,09 | 6,05 | 4,5 | OK |
+| `text-link` / `surface-code` | 5,09 | 5,25 | 4,5 | OK |
 | `status-success-text` / `surface-page` | 4,80 | 11,34 | 4,5 | OK |
 | `status-success-text` / `surface-panel` | 5,02 | 10,04 | 4,5 | OK |
 | `status-danger-text` / `surface-page` | 6,02 | 7,34 | 4,5 | OK |
@@ -90,6 +90,8 @@ Liczba tokenów semantycznych i komponentowych: 35 (2 zmapowane z istniejących:
 | `border-control` / `surface-panel` (UI) | 4,80 | 3,65 | 3 | OK |
 | `action-primary-fill` / `surface-page` (granica przycisku, UI) | 5,31 | 6,83 | 3 | OK |
 | `focus-ring` / `surface-page` (UI) | 5,31 | 6,83 | 3 | OK |
+| `focus-ring` / `surface-code` (UI, T1) | 5,09 | 5,25 | 3 | OK |
+| `border-control` / `surface-code` (UI, pole tylko do odczytu, T1) | 4,40 | 3,16 | 3 | OK |
 | `border-divider` / `surface-page` | 1,20 | 1,30 | – | dekoracyjny separator, nie niesie informacji; nie wolno go używać jako granicy pola ani wskaźnika stanu |
 
 Uwaga: `status-danger-text` i `action-primary-fill` mają bliską barwę (1,13:1 między sobą) – stąd reguła: błąd zawsze słowami, nigdy sam kolor.

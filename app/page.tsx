@@ -1,14 +1,15 @@
+// Values come only from the design-system tokens (packages/ui/src/styles/tokens.css, decision A1 2026-10-19).
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center bg-zinc-50 px-6 py-24 font-sans dark:bg-black">
-      <section className="w-full max-w-3xl rounded-3xl bg-white px-8 py-16 text-center shadow-sm dark:bg-zinc-950 sm:px-16">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+    <main className="flex flex-1 items-center justify-center bg-surface-page px-page-gutter py-between-sections font-ui text-primary">
+      <section className="w-full max-w-page rounded-control border border-divider bg-surface-panel px-between-groups py-between-sections text-center">
+        <p className="mb-in-group text-meta font-strong uppercase text-muted">
           Rozwijaj się w IT
         </p>
-        <h1 className="text-5xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-6xl">
+        <h1 className="text-heading-page font-strong text-primary">
           DevMentor
         </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+        <p className="mx-auto mt-between-groups max-w-text text-body text-muted">
           Portal, który pomaga rozwijać umiejętności programistyczne. Znajdź
           wiedzę, inspirację i wsparcie na każdym etapie swojej drogi w IT.
         </p>
