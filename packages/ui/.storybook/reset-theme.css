@@ -1,0 +1,16 @@
+/* Storybook only: remove Tailwind's default palette and scales, so a class outside our
+ * tokens (palette colours, numeric spacing, default radii and shadows) renders nothing
+ * here. The app keeps the defaults until app/page.tsx is migrated. */
+@theme {
+  --color-*: initial;
+  --spacing: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --font-weight-*: initial;
+  --text-*: initial;
+  --leading-*: initial;
+  --ease-*: initial;
+  --blur-*: initial;
+}

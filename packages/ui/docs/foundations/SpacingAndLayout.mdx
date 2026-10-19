@@ -1,0 +1,54 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { Preview, TokenValue } from "../../.storybook/blocks";
+
+<Meta title="Foundations/Spacing and layout" />
+
+# Spacing and layout
+
+Spacing is chosen by **relation**, not by number: ask "how close do these two things belong?" and pick the token. Source: tokeny.md; K1 (dense in mentor lists, loose in the session and on question detail).
+
+| Relation | Token | Class | Value | Example | Source |
+|---|---|---|---|---|---|
+| An element and its own label or hint | `--ds-space-inline` | `gap-inline` | 4 px | Field and its hint, icon and text | tokeny.md |
+| Inside one group | `--ds-space-in-group` | `gap-in-group` | 8 px | Name and time, label and field, slots of one day | tokeny.md |
+| Inside a panel or field | `--ds-space-inside-panel` | `p-inside-panel` | 16 px | Field padding, code block, composer | tokeny.md |
+| Between groups | `--ds-space-between-groups` | `gap-between-groups` | 24 px | Days in the slot list, form fields | tokeny.md |
+| Between sections | `--ds-space-between-sections` | `gap-between-sections` | 48 px | Identity → prices → slots on `/m/{slug}` | tokeny.md, K1 |
+| Page side margin | `--ds-space-page-gutter` | `px-page-gutter` | 16 px below 768 px, 32 px from 768 px | Every page | K2 |
+| List row (component token) | `--ds-list-row-padding-y` | `py-list-row-y` | 8 px | `/mentor/requests`, availability days | R01.1, K1 |
+
+<Unstyled>
+  <Preview>
+    <div className="flex flex-col gap-between-sections">
+      <section className="flex flex-col gap-between-groups">
+        <div className="flex flex-col gap-in-group">
+          <p className="font-strong">wtorek 20.10</p>
+          <p className="font-mono">18:00 · 18:30 · 19:00</p>
+        </div>
+        <div className="flex flex-col gap-in-group">
+          <p className="font-strong">czwartek 22.10</p>
+          <p className="font-mono">12:00</p>
+        </div>
+      </section>
+      <section className="flex flex-col gap-inline">
+        <p className="font-strong">Imię</p>
+        <p className="text-meta text-muted">Mentor zobaczy tylko imię.</p>
+      </section>
+    </div>
+  </Preview>
+</Unstyled>
+
+## Layout
+
+| Width | What happens | Source |
+|---|---|---|
+| 320 px | Smallest supported width: one column, no horizontal scroll, 16 px gutter. | WCAG 1.4.10 |
+| 375 × 812 | On `/m/{slug}` identity, public work and prices fit the first screen. | K2, spec #16 |
+| 768 px | Gutter grows to 32 px; content stays one column. | K2 |
+| 1440 px | Content stays within `max-w-page` (`--ds-width-page` = <TokenValue name="--ds-width-page" />), aligned with the page heading; running text keeps `max-w-text`. | P6 (proposal) |
+
+| Rule | Source |
+|---|---|
+| No sidebar: the mentor has top navigation with three items, the developer none. | R02.6, P22 |
+| Density only in lists; every screen has one primary action and its state on top. | K1, K6 |
+| Not everything centred: content and headings are left-aligned. | Prompt (generic AI look), A01 |

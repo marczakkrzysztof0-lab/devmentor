@@ -1,0 +1,37 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { Preview } from "../../.storybook/blocks";
+
+<Meta title="Foundations/Themes" />
+
+# Themes
+
+Two themes, light and dark, with the **same semantic token names** and different values. Source: DK4.
+
+| How the theme is chosen | Mechanism | Source |
+|---|---|---|
+| Default | `prefers-color-scheme` of the system | DK4 |
+| Forced (Storybook toolbar; later a product switch) | `data-theme="light"` or `"dark"` on `<html>` | DK4, prompt rule 9 |
+| A sample inside a page | `data-theme` on any element; utilities read the variables directly (`@theme inline`) | Proposal (P8) |
+
+The attribute sits on `<html>`, so dialogs and menus that render in a portal outside the story get the theme too (prompt rule 9). Switch with the **Theme** button in the toolbar; "System" removes the attribute.
+
+<Unstyled>
+  <div className="flex flex-col gap-in-group">
+    <Preview theme="light">
+      <p className="font-strong">Opłacone — czeka na mentora</p>
+      <p className="text-meta text-muted">jutro 12:30–12:55 · <span className="font-mono">150 zł</span></p>
+    </Preview>
+    <Preview theme="dark">
+      <p className="font-strong">Opłacone — czeka na mentora</p>
+      <p className="text-meta text-muted">jutro 12:30–12:55 · <span className="font-mono">150 zł</span></p>
+    </Preview>
+  </div>
+</Unstyled>
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| Never style for one theme only: no `dark:` classes; semantic tokens switch by themselves. | DK4, prompt rule 3 |
+| Every colour pair passes in both themes; see Color → Contrast, measured. | WCAG 1.4.3, 1.4.11 |
+| `npm run test:themes` runs every story, with axe, in both themes. | Prompt stage 1 |

@@ -1,0 +1,40 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import { Preview } from "../../.storybook/blocks";
+
+<Meta title="Foundations/Shape and depth" />
+
+# Shape and depth
+
+Flat and quiet. Content is separated by space, headings and 1 px lines, not by floating cards. Source: R01.3, A01, P2.
+
+| Token | Class | Value | Use for | Never | Source |
+|---|---|---|---|---|---|
+| `--ds-radius-control` | `rounded-control` | 4 px | Buttons, fields, code blocks, dialogs | Pills, circles, large rounded cards | A01 |
+| `--ds-border-width-hairline` | `border` | 1 px | Row separators (`border-divider`), field edges (`border-control`), the dialog edge | Focus | R01.3 |
+| `--ds-focus-ring-width` | `outline-2` | 2 px | Focus outline in `outline-focus-ring` with an offset on the page background | Decoration | WCAG 2.4.7 |
+| `--ds-surface-scrim` | `bg-surface-scrim` | stone-950 at 60 % | Backdrop behind a dialog | Panels, page sections | P2 |
+| Shadow | none | — | Nothing. There is no shadow token: a dialog is separated by the scrim and a 1 px `border-control` edge. | Any shadow | P2, A01 |
+
+<Unstyled>
+  <Preview>
+    <div className="flex flex-col">
+      <div className="py-list-row-y border-b border-divider">
+        <p>Kuba · 25 min · jutro 12:30</p>
+        <p className="text-meta text-muted">Czeka na decyzję</p>
+      </div>
+      <div className="py-list-row-y border-b border-divider">
+        <p>Ola · 50 min · czwartek 18:00</p>
+        <p className="text-meta text-muted">Zaakceptowane</p>
+      </div>
+    </div>
+  </Preview>
+</Unstyled>
+
+## Rules
+
+| Rule | Source |
+|---|---|
+| A list is rows separated by a 1 px line, not a stack of cards. | R01.1, R01.3 |
+| No card inside a card; a border only on things you click or fill in. | audyt.md, A01 |
+| No shadow as the only separation; no glass, blur or glow. | A01 |
+| A field edge is `border-control` (≥ 3 : 1), never `border-divider`. | WCAG 1.4.11 |

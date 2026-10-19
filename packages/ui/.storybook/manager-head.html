@@ -1,0 +1,13 @@
+<!-- Rule 10: only the product name in the Storybook UI, including the browser tab title. -->
+<title>DevMentor</title>
+<script>
+  (function () {
+    var fix = function () {
+      var t = document.title;
+      var next = t.replace(/\s*⋅\s*Storybook$/, " ⋅ DevMentor").replace(/^storybook - Storybook$/, "DevMentor");
+      if (next !== t) document.title = next;
+    };
+    new MutationObserver(fix).observe(document.querySelector("title"), { childList: true, characterData: true, subtree: true });
+    fix();
+  })();
+</script>

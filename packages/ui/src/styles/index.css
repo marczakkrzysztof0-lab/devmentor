@@ -1,0 +1,20 @@
+/* Entry stylesheet of @devmentor/ui: tokens + base element styles.
+ * The app imports it after `@import "tailwindcss"` (app/globals.css). */
+@import "./tokens.css";
+
+@layer base {
+  body {
+    background-color: var(--ds-surface-page);
+    color: var(--ds-text-primary);
+    font-family: var(--ds-font-ui);
+    font-size: var(--ds-text-body);
+    line-height: var(--ds-leading-body);
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--ds-font-mono); /* R01.2, DK2 */
+  }
+}

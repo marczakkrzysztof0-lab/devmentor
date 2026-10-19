@@ -1,0 +1,195 @@
+# POSTĘP – design system DevMentor (`packages/ui`)
+
+Prompt: `lekcja-06/prompt-storybook.md`. Stan na 2026-10-19.
+
+| Etap | Stan |
+|---|---|
+| 0. Inwentaryzacja i plan | zakończony, zatwierdzony 2026-10-19 |
+| 1. Fundamenty | **zakończony 2026-10-19 – czeka na „dalej” i decyzje P6–P10** |
+| 2. Komponenty bazowe | nie rozpoczęty |
+| 3. Komponenty produktu, wzorce, ekrany | nie rozpoczęty |
+| 4. Strony, które uczą | nie rozpoczęty |
+| 5. Sprawdzenie i raport | nie rozpoczęty |
+
+W etapie 0 zapisano wyłącznie ten plik.
+
+## Etap 1 – co powstało (2026-10-19)
+
+- **Workspace:** root `package.json` ma `"workspaces": ["packages/*"]`; pakiet `@devmentor/ui` eksportuje źródła (`.` → `src/index.ts`, `./styles.css`, `./tokens.css`). Dowód: tymczasowy komponent kliencki z pakietu zaimportowany w `app/page.tsx` → `next build` OK (komponent w `.next/server/app/index.html`, CSS pakietu w chunku) i `next dev` OK (GET / 200 z komponentem). Dowód usunięty, `app/page.tsx` bez zmian. Plan B niepotrzebny; `transpilePackages` niepotrzebne.
+- **Zależności** (dokładne wersje, tylko z planu): `radix-ui` 1.8.1, `class-variance-authority` 0.7.1, `tailwind-merge` 3.7.0, `clsx` 2.1.1, `lucide-react` 1.58.0; dev: `storybook`, `@storybook/react-vite`, `addon-docs`, `addon-a11y`, `addon-vitest`, `eslint-plugin-storybook` 10.6.2, `vitest` i `@vitest/browser-playwright` 5.0.5, `playwright` 1.64.1, `vite` 8.3.4, `@tailwindcss/vite` i `tailwindcss` 4.3.3, `remark-gfm` 4.0.1, `geist` 1.8.1. Chromium Playwrighta zainstalowany (`chromium-1248`).
+- **Tokeny:** `src/styles/tokens.css` – warstwa surowa (`--raw-*`), semantyczna (`--ds-*`, każdy ze źródłem w komentarzu), komponentowa (`list-row-padding-y`, `chat-message-gap`, `icon-size-sm/md`); oba motywy (`prefers-color-scheme` + `data-theme` na `<html>`); reduced motion → 0 ms; mapowanie na Tailwinda przez `@theme inline` (`bg-surface-page`, `text-muted`, `border-control`, `outline-focus-ring`, `gap-in-group`, `p-inside-panel`, `text-heading-page`, `font-strong`, `rounded-control`, `max-w-text`, `size-icon-sm`, `ease-standard`…).
+- **Aplikacja:** `app/globals.css` wg pkt 7 (import tokenów, `@source`, aliasy `--background`/`--foreground` → tokeny, usunięte Arial i stary blok dark). Root `tsconfig.json`: `exclude` + `packages`. `.gitignore`: `node_modules/`, `**/storybook-static/`. `eslint.config.mjs`: `eslint-plugin-storybook` + ignor `**/storybook-static/**`.
+- **Storybook** (`.storybook/`): framework react-vite, Tailwind przez `@tailwindcss/vite`, `remark-gfm`, a11y `test: 'error'`, przełącznik motywu w pasku (Light / Dark / System → `data-theme` na `<html>`, także na stronach MDX), fonty Geist lokalnie, reset domyślnej palety/skal Tailwinda tylko w Storybooku, marka „DevMentor” (tytuł, karta przeglądarki), wyłączone: checklista startowa, „What's new”, powiadomienia o wersji (`--no-version-updates`), telemetria.
+- **Foundations (7 stron MDX):** Color (role z wartościami z przeglądarki + tabela kontrastu mierzona w obu motywach), Typography, Spacing and layout, Shape and depth, Motion, Icons, Themes. Każda reguła ma źródło lub oznaczenie „proposal”.
+- **Story-test** `Foundations/Color › Contrast check`: mierzy 21 par w obu motywach i kończy się błędem poniżej progu.
+- **Skrypty** (`packages/ui`): `storybook`, `build-storybook`, `test`, `test:themes` (`scripts/test-themes.mjs`), `check:tokens` (`scripts/check-tokens.mjs`), `typecheck`, `lint`; w root przekierowania `storybook`, `build-storybook`, `test:storybook`, `test:storybook:themes`, `check:tokens`, `typecheck:ui`.
+
+### Etap 1 – co sprawdzone
+
+| Sprawdzenie | Wynik |
+|---|---|
+| `npm run build-storybook` | OK |
+| Strony Foundations w zbudowanym Storybooku (przeglądarka) | 7/7 renderują się; tabele MDX są tabelami HTML, brak surowych `|---` |
+| Tabela kontrastu | 21 par × 2 motywy, 0 poniżej progu; wartości zgodne z `tokeny.md` (np. 16,74 / 18,11) |
+| Przełącznik motywu | `data-theme` na `<html>` w iframe zmienia się z paska (Light ↔ Dark) na stronie MDX; `--ds-surface-page` = `#0c0a09` w ciemnym |
+| Fonty | Geist 400/600 i Geist Mono 400 załadowane lokalnie |
+| Klasy spoza tokenów w Storybooku | `bg-zinc-900 p-4 rounded-xl text-white` nie daje żadnego stylu; klasy tokenów dają właściwe wartości |
+| `npm run test:themes` | jasny 1/1, ciemny 1/1 |
+| Test negatywny kontrastu | `text-muted` = stone-400 w jasnym → story-test FAIL (3 pary); przywrócone |
+| Test negatywny a11y | tymczasowa story z pustym przyciskiem → FAIL `button-name`; usunięta |
+| `npm run check:tokens` | OK (3 linie z jawnym `check-tokens-ignore` w parserze kolorów bloku dokumentacji) |
+| Test negatywny `check:tokens` | tymczasowy `src/tmp-violation.tsx` → exit 1, wykryte hex, `rgb(`, `bg-zinc-900`, `text-white`, `p-[13px]`; plik usunięty |
+| `npm run typecheck` (pakiet), `npm run lint` (root, obejmuje pakiet) | OK |
+| `npm test` (istniejące node:test) | 7/7 |
+| `next build` z nowym `globals.css` | OK |
+
+### Etap 1 – czego nie sprawdziłem
+
+- Wyglądu aplikacji po zmianie `globals.css` w przeglądarce (tylko `next build`); `app/page.tsx` nadal używa klas palety i `rounded-3xl` (do „What is missing”).
+- Szerokości 320/768/1440 i obsługi klawiaturą w Storybooku – sens ma dopiero przy komponentach (etap 2 i 5).
+- Trybu „System” przy ciemnym motywie systemu (sprawdzone tylko wymuszone Light/Dark).
+- CI (`.github/workflows/ci.yml`) nie uruchamia jeszcze testów Storybooka ani `check:tokens` – nie zmieniałem workflow.
+
+### Etap 1 – odstępstwa od planu
+
+- Jedna konfiguracja ESLint w root (obejmuje `packages/ui`) zamiast osobnej w pakiecie – prościej, ten sam zestaw reguł.
+- npm 11 zostawia pakiety Storybooka w `packages/ui/node_modules`, a `storybook` podnosi do root; dlatego `main.ts` podaje framework i dodatki jako ścieżki bezwzględne (wzorzec Storybooka dla monorepo).
+- `lucide-react` przypięte do 1.58.0 (1.59.0 miało 2 dni).
+- Dodane tokeny komponentowe `icon-size-sm` 16 px i `icon-size-md` 20 px (z decyzji P1).
+
+## Inwentaryzacja repozytorium
+
+- npm 11.19.0, Node 24.21.0, `package-lock.json` w katalogu głównym, brak `workspaces`.
+- Next.js 16.4.0 (App Router, `cacheComponents`, `partialPrefetching`), React 19.3.0, TypeScript 5.9.3.
+- Tailwind 4.3.3 przez loader `@tailwindcss/turbopack` w `next.config.ts` (bez `postcss.config`).
+- Style: tylko `app/globals.css` (create-next-app: `--background`, `--foreground`, `@theme inline`, ciemny motyw przez `prefers-color-scheme`, `body { font-family: Arial }`).
+- Fonty: Geist i Geist Mono przez `next/font/google` w `app/layout.tsx` (`--font-geist-sans`, `--font-geist-mono`).
+- Komponenty: brak. `app/page.tsx` używa klas palety (`zinc-*`, `blue-*`), `rounded-3xl`, `shadow-sm`, `tracking-[0.2em]` (audyt: znaki A01).
+- Storybook, tokeny w kodzie, `components.json`, `packages/`: brak. Testy: `node --test` (`tests/*.test.mjs`). CI: `.github/workflows/ci.yml`.
+- `tsconfig.json` w katalogu głównym obejmuje `**/*.ts(x)` (objąłby też `packages/ui`); ESLint root (`eslint-config-next`) też. `.gitignore` ignoruje tylko `/node_modules` (główny).
+
+## Decyzje z materiałów (źródło)
+
+1. Charakter: konkretny, czytelny, spokojny, ciepły (P1–P4). Antycharakter: generyczny, hałaśliwy, bezbarwny, oceniający, szkolny (P5–P9).
+2. Gęsto w listach mentora, wiersze 1–2 linie (R01.1); wiersze dzieli linia 1 px, nie karta z cieniem (R01.3).
+3. Geist w interfejsie, Geist Mono dla kodu, ścieżek, kwot i slugów (R01.2, DK2).
+4. Ciepła baza stone + jeden kolor akcji terakota, zieleń tylko dla sukcesu; ciepło z bazy i słów, nie z gradientów (R01.4, DK1, K3).
+5. Jedna główna akcja na ekran z konkretem („Zapłać 150 zł i wyślij pytanie”), stan zawsze na górze (R01.5, P18, K6).
+6. Stan słowem, bez pigułek i liczników; jedyny licznik „N zapytań czeka na decyzję” (R01.6, P19).
+7. Tylko maile transakcyjne, zero emoji, bez bocznego paska: mentor ma górną nawigację (Zapytania, Strona, Dostępność), deweloper żadnej (R02.4–R02.6, P20–P22).
+8. Antyreferencje: A01 generyczny AI, A02 kurs, A03 oceny, A04 katalog i wyszukiwarka, A05 subskrypcja, A06 wideo, A07 bramka przed pytaniem.
+9. Gęstość według strefy (K1); na `/m/{slug}` przy 375 px tożsamość, praca i ceny na pierwszym ekranie (K2); czat: Ctrl/Cmd+Enter wysyła, linia „Czat tekstowy · 12:30–12:55” (K4, K5 – E03, poza zakresem).
+10. Ruch 120/180/240 ms, 0 ms przy reduced motion (DK3); dwa motywy (DK4); jeden promień 4 px (A01); wszystkie pary kontrastu ≥ progów (tokeny.md).
+
+## Zatwierdzone decyzje
+
+Zdecydował: K. Marczak (delegacja do agenta-koordynatora), 2026-10-19.
+
+| # | Decyzja | Status |
+|---|---|---|
+| P1 | Ikony `lucide-react`, 16 i 20 px, zawsze z tekstem; jedyny wyjątek „×” z `aria-label` | przyjęte |
+| P2 | Scrim `stone-950` 60 %; dialog bez cienia, obramowanie 1 px, promień 4 px; wagi 400/600; easing `cubic-bezier(0.2, 0, 0, 1)` | przyjęte propozycje |
+| P3 | Pakiet `geist` lokalnie, tylko w `packages/ui` (Storybook); aplikacja przy `next/font` | przyjęte |
+| P4 | „Lista pogrupowana według stanu” zamiast listy z filtrami; „potwierdzenie nieodwracalnej decyzji” zamiast potwierdzenia usunięcia; ogólna lista z filtrami → „What is missing” | przyjęte |
+| P5 | Checkbox, przełącznik, menu, popover, podpowiedź, zakładki, awatar, toast i czat E03 → „What is missing” | przyjęte |
+| Plan | Workspace `@devmentor/ui` (plan B, jeśli dowód nie przejdzie); wersje i skrypty jak niżej | przyjęte |
+| Pkt 7 | Zmiany w `app/globals.css` w całości | przyjęte |
+| Etap 1 | Instalacja z rejestru npm (tylko pakiety z planu) + Chromium dla Playwrighta; po etapie lokalny commit bez push | przyjęte |
+
+## Otwarte pytania (do decyzji Krzysztofa)
+
+P1–P5 z etapu 0 – rozstrzygnięte (sekcja „Zatwierdzone decyzje”). Nowe z etapu 1, każde oznaczone w dokumentacji jako „proposal”:
+
+| # | Pytanie | Moja rekomendacja (propozycja) |
+|---|---|---|
+| P6 | Maksymalna szerokość treści – brak w materiałach. | `--ds-width-page` 1024 px (64rem), treść wyrównana do lewej; tekst ciągły `max-w-text` 65ch (z promptu). |
+| P7 | Waga etykiety pola i zasada „animujemy tylko kolor, przezroczystość i małe przesunięcia”. | Etykieta 600 (`font-strong`); animacje bez zmian układu. |
+| P8 | `data-theme` także na dowolnym elemencie (próbka motywu wewnątrz strony). | Tak – `@theme inline` już to obsługuje; używane tylko w dokumentacji. |
+| P9 | Favicon i ukryty nagłówek „Storybook” dla czytników ekranu w panelu Storybooka (zasada 10). Produkt nie ma logo. | Favicon: `app/favicon.ico` przez `staticDirs`; nagłówek sr-only zostawić (to część interfejsu Storybooka, niewidoczna). |
+| P10 | CI: dodać `check:tokens`, `typecheck:ui` i `test:storybook:themes` do `.github/workflows/ci.yml`? | Tak, w etapie 5 (wymaga `npx playwright install --with-deps chromium` w CI). |
+
+## Baza komponentów
+
+shadcn/ui na Radix (podana). Bierzemy zachowanie i dostępność Radix (pakiet `radix-ui`), kod komponentów kopiujemy przez CLI shadcn i przepisujemy wygląd na tokeny. Nie bierzemy domyślnego wyglądu shadcn ani `tw-animate-css` (ruch z tokenów DK3).
+
+## Plan techniczny (przyjęty 2026-10-19)
+
+**Gdzie.** Workspace npm `packages/ui`, nazwa `@devmentor/ui`, aplikacja zostaje w katalogu głównym. Root `package.json`: `"workspaces": ["packages/*"]`.
+
+**Czy to działa z Next 16 / Turbopack** (sprawdzone w dokumentacji `node_modules/next/dist/docs`, nie uruchomione):
+- `transpilePackages.md`: Turbopack sam transpiluje pakiety workspace npm (oba routery) – `transpilePackages` niepotrzebne; dodanie `@devmentor/ui` nie szkodzi (zabezpieczenie).
+- `turbopack.md`: root Turbopacka wykrywany po `package-lock.json` w katalogu głównym, więc `packages/ui` leży w nim – bez `turbopack.root` i bez `turbopackAdditionalRoots`. Symlink (na Windows junction) `node_modules/@devmentor/ui` → `packages/ui` jest wewnątrz roota.
+- Pakiet eksportuje źródła TS (`exports` → `./src/index.ts`, `./styles.css`), bez kroku budowania. Komponenty z Radix mają własne `"use client"`. `react`/`react-dom` jako `peerDependencies` – jedna kopia z roota.
+- Wymagana konfiguracja w aplikacji (dozwolona przez zasadę 11): `@source "../packages/ui/src"` w `app/globals.css`, `"exclude": ["node_modules", "packages"]` w root `tsconfig.json`, `packages/**` w ignorach root ESLint (pakiet ma własny `tsconfig` i lint), `node_modules` i `storybook-static` w `.gitignore`.
+- Ryzyka: nie sprawdzone empirycznie. Pierwszy krok etapu 1 to dowód: import jednego komponentu w aplikacji + `next build` i `next dev`. Jeśli się nie uda – alternatywa: ten sam katalog `packages/ui` bez workspace, alias `@devmentor/ui` w `tsconfig.paths` i `turbopack.resolveAlias`, zależności Storybooka w root `devDependencies`. Ścieżki dla lekcji 7 bez zmian.
+
+**Storybook i dodatki** (najnowsze stabilne z npm, 2026-10-19):
+
+| Pakiet | Wersja | Po co |
+|---|---|---|
+| `storybook`, `@storybook/react-vite` | 10.6.2 | framework bez Next – pakiet UI nie importuje `next/*` |
+| `@storybook/addon-docs` | 10.6.2 | strony MDX, autodocs |
+| `@storybook/addon-a11y` | 10.6.2 | axe; `a11y: { test: 'error' }` w preview |
+| `@storybook/addon-vitest`, `vitest`, `@vitest/browser-playwright`, `playwright` | 10.6.2, 5.0.5, 5.0.5, 1.64.1 | stories jako testy, play functions (Chromium) |
+| `vite`, `@tailwindcss/vite` | 8.3.4, 4.3.3 | Tailwind 4 w Storybooku (ta sama wersja co aplikacja) |
+| `remark-gfm` | 4.0.1 | tabele w MDX (zasada 8) |
+| `eslint-plugin-storybook` | 10.6.2 | lint stories |
+| `radix-ui`, `class-variance-authority`, `tailwind-merge`, `clsx` | 1.8.1, 0.7.1, 3.7.0, 2.1.1 | baza shadcn (zależności pakietu) |
+| `lucide-react`, `geist` | 1.58.x, 1.8.1 | po decyzji P1, P3 |
+| CLI `shadcn` | 4.22.1 przez `npx`, nie zależność | dodawanie komponentów; po każdym użyciu kontrola `package.json` |
+
+**Symulowanie API:** bez MSW. Aplikacja nie ma API po stronie klienta – formularze to server actions (`startRequest`, `acceptRequest`, `declineRequest`, `cancelRequest`). Komponenty formularzy przyjmują akcję jako prop; stories podają asynchroniczne `fn()` ze `storybook/test` zwracające kody ze specyfikacji (sukces, oczekiwanie, `field`, `slot_taken`, `price_changed`, `checkout_failed`, brak sieci).
+
+**Motywy:** tokeny w `packages/ui/src/styles/tokens.css` (warstwy surowa → semantyczna → komponentowa, `@theme`); ciemny motyw przez `prefers-color-scheme` i przez `[data-theme="dark"]` / `[data-theme="light"]` na `<html>` (zasada 9). Reset palety Tailwinda (`--color-*: initial`) tylko w CSS Storybooka, żeby nie zepsuć `app/page.tsx`.
+
+**Skrypty** (`packages/ui`): `storybook` (dev, port 6006), `build-storybook`, `test` (vitest, projekt storybook), `test:themes` (ten sam zestaw z `THEME=light` i `THEME=dark`), `lint`, `typecheck`, `check:tokens` (kolory spoza tokenów, klasy palety, wartości arbitralne – kod wyjścia 1). W root: przekierowania `npm run <skrypt> -w @devmentor/ui`.
+
+**Storybook bez śladów bazy:** tytuł i logo „DevMentor”, wyłączone checklista startowa i powiadomienia o nowej wersji, pochodzenie (shadcn/Radix) tylko w notatce technicznej w „Contributing”.
+
+## Komponenty z ekranów (propozycja)
+
+Ekrany: S1 `/invite/[token]`, S2 `/sign-in/[token]`, S3 `/mentor` bez sesji (#14); S4 edytor `/mentor` (#14, #15); S5 `/mentor/availability` (#15); S6 `/m/[slug]` (#16) + formularz (#17); S7 `/r/[token]` (#17, #18, #19); S8 `/mentor/requests`, S9 `/mentor/requests/[id]` (#18). #23 i #24 bez ekranów (Stripe Checkout hostowany).
+
+**Primitives (17):** Button (primary, secondary; ładowanie) – wszystkie · IconButton – S5 · TextLink – S4, S6, S8 · FormField (etykieta, podpowiedź, błąd, wymagane/opcjonalne) + Label – S4, S5, S6 · TextInput (z sufiksem „zł”, tylko do odczytu) – S4, S6 · Textarea – S4, S6 · Select – S5 · RadioGroup (lista i segmentowy 25/50) – S6 · Panel – S4, S7 · List + ListRow (linia 1 px) – S5, S6, S8 · StatusText (stan słowem) – S7, S8, S9 · Alert (inline) – S4, S5, S6, S7, S9 · ConfirmDialog (AlertDialog Radix) – S7, S9 · StateMessage (pusto, błąd, nie istnieje) – S1–S3, S6, S8 · Skeleton – S6 (Suspense slotów, propozycja) · Spinner – S6, S7 · CodeBlock / InlineCode – S7, S9 · CopyField – S4, S7, S8.
+
+**Product E01:** MentorNav (+ licznik oczekujących) – S4, S5, S8, S9 · InvitationPanel – S1, S2 · InactiveLinkMessage – S1, S2, S3 · MentorPageForm – S4 · ShareLinkPanel – S4 · NoAvailabilityNotice – S4 · AvailabilityEditor (DayRow, WindowRow, TimeZoneSelect, zmiana strefy) – S5 · SlotPreview – S5 · MentorIdentity (imię + PublicWorkLink) – S6 · MentorDescription – S6 · PriceList – S6 · LengthToggle – S6 · SlotList (dzień w tekście, strefa w nagłówku) – S5, S6 · MentorNotFound – S6.
+
+**Product E02:** RequestForm (długość → termin → imię → pytanie → „Zapłać X zł…”) – S6 · RequestStatusHeader (wszystkie stany #17–#19) – S7 · RequestSummary (termin w strefie widza, kwota) – S7, S9 · QuestionText (tekst + kod) – S7, S9 · SaveLinkBox – S7 · CancelRequest (z potwierdzeniem) – S7 · RefundStatus – S7 · RequestList + RequestRow (Czeka na decyzję, Zaakceptowane, Zakończone) – S8 · RequestDecision (Akceptuję / Odrzucam + skutki) – S9.
+
+**Patterns:** Form (S4, S6; stany API) · Grouped list (S8; zamiast listy z filtrami – P4) · Detail view + „nie istnieje albo brak dostępu” (S9, S7, S6) · Confirm irreversible decision (S7, S9; zamiast usuwania – P4) · Request status page (S7) · Share link (S4, S7) · Invitation-only gate (S1–S3) · Time-zone-aware slots (S5, S6).
+
+## Drzewo menu Storybooka (propozycja)
+
+```
+DevMentor
+├─ Start here · Components · How to choose · Usage and accessibility · Content
+│  · What to avoid · What is missing · Contributing
+├─ Epics
+│  ├─ E01 Mentor page by share link
+│  └─ E02 Paid request and mentor decision
+├─ Foundations: Color · Typography · Spacing and layout · Shape and depth · Motion · Icons · Themes
+├─ Primitives: (17 komponentów, alfabetycznie)
+├─ Product
+│  ├─ E01 Mentor page: komponenty + Screens (Invitation, Sign-in, Editor, Availability, Share page)
+│  └─ E02 Paid request: komponenty + Screens (Request form, Request status, Requests list, Request detail)
+└─ Patterns: Form · Grouped list · Detail view · Confirm irreversible decision · Request status page
+   · Share link · Invitation-only gate · Time-zone-aware slots
+```
+
+Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, ok. 38 stron komponentów) i ok. 280 stories (primitives ok. 110, produkt ok. 100, wzorce ok. 30, ekrany ok. 40), w tym ok. 60 testów interakcji.
+
+## Istniejący „design system” – `app/globals.css` (przyjęte, wdrożone w etapie 1)
+
+| Element | Propozycja | Uzasadnienie |
+|---|---|---|
+| `--background`, `--foreground` | zostają jako aliasy, wskazują na `surface-page` i `text-primary` | tokeny.md: „alias zostaje do migracji” |
+| ich wartości (`#ffffff`/`#171717`, `#0a0a0a`/`#ededed`) | zmienić na stone (`#fafaf9`/`#1c1917`, `#0c0a09`/`#f5f5f4`) przez import tokenów z pakietu | DK1, R01.4 |
+| `@theme inline` z `--font-sans` / `--font-mono` | zostaje; `font-ui` i `font-mono` z pakietu wskazują na te same zmienne `next/font` | DK2 |
+| `@media (prefers-color-scheme: dark)` | zostaje (w pliku tokenów), plus selektory `[data-theme]` | DK4, zasada 9 |
+| `body { font-family: Arial… }` | usunąć | tokeny.md, audyt: dwie domyślne decyzje typograficzne obok siebie |
+| nowe linie | `@import "@devmentor/ui/styles.css"` i `@source "../packages/ui/src"` | podłączenie konfiguracji (zasada 11) |
+| `app/page.tsx` (klasy palety, `rounded-3xl`) | bez zmian w tej pracy; wpis do „What is missing” | zasada 11; strona główna poza E01–E02 |
+
+## Następny krok
+
+Po „dalej” i decyzjach P6–P10: etap 2 – najpierw lista różnic kształtu, gęstości i stanów względem domyślnego shadcn (z decyzjami), potem komponenty bazowe partiami po ok. 6, z 13-sekcyjną stroną dokumentacji i macierzą stanów (`data-preview-state`).
