@@ -1,0 +1,66 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./StatusText.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# StatusText
+
+## 1. Purpose
+Tells the user, in words, where things stand — „Opłacone — czeka na mentora” — so nobody has to decode a colour or a badge.
+
+## 2. When to use
+- The state at the top of `/r/{token}`: „Czekamy na potwierdzenie płatności”, „Opłacone — czeka na mentora”, „Płatność przerwana — nic nie pobrano”, „Anulowane — zwrot 150 zł zlecony” (#17, #19).
+- The state of a row on `/mentor/requests`: „Czeka na decyzję”, „Zaakceptowane”, „Zakończone — przeterminowane” (#18).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Something the user must act on now | `Alert` | Prompt (How to choose) |
+| Empty or failed content | `StateMessage` | — |
+| A coloured pill or a counter | Never | R01.6, P19, A01 |
+
+## 4. Anatomy
+Optional tone icon (16 px, hidden from screen readers) → state words (600).
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Tone | When | Colour | Source |
+|---|---|---|---|
+| `waiting` | Someone has to act: „Czeka na decyzję” | primary + clock icon | R01.6 |
+| `success` | Done and good: „Zaakceptowane”, „Zwrot wykonany” | `status-success` | DK1 |
+| `danger` | Failed: „Zwrot nie powiódł się — napisz do nas” | `status-danger` | Spec #19 |
+| `neutral` | Plain fact: „Zakończone — przeterminowane” | primary | — |
+
+## 6. States
+Not interactive: hover, focus, pressed, disabled, loading and selected do not apply. The tone **is** the state, and the words carry it on their own (WCAG 1.4.1).
+
+## 7. Behaviour and accessibility
+- Plain text; the icon is `aria-hidden`.
+- When the state changes on screen (payment confirmed), the page announces it through a live region of the pattern (Request status page, stage 3), not through this component.
+
+## 8. Content
+- Pattern „state — what it means for you”: „Opłacone — czeka na mentora”. Source: specs #17–#19.
+- Refund words follow the data: „zwrot zlecony” only when a refund was requested, otherwise „zwrot zostanie zlecony automatycznie”. Source: spec #18.
+- No emoji, no exclamation marks. Source: R02.5, P29.
+
+## 9. Responsiveness
+Wraps at 320 px; icon stays on the first line.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<StatusText tone="waiting" withIcon>Opłacone — czeka na mentora</StatusText>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| „Czeka na decyzję” as words in the row. | A yellow pill „Pending” (R01.6, A01). |
+| „Termin minął — zwrot zostanie zlecony automatycznie” before the refund exists. | „Zwrot zlecony” before it was requested (spec #18). |
+
+## 13. Related
+- Confused with: `Alert`, a badge (not in the system).
+- Used in: List rows, Request status page, Request detail.

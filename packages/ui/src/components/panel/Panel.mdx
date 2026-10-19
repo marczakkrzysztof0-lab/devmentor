@@ -1,0 +1,69 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Panel.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Panel
+
+## 1. Purpose
+Sets one block of main content slightly apart from the page so the user finds it at once — for example the box with the link to save.
+
+## 2. When to use
+- „Zapisz ten link” on `/r/{token}` — the save-the-link box is main content (#17).
+- The page editor form on `/mentor` (#14).
+- The question block on the mentor's request detail (#18).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| Separating rows of a list | `List` (1 px lines) | R01.1, R01.3 |
+| Separating page sections | Space (`gap-between-sections`) and headings | Shape and depth, A01 |
+| Inside another panel | Nothing — never a card in a card | audyt.md, A01 |
+| A message about a state | `Alert` or `StateMessage` | — |
+
+## 4. Anatomy
+Surface (`surface-panel`, 1 px `border-divider`, 4 px, `p-inside-panel`) → optional title (section heading, makes it a labelled region) → content.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When |
+|---|---|
+| With `title` | The block has its own heading („Zapisz ten link”) — becomes a `<section>` region |
+| Without title | Pure grouping, e.g. a line of context |
+
+No shadow variant, no coloured variants. Source: P2, A01.
+
+## 6. States
+Panel is not interactive; hover, focus, pressed, disabled, loading, selected and error do not apply. Controls inside carry their own states.
+
+## 7. Behaviour and accessibility
+- With `title`: `<section aria-labelledby>` → a landmark region screen-reader users can jump to.
+- `titleAs` keeps the heading order correct (h2 on a page, h3 inside a section). Source: WCAG 1.3.1.
+
+## 8. Content
+Title: noun phrase or instruction of 1–4 words („Zapisz ten link”). Body text keeps `max-w-text`.
+
+## 9. Responsiveness
+Full width of its column at every width; padding stays 16 px.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<Panel title="Zapisz ten link">
+  <p>Wysłaliśmy go też na Twój e-mail.</p>
+  <CopyField label="Link do zapytania" value={requestUrl} />
+</Panel>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| One panel for the save-the-link box on the request page. | Every section in its own card — the page becomes a stack of cards (A01). |
+| A border of 1 px, no shadow. | `shadow-lg` floating cards (A01). |
+
+## 13. Related
+- Confused with: `Alert`, `List`.
+- Used in: Request status page, Share link, Form pattern (editor).

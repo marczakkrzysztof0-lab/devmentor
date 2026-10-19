@@ -1,0 +1,77 @@
+import { Meta, Canvas, ArgTypes, Source } from "@storybook/addon-docs/blocks";
+import * as Stories from "./Select.stories";
+
+<Meta of={Stories} name="Docs" />
+
+# Select
+
+## 1. Purpose
+Lets the mentor pick one value from a list that is too long to show at once — a time zone or an hour.
+
+## 2. When to use
+- „Strefa czasowa” on Availability, prefilled from the browser (#15).
+- Start and end of a window in 30-minute steps (#15).
+
+## 3. When not to use
+| Situation | Use instead | Source |
+|---|---|---|
+| 2–5 options that fit on screen (25/50 min, slots) | `RadioGroup` | WAI-ARIA, R07 (prices always visible) |
+| Searching hundreds of options by typing | Combobox — not in the system yet (What is missing) | P5 |
+| Actions („Edytuj”, „Usuń”) | `Button` — menus are not in the system | P5 |
+
+## 4. Anatomy
+Trigger (looks like a field: value or placeholder + chevron) → popover list (panel, `border-control`, no shadow) → optional group labels → items with a check mark on the chosen one.
+
+## 5. Variants
+<Canvas of={Stories.Variants} />
+
+| Variant | When |
+|---|---|
+| `options` (flat) | Hours |
+| `groups` | Time zones by region |
+
+## 6. States
+<Canvas of={Stories.States} />
+
+| State | Look | Source |
+|---|---|---|
+| Placeholder | Muted text | WCAG 3.3.2 (label is separate) |
+| Chosen | Value in primary text; in the list a check icon next to it (not colour only) | WCAG 1.4.1 |
+| Hover | Trigger: no change (S13); item: `surface-code` | S13 |
+| Focus | Trigger: 2 px `focus-ring`; item: `surface-code` highlight | WCAG 2.4.7 |
+| Open | List fades in over `duration-menu` (0 ms with reduced motion); no zoom, no slide | DK3, P7 |
+| Error | `border-status-danger` + message from `FormField` | WCAG 3.3.1 |
+| Disabled | `surface-code`, muted | Prompt (explain nearby) |
+
+## 7. Behaviour and accessibility
+- Radix Select (WAI-ARIA listbox): Enter/Space/↓ opens, ↑/↓ move, typing jumps to a match, Enter chooses, Esc closes; focus returns to the trigger.
+- The trigger is a `combobox` named by its `FormField` label; with `name` a hidden native select submits the value.
+- While open the rest of the page is hidden from assistive tech and focus stays in the list. axe reports `aria-hidden-focus` only for the open state; documented exception in the „Open list” story.
+- Items are 40 px high (≥ 24 × 24). The list is offset 4 px from the trigger (`space-inline`).
+
+## 8. Content
+- Options are values, not sentences: „Europe/Warsaw”, „18:30”. Time zone names stay in IANA form (spec #15).
+- Long options wrap in the trigger rather than being cut.
+
+## 9. Responsiveness
+Trigger is full width of its container; the list is at least as wide as the trigger and limited to the space on screen.
+
+<Canvas of={Stories.LongNarrow} />
+
+## 10. API
+<ArgTypes of={Stories} />
+
+## 11. Code
+<Source language="tsx" code={`<FormField label="Strefa czasowa" hint="Uzupełniona z przeglądarki.">
+  <Select name="timeZone" groups={zonesByRegion} defaultValue={browserZone} />
+</FormField>`} />
+
+## 12. Do and don't
+| Do | Don't |
+|---|---|
+| `RadioGroup` for 25 / 50 min — both prices stay visible. | A select for two options — the price is hidden until opened (R07). |
+| Group time zones by region. | One unlabelled list of 400 items. |
+
+## 13. Related
+- Confused with: `RadioGroup`.
+- Used in: Availability editor (E01), Pattern: Time-zone-aware slots.
