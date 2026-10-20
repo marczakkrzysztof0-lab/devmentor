@@ -12,7 +12,7 @@ A mentor can publish a page and availability (#14, #15), but the share link `/m/
 
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
-| Q1 | Are slots selectable here, before #17 exists? | Slots are shown grouped by day with a 25/50 toggle, as plain text; #17 turns each slot into its request link. No dead "Book" button ships. | One capability per spec; a button that leads nowhere would fail QA. | — |
+| Q1 | Are slots selectable here, before #17 exists? | Slots are shown grouped by day with a 25/50 toggle, as plain text; #17 turns each slot into its request link. No dead "Book" button ships. In E01 the page has no request form, question field or per-slot button/link; the DS story S6 with `RequestForm` belongs to #17 (L1, D1, Z1). | One capability per spec; a button that leads nowhere would fail QA. | L1 (2026-10-20) |
 | Q2 | Search engines? | R14 is met by what we control: no directory, listing, search, sitemap entry or link to `/m/*` anywhere in the app. On top, best-effort `robots: noindex, nofollow` on `/m/*` — a crawler hint, not a guarantee (a link posted publicly can still surface). | Staff engineer's "nie wsadzajcie mnie na listę"; reversible by one line. | Accepted (grill Q2) |
 | Q3 | How many days of slots? | The whole 14-day horizon from #15, grouped by day, earliest first. | The developer's job is "as soon as possible" (A01); the earliest slot comes first. | — |
 | Q4 | Status code for unpublished/unknown slug? | Same not-found page for both; no mentor data, no hint whether the slug exists. | AC "no mentor data is shown"; avoids leaking drafts. | — |
@@ -24,8 +24,8 @@ A mentor can publish a page and availability (#14, #15), but the share link `/m/
 1. **Developer with a blocker opens the link.** Kuba, a React freelancer quoting a migration tonight, clicks a link Anna posted in her Discord. On his phone he **sees**, top to bottom: "Anna K." · a prominent link "Publiczna praca: github.com/annak" · her description in plain words ("Migrowałam dwa duże projekty na server components…") · prices "25 min — 150 zł" and "50 min — 280 zł" · "Najbliższe terminy (twoja strefa: Europe/Warsaw)" with "jutro 18:00, 18:30, 19:00…". The **system** shows nothing else: no stars, no review count, no "other mentors", no search box. **Next:** he decides whether she has done this exact thing and whether a slot is soon enough; when #17 ships he picks a slot and writes his question.
 2. **Developer switches length.** Kuba taps "50 min"; the list **shows** only slots where 50 minutes fit (19:30 disappears). Prices stayed visible above the whole time — he never has to write anything to learn the cost (R07).
 3. **Mentor with no availability.** A developer opens Piotr's page; it **shows** the profile and prices and "Brak wolnych terminów w najbliższych 14 dniach". No slot time is rendered (#15 AC).
-4. **Wrong or unpublished link.** Someone opens `/m/piotr` before Piotr has published, or a typo `/m/annak2`. They **see** a neutral "Nie ma takiej strony mentora" with no name, description, price or slot.
-5. **Someone looking for mentors.** A developer goes to `/`, `/m` or tries `/m?search=react`. There is no list, directory, search or filter anywhere; `/m` is not found (R14, D03).
+4. **Wrong or unpublished link.** Someone opens `/m/ewa-szkic` before Ewa has published (Piotr from #15 story 3 is published; L18, Z19), or a typo `/m/annak2`. They **see** a neutral "Nie ma takiej strony mentora" with no name, description, price or slot.
+5. **Someone looking for mentors.** A developer goes to `/m` or tries `/m?search=react` (`/` stays as it is today and is outside E01; L19, Z20). There is no list, directory, search or filter anywhere; `/m` is not found (R14, D03).
 
 ## 📝 Problem Statement
 
@@ -46,7 +46,7 @@ Developers want "someone who has done the exact thing" quickly and want the pric
 
 ## 📝 UI/UX
 
-Order on the page is a requirement, not styling: identity → public work → description → prices → slots → (later #17: question). Mobile-first (developers arrive from Discord/Slack links on phones); with a 400-character description, identity, public work and prices fit the first screen at 375 × 812. States: published with slots; published without slots (story 3); not found (story 4); slot load error ("Nie udało się wczytać terminów — odśwież stronę", profile and prices still shown). Accessibility: slot toggle is a real radio group; times include the date in text, not only by grouping; the viewer's zone is printed in the heading. Page `<title>`: "{displayName} — DevMentor". Absent by design: ratings, reviews, scores, session counts, "similar mentors", search, filters, share counters.
+Order on the page is a requirement, not styling: identity → public work → description → prices → slots → (later #17: question). Mobile-first (developers arrive from Discord/Slack links on phones); with a 400-character description, identity, public work and prices fit the first screen at 375 × 812. States: published with slots; published without slots (story 3); not found (story 4); slot load error ("Nie udało się wczytać terminów — odśwież stronę", profile and prices still shown); no network while loading slots: the slot section shows its error state, profile and prices stay (Z28). Accessibility: slot toggle is a real radio group; arrow keys change the selected length and filter the slot list at once (WAI-ARIA radio pattern; D12, Z41); times include the date in text, not only by grouping; the viewer's zone is printed in the heading. Page `<title>`: "{displayName} — DevMentor". Absent by design: ratings, reviews, scores, session counts, "similar mentors", search, filters, share counters.
 
 ## 📝 Edge Cases & Failure Scenarios
 
@@ -54,7 +54,7 @@ Order on the page is a requirement, not styling: identity → public work → de
 - Very long description (2000 chars): wraps; no truncation that could hide what the mentor has done.
 - No `dangerouslySetInnerHTML` anywhere on the page (name and description are untrusted text).
 - Slot loading fails: the slot section's error boundary shows "Nie udało się wczytać terminów — odśwież stronę"; profile and prices stay.
-- Windows exist but yield no slot (all inside the 3-hour notice, zone not set, later all busy): same neutral empty state.
+- Windows exist but yield no slot (zone not set; later all busy via #17): same neutral empty state. „All inside the 3-hour notice” cannot happen with weekly windows and a 14-day horizon — the window recurs a week later (P2, Z38, 2026-10-20).
 
 ## 📝 Risks & Impact Review
 
@@ -82,8 +82,8 @@ Relies on R03, R07, R14, D03, D08, N02. Leaves open Q02 (currency display follow
 
 **Phase 2 — Open slots**
 
-4. Slot section: server-only query for windows + zone, `listOpenSlots`, ISO slots to `slot-list.tsx`, inside its own Suspense + error boundary. Tests: slots shown equal the function's output for a fixed clock; mentor without windows, and mentor whose windows all fall inside the notice, show the empty-state text and no slot time (#15 AC); a throwing slot loader still renders profile and prices.
-5. `slot-list.tsx`: viewer-zone formatting, day grouping, 25/50 toggle. Unit test of the grouping/formatting helper (`.mjs`) for two zones and for an invalid zone (→ UTC label). QA in a real browser at 375 px and desktop, including the no-slots and not-found states (`needs-qa`).
+4. Slot section: server-only query for windows + zone, `listOpenSlots`, ISO slots to `slot-list.tsx`, inside its own Suspense + error boundary. Tests: slots shown equal the function's output for a fixed clock; mentor without windows, and mentor with saved windows but no time zone, show the empty-state text and no slot time (#15 AC; P2, Z38); the slot list contains no `button` or `a` element (Z1); a throwing slot loader still renders profile and prices.
+5. `slot-list.tsx`: viewer-zone formatting, day grouping, 25/50 toggle. Unit test of the grouping/formatting helper (`.mjs`) for two zones and for an invalid zone (→ UTC label). QA in a real browser at 375 px and desktop, including the no-slots and not-found states and the 25/50 toggle by keyboard — arrow keys select and filter (Z41) (`needs-qa`).
 
 ## 🔍 Review & grill outcome
 

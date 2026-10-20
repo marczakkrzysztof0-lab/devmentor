@@ -30,6 +30,14 @@ Tree confirmed by Krzysztof Marczak (brief owner) on 2026-10-16: the dry run `.a
 | E06-T03 | [#28](https://github.com/marczakkrzysztof0-lab/devmentor/issues/28) | Research: pilot data request from a manual export of payment and session records (collection plan 1) | #12 | — | no |
 | E07 | [#13](https://github.com/marczakkrzysztof0-lab/devmentor/issues/13) | Later (parked; items unfiled) | — | — | no |
 
+### Open questions for #22 (no spec yet)
+
+Added 2026-10-20 (lesson 07, Z34). Questions to check in the pilot, not requirements — source: persona walkthrough `.ai/specs/research/walkthroughs/2026-10-20-future-state-1-0-mentor-goes-from-invitation-to-first-paid-session-session-001/report.md` [SYNTHETIC]. Spec #22 must decide what the payout screen says.
+
+- **H6:** do mentors defer payout setup when the screen does not say the commission (Q01), when money arrives, and how invoice and tax work (Q05)? Pilot: time from first paid request to completed payout setup; ask what they needed to know first.
+- **H8:** do mentors who do not need the money never set up payouts? Pilot export: mentors with held sessions and no payout setup after N days; ask why. Touches R13, Q05.
+- Grey prototype (2026-10-20, Z36): the request list showed a banner „Ustaw wypłaty przed pierwszą wypłatą”; its wording and placement are #22's to define (E01 shows nothing about payouts).
+
 ### Reserved ids (not filed)
 
 | Id | Was | Status |

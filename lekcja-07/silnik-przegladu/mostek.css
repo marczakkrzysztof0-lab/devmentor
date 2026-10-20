@@ -1,0 +1,29 @@
+/* Mostek: nazwy, których używa pasek przeglądu i komentarze, podpięte pod tokeny
+   Twojego design systemu. Poniżej przykład dla tokenów w stylu shadcn/ui.
+   Zamień prawe strony na swoje tokeny znaczeniowe z lekcji 6. */
+:root, .dark {
+  --font-geist-sans: var(--font-sans, system-ui, sans-serif);
+  --font-geist-mono: var(--font-mono, ui-monospace, monospace);
+  --font-size-overline: 0.75rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --primary-hover: var(--primary);
+  --accent-indigo: var(--primary);
+  --accent-indigo-foreground: var(--primary-foreground);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.12);
+  --shadow-xl: 0 16px 48px rgb(0 0 0 / 0.18);
+  --shadow-focus: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+  --status-success-icon: var(--success, #15803d);
+  --status-warning-icon: var(--warning, #b45309);
+  --status-warning-border: var(--warning, #b45309);
+  --status-warning-bg: var(--muted);
+  --status-warning-text: var(--foreground);
+  --z-index-sticky: 100; --z-index-dropdown: 200; --z-index-overlay: 300;
+  --z-index-modal: 400; --z-index-toast: 500; --z-index-top: 600;
+  --z-index-product-overlay: calc(var(--z-index-top) + 100);
+  --z-index-product-modal: calc(var(--z-index-product-overlay) + 1);
+}

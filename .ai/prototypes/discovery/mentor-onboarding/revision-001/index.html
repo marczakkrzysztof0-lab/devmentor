@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentor: od zaproszenia do pierwszego zapytania — prototyp</title>
+<style>
+  :root { --fg:#1a1a1a; --muted:#555; --line:#999; --bg:#fff; --surface:#f2f2f2; --err:#8a1c1c; --ok:#1d5b2a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--fg); background:var(--bg); line-height:1.5; }
+  .proto-banner { background:#333; color:#fff; padding:.4rem 1rem; font-size:.875rem; }
+  header.app { border-bottom:1px solid var(--line); padding:.75rem 1rem; display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; align-items:center; }
+  header.app .brand { font-weight:700; }
+  nav ul { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.25rem 1rem; }
+  nav a[aria-current="page"] { font-weight:700; text-decoration:none; border-bottom:2px solid var(--fg); }
+  main { max-width:44rem; margin:0 auto; padding:1rem; }
+  section[hidden] { display:none; }
+  h1 { font-size:1.5rem; margin:.5rem 0 1rem; }
+  h2 { font-size:1.15rem; margin:1.25rem 0 .5rem; }
+  a { color:var(--fg); }
+  :focus-visible { outline:3px solid #000; outline-offset:2px; }
+  button, .btn { font:inherit; padding:.5rem .9rem; border:1px solid var(--fg); background:var(--bg); color:var(--fg); border-radius:4px; cursor:pointer; text-decoration:none; display:inline-block; }
+  button.primary, .btn.primary { background:var(--fg); color:#fff; font-weight:600; }
+  button:disabled { opacity:.55; cursor:not-allowed; }
+  .actions { display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0; }
+  .card { border:1px solid var(--line); border-radius:4px; padding:.75rem 1rem; margin:.75rem 0; background:var(--bg); }
+  .surface { background:var(--surface); }
+  .field { margin:0 0 1rem; }
+  label { display:block; font-weight:600; margin-bottom:.25rem; }
+  .hint { color:var(--muted); font-size:.875rem; margin:.15rem 0 0; }
+  input[type=text], input[type=url], input[type=number], input[type=time], textarea, select { font:inherit; width:100%; max-width:100%; padding:.45rem .5rem; border:1px solid var(--fg); border-radius:4px; background:#fff; color:var(--fg); }
+  input[aria-invalid="true"], textarea[aria-invalid="true"] { border-width:2px; border-color:var(--err); }
+  .error { color:var(--err); font-weight:600; margin:.25rem 0 0; }
+  .error:empty { display:none; }
+  .status { padding:.5rem .75rem; border-left:4px solid var(--fg); background:var(--surface); margin:.75rem 0; }
+  .status.err { border-color:var(--err); color:var(--err); }
+  .status.ok { border-color:var(--ok); }
+  .status:empty { display:none; }
+  .price-row { display:flex; gap:1rem; flex-wrap:wrap; }
+  .price-row .field { flex:1 1 10rem; }
+  .suffix { display:flex; align-items:center; gap:.4rem; }
+  .share { font-family: ui-monospace, Consolas, monospace; word-break:break-all; padding:.5rem; border:1px dashed var(--fg); background:var(--surface); }
+  table { border-collapse:collapse; width:100%; }
+  th, td { text-align:left; padding:.35rem .4rem; border-bottom:1px solid #ccc; vertical-align:middle; }
+  .day-row td input[type=time] { min-width:6.5rem; }
+  .checklist { list-style:none; padding:0; }
+  .checklist li::before { content:"[ ] "; font-family:ui-monospace, Consolas, monospace; }
+  .checklist li.done::before { content:"[x] "; }
+  .req-list { list-style:none; padding:0; margin:0; }
+  .tag { display:inline-block; border:1px solid var(--fg); border-radius:3px; padding:0 .35rem; font-size:.8rem; }
+  .outside { border:2px dashed var(--muted); padding:.75rem 1rem; color:var(--muted); }
+  .question { white-space:pre-wrap; background:var(--surface); padding:.75rem; border-radius:4px; }
+  aside.test { max-width:44rem; margin:2rem auto 1rem; padding:0 1rem; }
+  aside.test .box { border:2px dashed var(--fg); padding:.75rem 1rem; background:var(--surface); }
+  aside.test h2 { margin-top:0; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+  dl { display:grid; grid-template-columns: max-content 1fr; gap:.25rem 1rem; margin:0; }
+  dt { font-weight:600; }
+  dd { margin:0; }
+  @media (max-width: 32rem) {
+    dl { grid-template-columns: 1fr; }
+    dd { margin-bottom:.5rem; }
+    .day-row td { display:block; border:0; padding:.2rem 0; }
+    .day-row { display:block; border-bottom:1px solid #ccc; padding:.4rem 0; }
+    thead { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="proto-banner" role="note">Prototyp discovery. Dane symulowane. To nie jest produkt ani jego projekt graficzny.</div>
+
+<header class="app">
+  <span class="brand">DevMentor</span>
+  <nav id="mentor-nav" aria-label="Nawigacja mentora" hidden>
+    <ul>
+      <li><a href="#panel" data-nav="panel">Zapytania</a></li>
+      <li><a href="#edytor" data-nav="edytor">Moja strona</a></li>
+      <li><a href="#dostepnosc" data-nav="dostepnosc">Dostępność</a></li>
+      <li><a href="#wyplaty" data-nav="wyplaty">Wypłaty</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div id="live" class="sr-only" role="status" aria-live="polite"></div>
+
+<main id="main">
+
+  <!-- S1: zaproszenie -->
+  <section id="zaproszenie" aria-labelledby="h-zaproszenie">
+    <h1 id="h-zaproszenie" tabindex="-1">Zaproszenie do DevMentor</h1>
+    <div id="invite-active">
+      <p>Zespół DevMentor zaprasza Cię jako mentora. Po akceptacji uzupełnisz swoją stronę: link do publicznej pracy, opis i ceny. Danych do wypłat nie podajesz teraz.</p>
+      <p class="hint">Link ważny do: 3 listopada 2026. Jednorazowy.</p>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-accept-invite">Akceptuję zaproszenie</button>
+      </div>
+    </div>
+    <div id="invite-inactive" hidden>
+      <p class="status err">Ten link jest nieaktywny — poproś zespół o nowy.</p>
+    </div>
+  </section>
+
+  <!-- S2: brak dostępu -->
+  <section id="brak-dostepu" aria-labelledby="h-brak" hidden>
+    <h1 id="h-brak" tabindex="-1">Brak dostępu</h1>
+    <p class="status">Dostęp tylko przez zaproszenie — poproś zespół o link do logowania.</p>
+    <div class="actions">
+      <button type="button" id="btn-signin-link">Otwórz link do logowania od zespołu (symulacja)</button>
+      <a class="btn" href="#zaproszenie">Wróć do zaproszenia</a>
+    </div>
+    <p id="signin-msg" class="status"></p>
+  </section>
+
+  <!-- S3: edytor strony -->
+  <section id="edytor" aria-labelledby="h-edytor" hidden>
+    <h1 id="h-edytor" tabindex="-1">Twoja strona mentora</h1>
+    <p>Developer zobaczy tę stronę tylko przez Twój link. Strona nie trafia do żadnego katalogu ani wyszukiwarki.</p>
+    <form id="page-form" novalidate>
+      <div class="field">
+        <label for="f-name">Imię i nazwisko lub nazwa wyświetlana</label>
+        <input type="text" id="f-name" name="name" autocomplete="off" aria-describedby="e-name">
+        <p class="error" id="e-name"></p>
+      </div>
+      <div class="field">
+        <label for="f-work">Link do publicznej pracy</label>
+        <input type="url" id="f-work" name="work" placeholder="https://" autocomplete="off" aria-describedby="h-work e-work">
+        <p class="hint" id="h-work">Np. GitHub, blog, prelekcja. Pokazujemy go zamiast ocen.</p>
+        <p class="error" id="e-work"></p>
+      </div>
+      <div class="field">
+        <label for="f-desc">Co zrobiłeś / zrobiłaś</label>
+        <textarea id="f-desc" name="desc" rows="4" aria-describedby="h-desc e-desc"></textarea>
+        <p class="hint" id="h-desc">Kilka zdań prostym językiem: z czym realnie pracowałeś.</p>
+        <p class="error" id="e-desc"></p>
+      </div>
+      <div class="price-row">
+        <div class="field">
+          <label for="f-p25">Cena za 25 minut</label>
+          <div class="suffix"><input type="number" id="f-p25" name="p25" min="20" max="5000" step="1" inputmode="numeric" aria-describedby="h-price e-p25"><span>zł</span></div>
+          <p class="error" id="e-p25"></p>
+        </div>
+        <div class="field">
+          <label for="f-p50">Cena za 50 minut</label>
+          <div class="suffix"><input type="number" id="f-p50" name="p50" min="20" max="5000" step="1" inputmode="numeric" aria-describedby="h-price e-p50"><span>zł</span></div>
+          <p class="error" id="e-p50"></p>
+        </div>
+      </div>
+      <p class="hint" id="h-price">Cena to pełna kwota, którą płaci developer. Developer widzi ją, zanim napisze pytanie. Sesje są tekstowe.</p>
+      <div class="field">
+        <label for="f-slug">Adres Twojej strony</label>
+        <div class="suffix"><span aria-hidden="true">devmentor.example/m/</span><input type="text" id="f-slug" name="slug" autocomplete="off" aria-describedby="h-slug e-slug"></div>
+        <p class="hint" id="h-slug">Podpowiadamy z imienia. Po pierwszej publikacji adresu nie można zmienić.</p>
+        <p class="error" id="e-slug"></p>
+      </div>
+      <p id="form-status" class="status" role="status"></p>
+      <div class="actions">
+        <button type="submit" class="primary" id="btn-publish">Opublikuj</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- S4: opublikowano -->
+  <section id="opublikowano" aria-labelledby="h-opub" hidden>
+    <h1 id="h-opub" tabindex="-1">Strona opublikowana</h1>
+    <p>Twój link do udostępnienia:</p>
+    <p class="share" id="share-url" tabindex="-1"></p>
+    <div class="actions">
+      <button type="button" id="btn-copy">Kopiuj link</button>
+    </div>
+    <p id="copy-status" class="status ok" role="status"></p>
+    <p>Wklej go tam, gdzie ludzie już cię pytają.</p>
+    <h2>Co dalej</h2>
+    <div class="actions">
+      <a class="btn primary" href="#dostepnosc">Ustaw dostępność</a>
+      <a class="btn" href="#panel">Przejdź do zapytań</a>
+      <a class="btn" href="#edytor">Wróć do edycji strony</a>
+    </div>
+  </section>
+
+  <!-- S5: dostępność -->
+  <section id="dostepnosc" aria-labelledby="h-dost" hidden>
+    <h1 id="h-dost" tabindex="-1">Dostępność</h1>
+    <p>Developerzy mogą wybrać tylko sloty z tych godzin. Każdy slot ma 25 lub 50 minut.</p>
+    <form id="avail-form" novalidate>
+      <div class="field">
+        <label for="f-tz">Strefa czasowa</label>
+        <select id="f-tz"><option value="Europe/Warsaw" selected>Europa/Warszawa</option></select>
+      </div>
+      <table>
+        <caption class="sr-only">Tygodniowe okna dostępności</caption>
+        <thead><tr><th scope="col">Dzień</th><th scope="col">Od</th><th scope="col">Do</th><th scope="col"><span class="sr-only">Błąd</span></th></tr></thead>
+        <tbody id="days"></tbody>
+      </table>
+      <p id="avail-status" class="status" role="status"></p>
+      <div class="actions">
+        <button type="submit" class="primary">Zapisz dostępność</button>
+        <a class="btn" href="#panel">Wróć do zapytań</a>
+      </div>
+    </form>
+    <h2 id="h-preview">Podgląd wolnych slotów</h2>
+    <p class="hint">Najbliższe 14 dni, najwcześniej 3 godziny od teraz. Symulowane „teraz”: poniedziałek 26 października 2026, 09:00.</p>
+    <div id="slot-preview" aria-labelledby="h-preview"></div>
+  </section>
+
+  <!-- S6: panel / zapytania -->
+  <section id="panel" aria-labelledby="h-panel" hidden>
+    <h1 id="h-panel" tabindex="-1">Zapytania</h1>
+    <div id="payout-banner" class="card surface" hidden>
+      <p><strong>Ustaw wypłaty przed pierwszą wypłatą.</strong> Masz pierwsze opłacone zapytanie. Możesz przyjmować zapytania już teraz; wypłata wymaga danych do wypłat.</p>
+      <a class="btn" href="#wyplaty">Ustaw wypłaty</a>
+    </div>
+    <h2>Twoja strona</h2>
+    <ul class="checklist" id="checklist">
+      <li id="ck-pub">Strona opublikowana</li>
+      <li id="ck-avail">Dostępność ustawiona</li>
+      <li id="ck-share">Link skopiowany do udostępnienia</li>
+    </ul>
+    <p id="panel-notice" class="status"></p>
+    <h2>Zapytania od developerów</h2>
+    <ul class="req-list" id="req-list"></ul>
+    <p id="req-empty" class="status">Brak zapytań. Zapytanie pojawi się tutaj, gdy developer opłaci je przez Twój link.</p>
+  </section>
+
+  <!-- S7: szczegóły zapytania -->
+  <section id="zapytanie" aria-labelledby="h-zap" hidden>
+    <h1 id="h-zap" tabindex="-1">Zapytanie</h1>
+    <p><a href="#panel">Wróć do zapytań</a></p>
+    <dl>
+      <dt>Od</dt><dd id="r-from"></dd>
+      <dt>Długość</dt><dd id="r-len"></dd>
+      <dt>Slot</dt><dd id="r-slot"></dd>
+      <dt>Opłacone</dt><dd id="r-paid"></dd>
+      <dt>Status</dt><dd id="r-status"></dd>
+    </dl>
+    <h2>Pytanie</h2>
+    <p class="question" id="r-question"></p>
+    <div id="r-decide">
+      <p>Sesja powstanie dopiero po Twojej akceptacji. Jeśli nie zaakceptujesz przed startem slotu, developer dostanie automatycznie pełny zwrot.</p>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-acc">Akceptuję</button>
+        <button type="button" id="btn-dec">Odrzucam</button>
+      </div>
+    </div>
+    <div id="r-confirm-decline" class="card" hidden>
+      <p><strong>Odrzucić to zapytanie?</strong> Developer dostanie pełny zwrot automatycznie. Nie podajesz powodu.</p>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-dec-yes">Tak, odrzucam</button>
+        <button type="button" id="btn-dec-no">Anuluj</button>
+      </div>
+    </div>
+    <p id="r-msg" class="status" role="status"></p>
+    <div id="r-accepted" hidden>
+      <div class="card">
+        <p><strong>Sesja zarezerwowana.</strong> <span class="tag">czat tekstowy</span></p>
+        <p>Sesja odbywa się wyłącznie na czacie tekstowym — bez wideo i rozmowy głosowej.</p>
+      </div>
+      <p class="outside">Ekran samej sesji (czat) jest poza tym prototypem.</p>
+    </div>
+  </section>
+
+  <!-- S8: wypłaty -->
+  <section id="wyplaty" aria-labelledby="h-wyp" hidden>
+    <h1 id="h-wyp" tabindex="-1">Wypłaty</h1>
+    <div id="payout-todo">
+      <p id="payout-why"></p>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-stripe">Przejdź do konfiguracji wypłat w Stripe</button>
+        <a class="btn" href="#panel">Wróć do zapytań</a>
+      </div>
+      <div id="stripe-outside" class="outside" hidden>
+        <p>Konfiguracja wypłat odbywa się w Stripe i jest poza tym prototypem.</p>
+        <div class="actions">
+          <button type="button" id="btn-stripe-done">Symuluj ukończenie konfiguracji</button>
+          <button type="button" id="btn-stripe-cancel">Symuluj przerwanie konfiguracji</button>
+        </div>
+      </div>
+    </div>
+    <p id="payout-status" class="status" role="status"></p>
+    <div id="payout-done" hidden>
+      <p class="status ok">Wypłaty skonfigurowane.</p>
+      <a class="btn" href="#panel">Wróć do zapytań</a>
+    </div>
+  </section>
+
+  <!-- nieznany fragment -->
+  <section id="nieznany" aria-labelledby="h-nz" hidden>
+    <h1 id="h-nz" tabindex="-1">Nie ma takiego ekranu</h1>
+    <p>Ten adres nie prowadzi do żadnego ekranu prototypu.</p>
+    <div class="actions"><a class="btn primary" href="#zaproszenie" id="nz-home">Przejdź do początku</a></div>
+  </section>
+</main>
+
+<aside class="test" aria-labelledby="h-test">
+  <div class="box">
+    <h2 id="h-test">Test state — sterowanie symulacją</h2>
+    <p class="hint">Te przyciski nie są częścią produktu. Służą do pokazania stanów, których nie da się wywołać z ekranu mentora.</p>
+    <div class="actions">
+      <button type="button" id="t-invite">Link zaproszenia: nieaktywny</button>
+      <button type="button" id="t-fail">Następny zapis strony się nie powiedzie</button>
+      <button type="button" id="t-request">Symuluj nowe opłacone zapytanie</button>
+      <button type="button" id="t-lapse">Slot zapytania się zaczął bez akceptacji</button>
+      <button type="button" id="t-withdraw">Developer wycofał zapytanie przed akceptacją</button>
+      <button type="button" id="t-signout">Sesja logowania wygasła</button>
+      <button type="button" id="t-reset">Reset symulacji</button>
+    </div>
+    <p id="test-status" class="status" role="status"></p>
+  </div>
+</aside>
+
+<script>
+(function () {
+  'use strict';
+  var SCREENS = ['zaproszenie','brak-dostepu','edytor','opublikowano','dostepnosc','panel','zapytanie','wyplaty','nieznany'];
+  var PROTECTED = ['edytor','opublikowano','dostepnosc','panel','zapytanie','wyplaty'];
+  var TITLES = { zaproszenie:'Zaproszenie', 'brak-dostepu':'Brak dostępu', edytor:'Twoja strona', opublikowano:'Strona opublikowana', dostepnosc:'Dostępność', panel:'Zapytania', zapytanie:'Zapytanie', wyplaty:'Wypłaty', nieznany:'Nie ma takiego ekranu' };
+  var DAY_NAMES = ['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
+  var DAY_SHORT = ['pon','wt','śr','czw','pt','sob','nd'];
+  var MONTHS = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  // Simulated "now": Monday 2026-10-26 09:00 (local). Day 0 of the horizon.
+  var NOW_MIN = 9 * 60, NOTICE = 180, HORIZON_DAYS = 14;
+  var FIXTURES = [
+    { from: 'Marek (developer, fikcyjny)', len: 50, question: 'Mam błąd typów w generycznym hooku React (TypeScript 5): "Type \'T\' is not assignable to type \'Record<string, unknown>\'". Wydanie jutro, senior na urlopie. Wkleję fragment hooka i miejsce wywołania. Czego tu nie widzę?' },
+    { from: 'Ola (developerka, fikcyjna)', len: 25, question: 'Po aktualizacji Helm chartu ingress na stagingu zwraca 404. Zmieniłam tylko wersję charta. Gdzie szukać w pierwszej kolejności?' }
+  ];
+
+  var state;
+  function fresh() {
+    return {
+      inviteActive: true, accepted: false, signedIn: false, published: false, failNextSave: false,
+      page: { name:'', work:'', desc:'', p25:'', p50:'', slug:'' }, slugTouched: false,
+      availability: DAY_NAMES.map(function () { return { on:false, from:'18:00', to:'20:00' }; }),
+      availabilitySaved: false, slots: [], copied: false,
+      requests: [], nextFixture: 0, currentId: null, confirmDecline: false,
+      payoutsDone: false, stripeOpen: false
+    };
+  }
+  state = fresh();
+
+  function $(id) { return document.getElementById(id); }
+  function setText(id, t) { $(id).textContent = t; }
+  function announce(t) { var l = $('live'); l.textContent = ''; setTimeout(function () { l.textContent = t; }, 30); }
+
+  // ---------- routing ----------
+  function resolve(id) {
+    if (SCREENS.indexOf(id) === -1) return 'nieznany';
+    if (PROTECTED.indexOf(id) !== -1 && !state.signedIn) return 'brak-dostepu';
+    if (id === 'zaproszenie' && state.signedIn) return 'panel';
+    if (id === 'opublikowano' && !state.published) return 'edytor';
+    if (id === 'zapytanie' && !findReq(state.currentId)) return 'panel';
+    return id;
+  }
+  function route(moveFocus) {
+    var raw = decodeURIComponent(location.hash.replace(/^#/, '')) || 'zaproszenie';
+    var id = resolve(raw);
+    SCREENS.forEach(function (s) { $(s).hidden = (s !== id); });
+    $('mentor-nav').hidden = !state.signedIn;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (a) {
+      var cur = a.getAttribute('data-nav') === id || (id === 'zapytanie' && a.getAttribute('data-nav') === 'panel') || (id === 'opublikowano' && a.getAttribute('data-nav') === 'edytor');
+      if (cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    document.title = TITLES[id] + ' — DevMentor (prototyp)';
+    renderAll();
+    if (moveFocus !== false) {
+      var h = $(id).querySelector('h1');
+      if (h) h.focus();
+    }
+  }
+  window.addEventListener('hashchange', function () { route(true); });
+  function go(id) {
+    if (location.hash === '#' + id) route(true); else location.hash = id;
+  }
+
+  // ---------- render ----------
+  function renderAll() {
+    var inviteUsable = state.inviteActive && !state.accepted; // single-use link
+    $('invite-active').hidden = !inviteUsable;
+    $('invite-inactive').hidden = inviteUsable;
+    $('t-invite').textContent = state.inviteActive ? 'Link zaproszenia: nieaktywny' : 'Link zaproszenia: aktywny';
+    $('t-fail').setAttribute('aria-pressed', state.failNextSave ? 'true' : 'false');
+    renderEditor(); renderPublished(); renderAvailability(); renderPanel(); renderRequest(); renderPayouts();
+  }
+
+  function renderEditor() {
+    $('f-slug').readOnly = state.published;
+    $('btn-publish').textContent = state.published ? 'Zapisz zmiany' : 'Opublikuj';
+  }
+  function shareUrl() { return 'devmentor.example/m/' + state.page.slug; }
+  function renderPublished() {
+    setText('share-url', state.published ? shareUrl() : '');
+  }
+
+  function renderAvailability() {
+    var tb = $('days');
+    if (!tb.childElementCount) {
+      DAY_NAMES.forEach(function (name, i) {
+        var tr = document.createElement('tr'); tr.className = 'day-row';
+        var td1 = document.createElement('td');
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'd-on-' + i;
+        var lb = document.createElement('label'); lb.htmlFor = cb.id; lb.style.display = 'inline'; lb.textContent = ' ' + name;
+        td1.appendChild(cb); td1.appendChild(lb);
+        var td2 = document.createElement('td');
+        var f = document.createElement('input'); f.type = 'time'; f.step = 1800; f.id = 'd-from-' + i; f.setAttribute('aria-label', name + ', od');
+        td2.appendChild(f);
+        var td3 = document.createElement('td');
+        var t = document.createElement('input'); t.type = 'time'; t.step = 1800; t.id = 'd-to-' + i; t.setAttribute('aria-label', name + ', do');
+        td3.appendChild(t);
+        var td4 = document.createElement('td');
+        var e = document.createElement('p'); e.className = 'error'; e.id = 'd-err-' + i;
+        f.setAttribute('aria-describedby', e.id); t.setAttribute('aria-describedby', e.id);
+        td4.appendChild(e);
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+        tb.appendChild(tr);
+      });
+      syncAvailInputs();
+    }
+    var box = $('slot-preview'); box.textContent = '';
+    if (!state.availabilitySaved || state.slots.length === 0) {
+      var p = document.createElement('p'); p.className = 'status';
+      p.textContent = state.availabilitySaved ? 'Brak wolnych slotów w najbliższych 14 dniach. Developer nie może teraz wysłać zapytania.' : 'Brak dostępności. Dopóki jej nie ustawisz, developer nie może wybrać slotu.';
+      box.appendChild(p); return;
+    }
+    var ul = document.createElement('ul');
+    state.slots.slice(0, 8).forEach(function (s) {
+      var li = document.createElement('li'); li.textContent = slotLabel(s) + ' — ' + (s.lens.join(' lub ')) + ' min'; ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    var more = document.createElement('p'); more.className = 'hint';
+    more.textContent = 'Wszystkich startów slotów w 14 dniach: ' + state.slots.length + '.';
+    box.appendChild(more);
+  }
+  function syncAvailInputs() {
+    state.availability.forEach(function (d, i) {
+      $('d-on-' + i).checked = d.on; $('d-from-' + i).value = d.from; $('d-to-' + i).value = d.to; setText('d-err-' + i, '');
+      $('d-from-' + i).removeAttribute('aria-invalid'); $('d-to-' + i).removeAttribute('aria-invalid');
+    });
+  }
+
+  function renderPanel() {
+    $('ck-pub').className = state.published ? 'done' : '';
+    $('ck-avail').className = (state.availabilitySaved && state.slots.length) ? 'done' : '';
+    $('ck-share').className = state.copied ? 'done' : '';
+    var notice = '';
+    if (!state.published) notice = 'Twoja strona nie jest jeszcze opublikowana. ';
+    if (!(state.availabilitySaved && state.slots.length)) notice += 'Nie masz dostępności — developer nie może wybrać slotu.';
+    $('panel-notice').textContent = notice.trim();
+    var showBanner = state.requests.length > 0 && !state.payoutsDone;
+    $('payout-banner').hidden = !showBanner;
+    var ul = $('req-list'); ul.textContent = '';
+    state.requests.forEach(function (r) {
+      var li = document.createElement('li'); li.className = 'card';
+      var a = document.createElement('a'); a.href = '#zapytanie'; a.setAttribute('data-req', String(r.id));
+      a.textContent = r.from + ' — ' + r.len + ' min, ' + slotLabel(r.slot);
+      var st = document.createElement('p'); st.style.margin = '.25rem 0 0'; st.textContent = 'Status: ' + statusText(r);
+      li.appendChild(a); li.appendChild(st); ul.appendChild(li);
+    });
+    $('req-empty').hidden = state.requests.length > 0;
+  }
+
+  function statusText(r) {
+    switch (r.status) {
+      case 'pending': return 'Oczekuje na Twoją decyzję';
+      case 'accepted': return 'Przyjęte — sesja zarezerwowana (czat tekstowy)';
+      case 'declined': return 'Odrzucone — developer dostał pełny zwrot automatycznie';
+      case 'lapsed': return 'Wygasło — nie przyjęto przed startem slotu; developer dostał pełny zwrot automatycznie';
+      case 'withdrawn': return 'Wycofane przez developera przed akceptacją; developer dostał pełny zwrot';
+    }
+    return '';
+  }
+
+  function renderRequest() {
+    var r = findReq(state.currentId);
+    if (!r) return;
+    setText('r-from', r.from);
+    setText('r-len', r.len + ' min');
+    setText('r-slot', slotLabel(r.slot));
+    setText('r-paid', r.amount + ' zł, kartą, przy wysyłaniu zapytania');
+    setText('r-status', statusText(r));
+    setText('r-question', r.question);
+    $('r-decide').hidden = r.status !== 'pending' || state.confirmDecline;
+    $('r-confirm-decline').hidden = !(r.status === 'pending' && state.confirmDecline);
+    $('r-accepted').hidden = r.status !== 'accepted';
+  }
+
+  function renderPayouts() {
+    $('payout-todo').hidden = state.payoutsDone;
+    $('payout-done').hidden = !state.payoutsDone;
+    $('stripe-outside').hidden = !state.stripeOpen;
+    $('payout-why').textContent = state.requests.length
+      ? 'Masz pierwsze opłacone zapytanie. Dane do wypłat są potrzebne przed pierwszą wypłatą. Nie blokują przyjmowania zapytań.'
+      : 'Dane do wypłat nie są potrzebne, dopóki nie dostaniesz pierwszego opłaconego zapytania. Możesz je ustawić teraz albo później.';
+  }
+
+  // ---------- helpers ----------
+  function findReq(id) { for (var i = 0; i < state.requests.length; i++) if (state.requests[i].id === id) return state.requests[i]; return null; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hm(min) { return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+  function toMin(v) { var m = /^(\d{2}):(\d{2})$/.exec(v || ''); return m ? (+m[1]) * 60 + (+m[2]) : NaN; }
+  function slotLabel(s) {
+    var d = new Date(2026, 9, 26 + s.day);
+    return DAY_SHORT[s.day % 7] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ', ' + hm(s.start);
+  }
+  function computeSlots() {
+    var out = [];
+    for (var day = 0; day < HORIZON_DAYS; day++) {
+      var w = state.availability[day % 7];
+      if (!w.on) continue;
+      var from = toMin(w.from), to = toMin(w.to);
+      var start = Math.ceil(from / 30) * 30;
+      for (; start + 25 <= to; start += 30) {
+        if (day * 1440 + start < NOW_MIN + NOTICE) continue;
+        var lens = [25]; if (start + 50 <= to) lens.push(50);
+        out.push({ day: day, start: start, lens: lens });
+      }
+    }
+    return out;
+  }
+  function slugify(s) {
+    var map = { 'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z' };
+    var t = s.toLowerCase().replace(/[ąćęłńóśźż]/g, function (c) { return map[c]; });
+    t = t.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return t.slice(0, 40).replace(/-+$/, '');
+  }
+
+  // ---------- invitation & sign-in ----------
+  $('btn-accept-invite').addEventListener('click', function () {
+    state.accepted = true; state.signedIn = true;
+    announce('Zaproszenie przyjęte. Jesteś zalogowany.');
+    go('edytor');
+  });
+  $('btn-signin-link').addEventListener('click', function () {
+    if (!state.accepted) { setText('signin-msg', 'Ten link jest nieaktywny — poproś zespół o nowy. (W symulacji: najpierw przyjmij zaproszenie.)'); return; }
+    state.signedIn = true; setText('signin-msg', '');
+    announce('Zalogowano ponownie.');
+    go('panel');
+  });
+
+  // ---------- editor ----------
+  var fields = ['name','work','desc','p25','p50','slug'];
+  $('f-name').addEventListener('input', function () {
+    if (!state.published && !state.slugTouched) $('f-slug').value = slugify(this.value);
+  });
+  $('f-slug').addEventListener('input', function () { state.slugTouched = true; });
+
+  function validatePage(v) {
+    var e = {};
+    var n = v.name.trim();
+    if (n.length < 2 || n.length > 80) e.name = 'Podaj nazwę wyświetlaną (2–80 znaków).';
+    if (!v.work.trim()) e.work = 'Dodaj link do publicznej pracy.';
+    else if (!/^https?:\/\/\S+$/i.test(v.work.trim()) || v.work.length > 500) e.work = 'Link musi zaczynać się od http:// lub https://.';
+    if (!v.desc.trim()) e.desc = 'Opisz, co zrobiłeś — kilka zdań wystarczy.';
+    else if (v.desc.length > 2000) e.desc = 'Opis może mieć najwyżej 2000 znaków.';
+    ['p25','p50'].forEach(function (k) {
+      var label = k === 'p25' ? '25 minut' : '50 minut';
+      if (!/^\d+$/.test(v[k].trim())) e[k] = 'Podaj cenę za ' + label + ' w pełnych złotych.';
+      else { var p = +v[k]; if (p < 20 || p > 5000) e[k] = 'Cena za ' + label + ' musi mieścić się między 20 a 5000 zł.'; }
+    });
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(v.slug) || v.slug.length < 3 || v.slug.length > 40) e.slug = 'Adres: 3–40 znaków, małe litery, cyfry i myślniki.';
+    return e;
+  }
+  function showErrors(e) {
+    var first = null;
+    fields.forEach(function (k) {
+      var inp = $('f-' + k), msg = e[k] || '';
+      setText('e-' + k, msg);
+      if (msg) { inp.setAttribute('aria-invalid', 'true'); if (!first) first = inp; } else inp.removeAttribute('aria-invalid');
+    });
+    return first;
+  }
+  $('page-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var v = {}; fields.forEach(function (k) { v[k] = $('f-' + k).value; });
+    var e = validatePage(v);
+    var first = showErrors(e);
+    var st = $('form-status');
+    if (first) { st.className = 'status err'; st.textContent = 'Popraw zaznaczone pola. Twoje dane są zachowane.'; first.focus(); return; }
+    var btn = $('btn-publish'); btn.disabled = true;
+    st.className = 'status'; st.textContent = state.published ? 'Zapisywanie…' : 'Publikowanie…';
+    setTimeout(function () {
+      btn.disabled = false;
+      if (state.failNextSave) {
+        state.failNextSave = false; renderAll();
+        st.className = 'status err'; st.textContent = 'Nie udało się zapisać. Twoje dane są zachowane — spróbuj ponownie.';
+        btn.focus(); return;
+      }
+      state.page = { name:v.name.trim(), work:v.work.trim(), desc:v.desc.trim(), p25:v.p25.trim(), p50:v.p50.trim(), slug:v.slug };
+      if (!state.published) {
+        state.published = true; st.textContent = '';
+        announce('Strona opublikowana.');
+        go('opublikowano');
+      } else {
+        st.className = 'status ok'; st.textContent = 'Zapisano. Zmiana jest widoczna na Twojej stronie; link bez zmian.';
+        renderAll();
+      }
+    }, 600);
+  });
+
+  $('btn-copy').addEventListener('click', function () {
+    state.copied = true;
+    setText('copy-status', 'Skopiowano (symulacja — schowek nie jest używany).');
+    renderAll();
+  });
+
+  // ---------- availability ----------
+  $('avail-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var bad = null;
+    var next = state.availability.map(function (d, i) {
+      var on = $('d-on-' + i).checked, f = $('d-from-' + i).value, t = $('d-to-' + i).value;
+      var msg = '';
+      if (on) {
+        var a = toMin(f), b = toMin(t);
+        if (isNaN(a) || isNaN(b)) msg = DAY_NAMES[i] + ': podaj godziny od i do.';
+        else if (b - a < 25) msg = DAY_NAMES[i] + ': okno musi mieć co najmniej 25 minut, a „do” musi być po „od”.';
+      }
+      setText('d-err-' + i, msg);
+      [$('d-from-' + i), $('d-to-' + i)].forEach(function (x) { if (msg) x.setAttribute('aria-invalid', 'true'); else x.removeAttribute('aria-invalid'); });
+      if (msg && !bad) bad = $('d-from-' + i);
+      return { on: on, from: f, to: t };
+    });
+    var st = $('avail-status');
+    if (bad) { st.className = 'status err'; st.textContent = 'Popraw zaznaczone dni.'; bad.focus(); return; }
+    state.availability = next; state.availabilitySaved = true; state.slots = computeSlots();
+    st.className = 'status ok';
+    st.textContent = state.slots.length ? 'Dostępność zapisana. Developerzy widzą wolne sloty.' : 'Zapisano, ale nie ma żadnego wolnego slotu.';
+    renderAll();
+  });
+
+  // ---------- requests ----------
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[data-req]');
+    if (a) { state.currentId = +a.getAttribute('data-req'); state.confirmDecline = false; setText('r-msg', ''); }
+  });
+  function cur() { return findReq(state.currentId); }
+  $('btn-acc').addEventListener('click', function () {
+    var r = cur(); if (!r || r.status !== 'pending') return;
+    var b = this; b.disabled = true; $('btn-dec').disabled = true; setText('r-msg', 'Zapisywanie decyzji…');
+    setTimeout(function () {
+      b.disabled = false; $('btn-dec').disabled = false;
+      r.status = 'accepted'; setText('r-msg', 'Przyjęto. Developer dostanie potwierdzenie.');
+      renderAll(); announce('Zapytanie przyjęte. Sesja zarezerwowana.');
+      $('h-zap').focus();
+    }, 500);
+  });
+  $('btn-dec').addEventListener('click', function () { state.confirmDecline = true; renderAll(); $('btn-dec-no').focus(); });
+  $('btn-dec-no').addEventListener('click', function () { state.confirmDecline = false; renderAll(); $('btn-dec').focus(); });
+  $('btn-dec-yes').addEventListener('click', function () {
+    var r = cur(); if (!r || r.status !== 'pending') return;
+    r.status = 'declined'; state.confirmDecline = false;
+    setText('r-msg', 'Odrzucono. Developer dostał pełny zwrot automatycznie.');
+    renderAll(); $('h-zap').focus();
+  });
+
+  // ---------- payouts ----------
+  $('btn-stripe').addEventListener('click', function () { state.stripeOpen = true; setText('payout-status', ''); renderAll(); $('btn-stripe-done').focus(); });
+  $('btn-stripe-done').addEventListener('click', function () {
+    state.payoutsDone = true; state.stripeOpen = false; setText('payout-status', '');
+    renderAll(); announce('Wypłaty skonfigurowane.'); $('h-wyp').focus();
+  });
+  $('btn-stripe-cancel').addEventListener('click', function () {
+    state.stripeOpen = false;
+    var s = $('payout-status'); s.className = 'status err';
+    s.textContent = 'Konfiguracja wypłat nie została dokończona. Możesz wrócić do niej w każdej chwili; zapytania nadal możesz przyjmować.';
+    renderAll(); $('btn-stripe').focus();
+  });
+
+  // ---------- test state ----------
+  function testMsg(t) { setText('test-status', t); }
+  $('t-invite').addEventListener('click', function () {
+    state.inviteActive = !state.inviteActive; renderAll();
+    testMsg(state.inviteActive ? 'Link zaproszenia jest aktywny.' : 'Link zaproszenia jest nieaktywny (wygasły, użyty lub nieznany).');
+    if (!state.signedIn) go('zaproszenie');
+  });
+  $('t-fail').addEventListener('click', function () {
+    state.failNextSave = !state.failNextSave; renderAll();
+    testMsg(state.failNextSave ? 'Następny zapis strony zakończy się błędem.' : 'Zapis strony zadziała normalnie.');
+  });
+  $('t-request').addEventListener('click', function () {
+    if (!state.published || !state.slots.length) { testMsg('Zapytanie może przyjść dopiero, gdy strona jest opublikowana i ma wolne sloty.'); return; }
+    if (state.nextFixture >= FIXTURES.length) { testMsg('Wykorzystano wszystkie fikcyjne zapytania. Użyj Resetu.'); return; }
+    var f = FIXTURES[state.nextFixture++];
+    var slot = null;
+    for (var i = 0; i < state.slots.length; i++) if (state.slots[i].lens.indexOf(f.len) !== -1 && !taken(state.slots[i])) { slot = state.slots[i]; break; }
+    if (!slot) { state.nextFixture--; testMsg('Brak wolnego slotu ' + f.len + '-minutowego. Poszerz dostępność.'); return; }
+    var id = state.requests.length + 1;
+    state.requests.push({ id: id, from: f.from, len: f.len, question: f.question, slot: slot, amount: f.len === 25 ? state.page.p25 : state.page.p50, status: 'pending' });
+    testMsg('Nowe opłacone zapytanie od: ' + f.from + '.');
+    renderAll(); announce('Nowe zapytanie.');
+  });
+  function taken(s) { return state.requests.some(function (r) { return r.slot === s && (r.status === 'pending' || r.status === 'accepted'); }); }
+  function lastPending() { for (var i = state.requests.length - 1; i >= 0; i--) if (state.requests[i].status === 'pending') return state.requests[i]; return null; }
+  $('t-lapse').addEventListener('click', function () {
+    var r = lastPending(); if (!r) { testMsg('Brak zapytania oczekującego na decyzję.'); return; }
+    r.status = 'lapsed'; state.confirmDecline = false; testMsg('Zapytanie od ' + r.from + ' wygasło; zwrot automatyczny.'); renderAll();
+  });
+  $('t-withdraw').addEventListener('click', function () {
+    var r = lastPending(); if (!r) { testMsg('Brak zapytania oczekującego na decyzję.'); return; }
+    r.status = 'withdrawn'; state.confirmDecline = false; testMsg('Developer wycofał zapytanie; pełny zwrot.'); renderAll();
+  });
+  $('t-signout').addEventListener('click', function () {
+    if (!state.signedIn) { testMsg('Nie jesteś zalogowany.'); return; }
+    state.signedIn = false; testMsg('Sesja logowania wygasła.'); route(true);
+  });
+  $('t-reset').addEventListener('click', function () {
+    state = fresh();
+    $('page-form').reset(); showErrors({});
+    ['form-status','avail-status','copy-status','r-msg','payout-status','signin-msg'].forEach(function (id) { setText(id, ''); $(id).className = $(id).className.replace(/\s*(err|ok)\b/g, '') + (id === 'copy-status' ? ' ok' : ''); });
+    syncAvailInputs();
+    testMsg('Symulacja zresetowana do początku.');
+    announce('Symulacja zresetowana.');
+    go('zaproszenie');
+  });
+
+  route(false);
+})();
+</script>
+</body>
+</html>

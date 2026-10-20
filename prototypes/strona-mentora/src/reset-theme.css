@@ -1,0 +1,13 @@
+/* Jak w Storybooku (reset-theme.css): bez domyślnej palety i skal Tailwinda — klasa spoza tokenów nic nie renderuje. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --font-weight-*: initial;
+  --text-*: initial;
+  --leading-*: initial;
+  --ease-*: initial;
+  --blur-*: initial;
+}

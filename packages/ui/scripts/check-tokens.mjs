@@ -15,6 +15,9 @@ const TOKEN_FILES = new Set([path.join(root, "src", "styles", "tokens.css")]);
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".css", ".mdx", ".html"]);
 const SKIP_DIRS = new Set(["node_modules", "storybook-static", "dist", ".git"]);
 const SELF = fileURLToPath(import.meta.url);
+// Lesson 07: built prototypes copied into Storybook's static dir (gitignored build output, not
+// design-system code). Their source is checked separately: prototypes/strona-mentora (npm run check:tokens there).
+const SKIP_PATHS = new Set([path.join(root, ".storybook", "public", "prototypes")]);
 
 const PALETTE =
   "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|mauve|olive|mist|taupe|black|white";
@@ -49,7 +52,7 @@ function* walk(target) {
     return;
   }
   for (const entry of readdirSync(target)) {
-    if (SKIP_DIRS.has(entry)) continue;
+    if (SKIP_DIRS.has(entry) || SKIP_PATHS.has(path.join(target, entry))) continue;
     yield* walk(path.join(target, entry));
   }
 }

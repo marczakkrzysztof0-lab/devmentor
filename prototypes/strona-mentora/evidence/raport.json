@@ -1,0 +1,881 @@
+{
+  "widths": [
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s01",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s02",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s03",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s04",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s05",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s06",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 320,
+      "screen": "s07",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s01",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s02",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s03",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s04",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s05",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s06",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "light",
+      "width": 1440,
+      "screen": "s07",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s01",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s02",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s03",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s04",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s05",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s06",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 320,
+      "screen": "s07",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s01",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s02",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s03",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s04",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s05",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s06",
+      "horizontalOverflowPx": 0
+    },
+    {
+      "colorScheme": "dark",
+      "width": 1440,
+      "screen": "s07",
+      "horizontalOverflowPx": 0
+    }
+  ],
+  "keyboard": [
+    {
+      "step": "s01 Tab",
+      "focused": "Akceptuję zaproszenie"
+    },
+    {
+      "step": "s01 focus ring",
+      "outlineStyle": "solid"
+    },
+    {
+      "step": "Enter → ekran",
+      "screen": "s04",
+      "focused": "Twoja strona"
+    },
+    {
+      "step": "s04 kolejność Tab",
+      "order": [
+        "input:Imię i nazwisko",
+        "input:Link do publicznej pracy",
+        "textarea:Twoje doświadczenie",
+        "input:Cena za 25 min",
+        "input:Cena za 50 min",
+        "input:Adres strony",
+        "button:Opublikuj stronę",
+        "button:Zapisz szkic"
+      ]
+    },
+    {
+      "step": "s06 strzałka w przełączniku (przenosi fokus)",
+      "focused": "50 min — 280 zł",
+      "checked": "false"
+    },
+    {
+      "step": "s06 spacja wybiera 50 min",
+      "checked": "true",
+      "slots": [
+        "jutro",
+        "18:00, 18:30, 19:00"
+      ]
+    },
+    {
+      "step": "Backspace → poprzedni ekran",
+      "screen": "s04"
+    }
+  ],
+  "controls": [
+    {
+      "control": "C1",
+      "value": "anna",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C1",
+      "value": "anna-bez-sesji",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C1",
+      "value": "kuba",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C1",
+      "value": "oliwia",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C5",
+      "value": "aktywna",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C5",
+      "value": "brak",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C5",
+      "value": "wygasla",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C5",
+      "value": "wygasa-przy-zapisie",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C5",
+      "value": "inny-mentor",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "valid",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "expired",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "revoked",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "used",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "unknown",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C2",
+      "value": "has-account",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C3",
+      "value": "ok",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C3",
+      "value": "pending",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C3",
+      "value": "network",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C4",
+      "value": "valid",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C4",
+      "value": "used",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C4",
+      "value": "expired",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C4",
+      "value": "unknown",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C4",
+      "value": "double",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C6",
+      "value": "empty",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C6",
+      "value": "draft",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C6",
+      "value": "published",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C6",
+      "value": "published-no-availability",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "ok",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "slug-taken",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "field-error",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "server",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "network",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C7",
+      "value": "slow",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C8",
+      "value": "none",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C8",
+      "value": "set",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C8",
+      "value": "short-notice",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C9",
+      "value": "ok",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C9",
+      "value": "server",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C9",
+      "value": "network",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C9",
+      "value": "slow",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C9",
+      "value": "too-many",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C16",
+      "value": "short",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C16",
+      "value": "stuck",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C10",
+      "value": "warsaw",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C10",
+      "value": "london",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C10",
+      "value": "none",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C11",
+      "value": "ready",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C11",
+      "value": "loading",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C11",
+      "value": "error",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C11",
+      "value": "offline",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "anna",
+      "screen": "s06",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "piotr-n",
+      "screen": "s06",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "ewa-szkic",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "annak2",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "m",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C12",
+      "value": "m-search",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C13",
+      "value": "short",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C13",
+      "value": "long",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C14",
+      "value": "now",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C14",
+      "value": "plus",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C15",
+      "value": "full",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C15",
+      "value": "1024",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C15",
+      "value": "375",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "C15",
+      "value": "320",
+      "screen": "s07",
+      "ok": true
+    },
+    {
+      "control": "Founder: zaproszenie",
+      "value": "$ npm run mentor:invite -- anna@example.com\nhttp://localhost:3000/invite/demo-valid (ważny do 2.11.2026, 19:00)",
+      "ok": true
+    },
+    {
+      "control": "Otwórz link jako Anna",
+      "value": "",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "Founder: link logowania",
+      "value": "",
+      "screen": "s02",
+      "ok": true
+    },
+    {
+      "control": "Motyw",
+      "value": "Motyw: jasny",
+      "ok": true,
+      "dataTheme": "light"
+    },
+    {
+      "control": "Motyw",
+      "value": "Motyw: ciemny",
+      "ok": true,
+      "dataTheme": "dark"
+    },
+    {
+      "control": "Motyw",
+      "value": "Motyw: systemowy",
+      "ok": true,
+      "dataTheme": null
+    },
+    {
+      "control": "Reset symulacji",
+      "value": "Symulacja zresetowana do początku.",
+      "screen": "s01",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Comment",
+      "value": "",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Clickable",
+      "value": "",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Show hotspots",
+      "value": "",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Presentation",
+      "value": "",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Threads",
+      "value": "",
+      "ok": true
+    },
+    {
+      "control": "Silnik: Hide pins",
+      "value": "",
+      "ok": true
+    }
+  ],
+  "buttons": [
+    {
+      "screen": "s01",
+      "control": "Akceptuję zaproszenie",
+      "clicked": true,
+      "effect": "→ s04"
+    },
+    {
+      "screen": "s02",
+      "control": "Zaloguj",
+      "clicked": true,
+      "effect": "→ s04"
+    },
+    {
+      "screen": "s04",
+      "control": "Strona",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s04",
+      "control": "Dostępność",
+      "clicked": true,
+      "effect": "→ s05"
+    },
+    {
+      "screen": "s04",
+      "control": "Wyloguj",
+      "clicked": true,
+      "effect": "→ s03"
+    },
+    {
+      "screen": "s04",
+      "control": "Kopiuj link",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s04",
+      "control": "Zapisz zmiany",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Strona",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Dostępność",
+      "clicked": true,
+      "effect": "→ s05"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Wyloguj",
+      "clicked": true,
+      "effect": "→ s03"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Dodaj dostępność",
+      "clicked": true,
+      "effect": "→ s05"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Opublikuj stronę",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s04-szkic",
+      "control": "Zapisz szkic",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Strona",
+      "clicked": true,
+      "effect": "→ s04"
+    },
+    {
+      "screen": "s05",
+      "control": "Dostępność",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Wyloguj",
+      "clicked": true,
+      "effect": "→ s03"
+    },
+    {
+      "screen": "s05",
+      "control": "Warszawa (Europe/Warsaw)",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: poniedziałek",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: wtorek",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "wtorek, od",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "wtorek, do",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Usuń okno wtorek 18:00–20:00",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: środa",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: czwartek",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "czwartek, od",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "czwartek, do",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Usuń okno czwartek 12:00–13:00",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: piątek",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: sobota",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Dodaj okno: niedziela",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s05",
+      "control": "Zapisz",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s06",
+      "control": "github.com/annak (otwiera się w nowej karcie)",
+      "clicked": true,
+      "effect": "Symulacja: link zewnętrzny https://github.com/annak nie jest otwierany w prototypie."
+    },
+    {
+      "screen": "s06",
+      "control": "25 min — 150 zł",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    },
+    {
+      "screen": "s06",
+      "control": "50 min — 280 zł",
+      "clicked": true,
+      "effect": "zmiana na ekranie"
+    }
+  ],
+  "errors": []
+}
