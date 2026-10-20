@@ -1,0 +1,14 @@
+{
+  "name": "prototyp-strona-mentora",
+  "private": true,
+  "type": "module",
+  "description": "Klikalny prototyp E01 (s01–s07). Nie jest workspace'em ani częścią aplikacji; korzysta z zależności zainstalowanych w repozytorium.",
+  "scripts": {
+    "dev": "node ../../packages/ui/node_modules/vite/bin/vite.js --config vite.config.mjs",
+    "build": "node ../../packages/ui/node_modules/vite/bin/vite.js build --config vite.config.mjs",
+    "typecheck": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "check:tokens": "node ../../packages/ui/scripts/check-tokens.mjs ../../prototypes/strona-mentora/src ../../prototypes/strona-mentora/index.html",
+    "test": "node --test tests/nawigacja.test.mjs",
+    "evidence": "node scripts/evidence.mjs"
+  }
+}

@@ -1,0 +1,176 @@
+/* Mostek: nazwy używane przez silnik przeglądu (prototype.css) podpięte pod tokeny
+   znaczeniowe design systemu DevMentora (packages/ui/src/styles/tokens.css).
+   Bez własnych kolorów: tylko var(--ds-*). Motyw przełącza data-theme na <html>
+   (DS); klasa .dark jest ustawiana równolegle dla zgodności z silnikiem.
+   DS nie ma cieni (A01), więc --shadow-* = none. */
+:root {
+  --background: var(--ds-surface-page);
+  --foreground: var(--ds-text-primary);
+  --card: var(--ds-surface-panel);
+  --muted: var(--ds-surface-code);
+  --muted-foreground: var(--ds-text-muted);
+  --border: var(--ds-border-divider);
+  --input: var(--ds-border-control);
+  --ring: var(--ds-focus-ring);
+  --primary: var(--ds-action-primary-fill);
+  --primary-foreground: var(--ds-text-on-action);
+  --radius: var(--ds-radius-control);
+  --radius-sm: var(--ds-radius-control);
+  --radius-md: var(--ds-radius-control);
+  --radius-lg: var(--ds-radius-control);
+  --radius-xl: var(--ds-radius-control);
+  --primary-hover: var(--ds-action-primary-fill-hover);
+  --accent-indigo: var(--ds-focus-ring);
+  --accent-indigo-foreground: var(--ds-text-on-action);
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-xl: none;
+  --shadow-focus: none;
+  --status-success-icon: var(--ds-status-success-text);
+  --status-warning-icon: var(--ds-action-primary-fill);
+  --status-warning-border: var(--ds-border-control);
+  --status-warning-bg: var(--ds-surface-code);
+  --status-warning-text: var(--ds-text-primary);
+  --z-index-sticky: 100;
+  --z-index-dropdown: 200;
+  --z-index-overlay: 300;
+  --z-index-modal: 400;
+  --z-index-toast: 500;
+  --z-index-top: 600;
+}
+
+body {
+  margin: 0;
+  background: var(--ds-surface-page);
+  color: var(--ds-text-primary);
+  font-family: var(--ds-font-ui);
+}
+
+/* ---------------------------------------------------------- pasek przeglądu */
+.review {
+  position: relative;
+  background: var(--ds-surface-code);
+  border-bottom: var(--ds-border-width-hairline) solid var(--ds-border-control);
+  font-size: var(--ds-text-meta);
+  line-height: var(--ds-leading-meta);
+}
+.doc-toolbar,
+.review-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-in-group);
+  padding: var(--ds-space-in-group) var(--ds-space-page-gutter);
+}
+.review-status { padding-top: 0; color: var(--ds-text-muted); }
+.review-status code, .sim-cli { font-family: var(--ds-font-mono); }
+.review-message { color: var(--ds-text-primary); font-weight: var(--ds-font-weight-strong); }
+.proto-badge {
+  padding: var(--ds-space-inline) var(--ds-space-in-group);
+  border: var(--ds-border-width-hairline) solid var(--ds-text-primary);
+  border-radius: var(--ds-radius-control);
+  font-weight: var(--ds-font-weight-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.screen-nav { display: flex; flex-wrap: wrap; gap: var(--ds-space-inline); }
+.screen-nav a {
+  padding: var(--ds-space-inline) var(--ds-space-in-group);
+  border-radius: var(--ds-radius-control);
+  color: var(--ds-text-link);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.screen-nav a[aria-current="true"] { color: var(--ds-text-primary); font-weight: var(--ds-font-weight-strong); text-decoration-thickness: 2px; }
+.proto-toolbar { flex-wrap: wrap; margin-left: auto; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-inline);
+  padding: var(--ds-space-inline) var(--ds-space-in-group);
+  border: var(--ds-border-width-hairline) solid var(--ds-border-control);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-surface-panel);
+  color: var(--ds-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.btn:hover { background: var(--ds-surface-code); }
+.btn:disabled { cursor: not-allowed; color: var(--ds-text-muted); }
+.btn-primary { background: var(--ds-action-primary-fill); border-color: var(--ds-action-primary-fill); color: var(--ds-text-on-action); }
+.btn-primary:hover { background: var(--ds-action-primary-fill-hover); }
+.segmented { display: inline-flex; border: var(--ds-border-width-hairline) solid var(--ds-border-control); border-radius: var(--ds-radius-control); overflow: hidden; }
+.segmented button { padding: var(--ds-space-inline) var(--ds-space-in-group); border: 0; background: var(--ds-surface-panel); color: var(--ds-text-primary); font: inherit; cursor: pointer; }
+.segmented button[aria-pressed="true"] { background: var(--ds-text-primary); color: var(--ds-surface-page); font-weight: var(--ds-font-weight-strong); }
+.toast {
+  padding: var(--ds-space-in-group) var(--ds-space-inside-panel);
+  border: var(--ds-border-width-hairline) solid var(--ds-border-control);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-surface-panel);
+  color: var(--ds-text-primary);
+  font-size: var(--ds-text-meta);
+}
+.review :focus-visible,
+.anno-panel :focus-visible,
+.proto-back:focus-visible {
+  outline: var(--ds-focus-ring-width) solid var(--ds-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Kontrolki scenariuszy */
+.sim-panel { padding: 0 var(--ds-space-page-gutter) var(--ds-space-in-group); }
+.sim-panel summary { cursor: pointer; font-weight: var(--ds-font-weight-strong); padding: var(--ds-space-inline) 0; }
+.sim-groups { display: flex; flex-wrap: wrap; gap: var(--ds-space-in-group); padding: var(--ds-space-in-group) 0; max-height: 60vh; overflow-y: auto; }
+.sim-group {
+  flex: 1 1 15rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-in-group);
+  margin: 0;
+  padding: var(--ds-space-in-group);
+  border: var(--ds-border-width-hairline) solid var(--ds-border-divider);
+  border-radius: var(--ds-radius-control);
+}
+.sim-group legend { font-weight: var(--ds-font-weight-strong); padding: 0 var(--ds-space-inline); }
+.sim-control { display: flex; flex-direction: column; gap: var(--ds-space-inline); }
+.sim-control select {
+  max-width: 100%;
+  padding: var(--ds-space-inline);
+  border: var(--ds-border-width-hairline) solid var(--ds-border-control);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-surface-panel);
+  color: var(--ds-text-primary);
+  font: inherit;
+}
+.sim-code { font-family: var(--ds-font-mono); font-weight: var(--ds-font-weight-strong); }
+.sim-actions { display: flex; flex-wrap: wrap; gap: var(--ds-space-in-group); }
+.sim-cli { margin: 0; padding: var(--ds-space-in-group); white-space: pre-wrap; word-break: break-all; background: var(--ds-surface-panel); border-radius: var(--ds-radius-control); }
+.sim-hint { margin: 0; color: var(--ds-text-muted); }
+
+/* --------------------------------------------------------- ekrany i ramki */
+.doc { padding: var(--ds-space-between-groups) var(--ds-space-page-gutter); }
+.doc-head { max-width: var(--ds-measure-text); margin-bottom: var(--ds-space-between-groups); }
+.doc-head h1 { font-size: var(--ds-text-heading-page); font-weight: var(--ds-font-weight-strong); }
+.screen { margin-top: var(--ds-space-between-sections); }
+.screen-meta { color: var(--ds-text-muted); font-size: var(--ds-text-meta); margin-bottom: var(--ds-space-in-group); }
+.screen-meta h2 { font-size: var(--ds-text-heading-section); font-weight: var(--ds-font-weight-strong); color: var(--ds-text-primary); }
+.frame {
+  overflow-x: auto;
+  border: var(--ds-border-width-hairline) solid var(--ds-border-divider);
+  background: var(--ds-surface-page);
+  margin-inline: auto;
+}
+body.proto-focus .doc { padding: 0 0 var(--ds-space-between-sections); } /* miejsce na „← Back” */
+/* C15: szerokość ramki (zamiast zmiany okna). */
+.frame[data-width="1024"] { max-width: 1024px; }
+.frame[data-width="375"] { max-width: 375px; }
+.frame[data-width="320"] { max-width: 320px; }
+.notes { margin-top: var(--ds-space-in-group); max-width: var(--ds-measure-text); font-size: var(--ds-text-meta); }
+.note { display: flex; flex-direction: column; gap: var(--ds-space-inline); padding: var(--ds-space-in-group); border-left: var(--ds-focus-ring-width) solid var(--ds-border-control); }
+.sim-note { max-width: var(--ds-measure-text); }
+/* Silnik przenosi fokus na nagłówek ekranu (czytnik ekranu); nagłówek nie jest kontrolką, więc bez obrysu. */
+.frame h1[tabindex="-1"]:focus,
+.frame h2[tabindex="-1"]:focus { outline: none; }

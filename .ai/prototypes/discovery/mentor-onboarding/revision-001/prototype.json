@@ -1,0 +1,16 @@
+{
+  "format": "discovery-prototype-v1",
+  "skill": "om-mockup-prototype",
+  "slug": "mentor-onboarding",
+  "revision": 1,
+  "revisionPath": ".ai/prototypes/discovery/mentor-onboarding/revision-001",
+  "previousRevision": null,
+  "brief": ".ai/specs/product-brief.md",
+  "flow": "Future state (1.0): mentor goes from invitation to first paid session",
+  "panelReport": null,
+  "verification": "not-run",
+  "files": [
+    { "path": "index.html", "sha256": "61b544ccd5f961dc063c3bd181f26b003c2eb85bcb374c8e24e0247e013cf4af" },
+    { "path": "README.md", "sha256": "fefd7dd1fc930d649d788d7144de9b130ad41e94984d7ecfb9a51ab85e599c28" }
+  ]
+}

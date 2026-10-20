@@ -192,7 +192,7 @@ The pilot (D09) decides whether to continue, revise or stop. The observations ar
 
 ## Hypotheses to test
 
-None. No synthetic walkthroughs exist yet.
+`[SYNTHETIC]` 11 hypotheses from the persona walkthrough of the grey mentor-onboarding prototype (2026-10-20, 2 runs × 2 personas, `validate`): `research/walkthroughs/2026-10-20-future-state-1-0-mentor-goes-from-invitation-to-first-paid-session-session-001/report.md`, section "To confirm with real users". They are questions for the pilot, not requirements; the E01/E02 specs list the ones they touch under "Pytania do sprawdzenia w pilocie".
 
 ## Open questions
 
@@ -209,6 +209,7 @@ None. No synthetic walkthroughs exist yet.
 | Q09 | Does QA get a sign-off role in release go / no-go, as `SDLC.md`'s QA gate requires? | No for planning; yes for the first release | founders | open |
 | Q10 | Does Krzysztof Marczak hold the scope and commission authority the RACI gives founder A, or does founder A confirm D01–D09? | — | Krzysztof Marczak, founder A | closed 2026-10-16: Krzysztof Marczak owns scope decisions for this course project and confirmed D01–D09 and N03–N05 (chat); the commission itself stays open (Q01) |
 | Q11 | Does the workshop's 25-hour build limit still bind 1.0, and does this Now scope (prepayment, held payouts, automatic refunds, no-show detection, live chat, note approval) fit it? | — | Krzysztof Marczak with founder B (tech lead) | closed 2026-10-16 by D10: the limit binds; notes and the in-product pilot view moved to Later; no hour estimate exists for the reduced scope |
+| Q12 | [SYNTHETIC] Do notes-first mentors see 1.0 (selling their time, not their notes) as „Codementor again” and stop after the first session? Raised 2026-10-20 by the persona walkthrough (H10; P01 run 1, P03 run 2), not by a real user; no decision changes (D10, N03 stand). | No for 1.0; yes for the decision after the pilot | product owner, after pilot mentors' first sessions (ask what they reused from their notes and whether they would continue without the notes layer) | open (2026-10-20) |
 
 ## Definition of Ready addendum (own)
 

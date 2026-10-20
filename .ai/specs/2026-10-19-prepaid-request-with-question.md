@@ -170,3 +170,9 @@ GPT review → grill log `reviews/2026-10-19-prepaid-request-with-question.grill
 | Medium: later-story states in this migration | **Rejected** | Kept as an explicit cross-spec contract with a transition-owner table; avoids CHECK-replacing migrations in #18/#19. |
 
 Grill decisions (11 questions, 1 ⚠ — Q1 guest vs account): email adapter + outbox; developer address from Stripe; no question text in email; link-carrying draft email with params wiped after send; Stripe-confirmed hold release with 10-min grace; overlap re-check on late success; token contract; same-id retry; availability edits don't touch requests; state-machine contract; cancel-return resolved by Stripe.
+
+## ❓ Pytania do sprawdzenia w pilocie (syntetyczne, nie wymagania)
+
+Dodane 2026-10-20 (lekcja 07, Z30–Z34). Źródło: raport person `.ai/specs/research/walkthroughs/2026-10-20-future-state-1-0-mentor-goes-from-invitation-to-first-paid-session-session-001/report.md` [SYNTHETIC]. To hipotezy do sprawdzenia z prawdziwymi mentorami, nie kryteria akceptacji; nie spełniają Definition of Ready.
+
+- **H3 (Z32):** does a request seen only in the app lapse unseen? The personas were not shown this spec's mentor email (Q2), so check whether the email is enough: time from paid request to acceptance, lapsed requests per mentor, and where the mentor first saw each request. Touches A01, R09.

@@ -115,3 +115,12 @@ GPT review → grill log `reviews/2026-10-19-mentor-accepts-or-declines-request.
 | Low: SQL detail vs missing UI states | **Accepted** | CTE detail cut; empty-list and load-error states added. |
 
 Grill decisions (8 questions, 0 ⚠): mentor + developer emails; A01 measured via export; #20 contract; refund wording tied to `refund_status`; refusal classification order; decline also refused after slot start; empty/error states; trimmed SQL detail.
+
+## ❓ Pytania do sprawdzenia w pilocie (syntetyczne, nie wymagania)
+
+Dodane 2026-10-20 (lekcja 07, Z30–Z34). Źródło: raport person `.ai/specs/research/walkthroughs/2026-10-20-future-state-1-0-mentor-goes-from-invitation-to-first-paid-session-session-001/report.md` [SYNTHETIC]. To hipotezy do sprawdzenia z prawdziwymi mentorami, nie kryteria akceptacji; nie spełniają Definition of Ready.
+
+- **H5 (Z33):** at the decision, does the mentor want to ask a clarifying question, answer asynchronously or shorten to 25 minutes instead of accept/decline? Per pilot request ask what they wanted to do instead; log declines and lapses with reasons. Touches R05, D02.
+- **H3 (Z33):** are the email and the badge enough to notice a request before its slot? See #17.
+
+Note from the grey prototype walk (2026-10-20, coordinator, not a real user; Z35): the prototype's text „Przyjęte — sesja zarezerwowana (czat tekstowy)” differs from this spec's „Zaakceptowane — sesja jutro 12:30 (czat tekstowy)”; the spec wins and the prototype is to be aligned. The decline, lapse and cancel states were not checked in the prototype; their criteria stay here and in #19. The payout banner seen on the request list belongs to #22 (no spec yet).

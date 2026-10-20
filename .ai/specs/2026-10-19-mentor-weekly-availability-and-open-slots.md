@@ -13,7 +13,7 @@ A signed-in mentor (#14) has a page but no way to say when they can take a sessi
 | # | Question | Chosen answer | Rationale | Flag |
 |---|---|---|---|---|
 | Q1 | Recurring weekly windows or dated one-off windows? | Weekly recurring windows only; no date exceptions in 1.0. | Mentors describe availability as a weekly habit ("między spotkaniami", "nie w weekend"); a staff engineer "forgets it exists" after a month — a set-once pattern keeps the page bookable without upkeep. Date exceptions (vacations) are Later; removing a window works meanwhile. | — |
-| Q2 | Slot time zone (open on #15)? | Windows **and the :00/:30 slot grid** are wall-clock times in the mentor's IANA time zone (`mentors.time_zone`, prefilled from the browser, editable). Slots are stored/compared as UTC instants; viewers see them in their own browser zone. | Shared cross-spec decision; correct across DST for the mentor. | — |
+| Q2 | Slot time zone (open on #15)? | Windows **and the :00/:30 slot grid** are wall-clock times in the mentor's IANA time zone (`mentors.time_zone`, prefilled from the browser, editable; when the browser gives no zone or one outside `Intl.supportedValuesOf('timeZone')`, the default is Europe/Warsaw with the field visible for change — L15, Z16). Slots are stored/compared as UTC instants; viewers see them in their own browser zone. | Shared cross-spec decision; correct across DST for the mentor. | — |
 | Q3 | Must both lengths be offered (open on #15)? | Every window yields both 25- and 50-minute slots where they fit; no per-window length setting. Follows #14 Q3 (both prices required). | One rule, no extra UI; consistent with #14. | ✅ CONFIRMED by Krzysztof Marczak (2026-10-19) (same epic #8 question as #14 Q3) |
 | Q4 | Slot grid, horizon and minimum notice? | Local :00/:30 grid; 14-day horizon; `MIN_NOTICE_MINUTES = 180` — **the single constant every spec references** (E02 defines no lead time of its own). Exported constants, not mentor settings. | The grid gives a 25-min session a 5-min buffer; the notice leaves the mentor time to read and accept (R05, R09). It trades against developers' "within the hour" (A01, an assumption the pilot tests by recording the earliest slot offered). | Accepted (shared decision; grill Q3) |
 | Q5 | Is there a separate "publish availability" step? | No. Saving windows makes them live immediately; available on draft pages too. | Fewer steps toward the 20-minute target (D08); a page without windows simply offers nothing (AC). | — |
@@ -24,7 +24,7 @@ A signed-in mentor (#14) has a page but no way to say when they can take a sessi
 
 1. **Mentor sets availability for the first time.** After publishing (#14), Anna opens **Dostępność**. She **sees** her time zone already filled ("Europe/Warsaw") and an empty week. She adds "wtorek 18:00–20:00" and "czwartek 12:00–13:00" from day + start + end pickers (half-hour steps) and saves. The **system** stores the windows and **shows** a preview: "Najbliższe terminy: wt 20.10 18:00 (25/50 min), 18:30 (25/50), 19:00 (25/50), 19:30 (25 min)…". **Next:** her share page (#16) offers exactly those slots.
 2. **Mentor stops a window.** Anna's Thursday lunch fills with meetings; she removes it and saves. The **system** stops offering every Thursday slot at once. **Next:** a developer opening her link sees only Tuesdays.
-3. **Mentor with no windows.** Piotr published his page but skipped availability. His editor **shows** "Nie masz dostępności — nikt nie może wybrać terminu" with a link to add one; his share page shows no selectable slot (AC).
+3. **Mentor with no windows.** Piotr published his page but skipped availability. His editor **shows** "Nie masz dostępności — nikt nie może wybrać terminu" with a link to add one — also on a draft page at the first visit, before publishing (L20, Z21); his share page shows no selectable slot (AC).
 4. **Developer (through #16 / E02).** A developer in London opens Anna's link on Monday at 19:00 Warsaw time; Tuesday 18:00 Warsaw is offered, shown as 17:00 in his zone; nothing starting within the next 3 hours is ever offered.
 
 ## 📝 Problem Statement
@@ -81,7 +81,7 @@ flowchart LR
 - `listOpenSlots({ windows, timeZone, now, horizonDays = 14, minNoticeMinutes = MIN_NOTICE_MINUTES, busy = [] })` → `[{ startsAt (UTC ISO), lengthMinutes }]` sorted by `startsAt`, then length. Windows of each local date are merged into disjoint intervals; a slot is included when it lies fully inside one merged interval (DST rules above), `start ≥ now + notice`, `start < now + horizon`, and it overlaps no `busy` interval. `busy` is `[]` here; #17 passes its held ranges. No `timeZone` or no windows → `[]`.
 - `isSlotOffered({ mentorId, startsAt, lengthMinutes, now, busy })` — loads windows + zone and returns whether that exact slot is in `listOpenSlots` output.
 - Exported constants: `MIN_NOTICE_MINUTES = 180`, `SLOT_GRID_MINUTES = 30`, `HORIZON_DAYS = 14`.
-- Server action `saveAvailability({ timeZone, windows: [{ weekday, startMinute, endMinute }] })` → `{ ok } | { ok: false, errors }`. Payload guard: at most 21 windows. Mentor from session only.
+- Server action `saveAvailability({ timeZone, windows: [{ weekday, startMinute, endMinute }] })` → `{ ok } | { ok: false, errors } | { ok: false, reason: 'unauthorized' }` (L6, Z7). Payload guard: at most 21 windows; more returns `errors` with „Maksymalnie 21 okien w tygodniu” and the set stays on screen (L16, Z17). Mentor from session only.
 
 ## 📝 UI/UX
 
@@ -89,6 +89,7 @@ flowchart LR
 - Changing the time zone of a saved set shows an inline warning "Okna zachowają godziny (np. 18:00) w nowej strefie" and the button reads "Zapisz i zmień strefę"; nothing changes until saved.
 - Empty state and the editor banner from story 3. Error: an end before start is prevented by the select options; server errors keep the unsaved set on screen.
 - `/mentor` (#14) gains a link "Dostępność" and the "no availability" notice.
+- Added 2026-10-20 (lesson 07): `/mentor/availability` without a session shows the same invitation-only message as `/mentor` (s03), no window data (L14, Z15). At 21 windows „+ okno” is disabled with the reason „Maksymalnie 21 okien w tygodniu” (L16, Z17). A window's error is shown at its row (`aria-describedby`), never in a separate „Błąd” column (W4, Z26). Session expired during save: windows stay, `Alert` „Sesja wygasła — poproś zespół o link do logowania”, no redirect (L6, Z7). No network: the set stays and an `Alert` says the connection failed (Z28). Copy without gendered forms (W2, Z24). Not doing in 1.0: unsaved-changes warning (L21, Z22); loading states follow the design system without a criterion (Z29).
 
 ## 📝 Edge Cases & Failure Scenarios
 
@@ -114,10 +115,10 @@ Single phase, one PR: the slot engine without the editor offers nothing to anyon
 ## 📋 Implementation Plan
 
 1. Migration `0004_availability`: `availability_windows`, `mentors.time_zone`. Test: up → down → up; CHECKs reject `end ≤ start` and off-grid minutes.
-2. Zone conversion + `listOpenSlots` + exported constants. Unit tests (fixed `now`): Europe/Warsaw March/October DST Sundays (gap → no slot, overlap → first occurrence) and America/New_York; both lengths inside a 2-hour window; 30-minute window → 25 min only; nothing outside windows (R06); nothing before `now + MIN_NOTICE_MINUTES` or after 14 days; adjacent windows merged (50 min at 18:30); a `busy` interval removes overlapping slots; no windows → `[]` (AC).
+2. Zone conversion + `listOpenSlots` + exported constants. Unit tests (fixed `now`): Europe/Warsaw March/October DST Sundays (gap → no slot, overlap → first occurrence) and America/New_York; both lengths inside a 2-hour window; 30-minute window → 25 min only; nothing outside windows (R06); nothing before `now + MIN_NOTICE_MINUTES` or after 14 days (boundary: a slot starting exactly at `now + 14 days` is not offered; with now = 2026-10-19 19:00 Warsaw the last offered day is 2.11 — P1, Z37); adjacent windows merged (50 min at 18:30); a `busy` interval removes overlapping slots; no windows → `[]` (AC).
 3. Window/zone query + `isSlotOffered`. Test: empty for a mentor without windows; exact-match semantics.
 4. `saveAvailability` action. Integration tests: round-trip; removing a window removes its slots (AC negative); no session → refused; mentor A cannot write mentor B's windows.
-5. `/mentor/availability` page (zone prefill, zone-change warning, preview) and `/mentor` link/notice. Tests: preview from the saved set; no-availability notice (story 3). QA in a real browser incl. narrow viewport (`needs-qa`). PR body lists ⚠ Q3.
+5. `/mentor/availability` page (zone prefill, zone-change warning, preview) and `/mentor` link/notice. Tests: preview from the saved set; no-availability notice (story 3), also on a draft at first visit (Z21); changing the zone of a saved set shows „Okna zachowają godziny…” and „Zapisz i zmień strefę”, and nothing changes without saving (15-A4, Z27); a server error keeps the unsaved set on screen (15-A6, Z27); no session → invitation-only message (Z15); 21 windows → „+ okno” disabled with its reason, 22 sent → field error (Z17); missing or unsupported browser zone → Europe/Warsaw (Z16); revoked session + save → set kept, „Sesja wygasła…” (Z7). QA in a real browser incl. narrow viewport (`needs-qa`). PR body lists ⚠ Q3.
 
 ## 🔍 Review & grill outcome
 
@@ -132,3 +133,10 @@ GPT review → decisions:
 - **Low, over-detailed implementation:** accepted — helper names and test lists trimmed; DST rules and constants kept (they are the contract).
 
 Grill (`reviews/2026-10-19-mentor-weekly-availability-and-open-slots.grill.md`): 2 rounds, 9 questions; 8 accepted on owner's blanket yes, 1 stays ⚠ (Q3 both lengths).
+
+## ❓ Pytania do sprawdzenia w pilocie (syntetyczne, nie wymagania)
+
+Dodane 2026-10-20 (lekcja 07, Z30–Z34). Źródło: raport person `.ai/specs/research/walkthroughs/2026-10-20-future-state-1-0-mentor-goes-from-invitation-to-first-paid-session-session-001/report.md` [SYNTHETIC]. To hipotezy do sprawdzenia z prawdziwymi mentorami, nie kryteria akceptacji; nie spełniają Definition of Ready.
+
+- **H2 (Z31):** do weekly windows fit „between meetings” and „two evenings a month”? Compare what pilot mentors say about last week with the availability they saved. Touches Q1, R06, A01.
+- **H11 (Z31):** do selective mentors withhold availability until they trust the platform (who else is here, a booking from someone they know)? Count pages published without windows; ask what would make them open slots. Touches D09, R06.
