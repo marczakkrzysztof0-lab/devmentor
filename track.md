@@ -39,7 +39,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 ### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1) — W TOKU
 
-- [ ] 2.1 Migracja `0002_mentor_sign_in` (`mentor_sessions`, `mentor_sign_in_links`) + pula `lib/db` (`DATABASE_URL`) + test up/down.
+- [x] 2.1 Migracja `0002_mentor_sign_in` (`mentor_sessions`, `mentor_sign_in_links`) + pula `lib/db` (`DATABASE_URL`) + test up/down.
 - [ ] 2.2 CLI założycieli `scripts/mentor-links.mjs` + `mentor:invite`, `mentor:sign-in-link` (token 32 B base64url, tylko SHA-256, 14 dni / 72 h); testy z bazą.
 - [ ] 2.3 Rdzeń sesji i linków (`acceptInvitation`, `redeemSignInLink`, `startSession`, `endSession`, `getCurrentMentor`) w `.mjs` + DAL `server-only`; testy z bazą (transakcja, jednorazowość, współbieżność, ta sama neutralna odpowiedź, zamiana sesji innego mentora, własny link bez zużycia).
 - [ ] 2.4 Strony `/invite/[token]`, `/sign-in/[token]`, powłoka `/mentor`, „Wyloguj”, `MentorNav` bez „Zapytania” (luki DS D2, D3) + `npm run test:e2e` (Playwright na `next start`): GET niczego nie zużywa, ścieżka odmowy, tekst zaproszenia.
