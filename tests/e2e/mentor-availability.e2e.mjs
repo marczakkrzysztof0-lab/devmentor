@@ -178,6 +178,7 @@ describe("mentor: dostępność /mentor/availability i baner na /mentor", { skip
     assert.equal(await zoneBox(page).innerText(), "Europe/Warsaw");
     assert.equal(await zoneBox(page).isVisible(), true);
     assert.equal(await page.getByText(NO_AVAILABILITY, { exact: true }).count(), 1, "baner raz (D11)");
+    assert.equal(await page.getByRole("link", { name: "Dodaj dostępność" }).count(), 0, "baner bez linku do tej samej strony");
     const nav = page.getByRole("navigation", { name: "Panel mentora" });
     assert.equal(await nav.getByRole("link", { name: "Dostępność" }).getAttribute("aria-current"), "page");
     assert.equal(await mentorZone(a.id), null, "strefa nie jest zapisywana bez „Zapisz”");
@@ -190,6 +191,11 @@ describe("mentor: dostępność /mentor/availability i baner na /mentor", { skip
 
   test("pierwsza wizyta, przeglądarka America/New_York: wypełniona strefa nowojorska (Z16)", async () => {
     const ny = await acceptInBrowser("ny", "America/New_York");
+    // HTML z serwera (przed hydratacją): pole strefy już pokazuje Europe/Warsaw, nigdy puste.
+    const html = await (await ny.page.request.get(`${BASE_URL}/mentor/availability`)).text();
+    const trigger = html.match(/<button[^>]*role="combobox"[^>]*>([\s\S]*?)<\/button>/);
+    assert.ok(trigger, "pole strefy w HTML z serwera");
+    assert.match(trigger[1], />Europe\/Warsaw</);
     await openAvailability(ny.page);
     await ny.page.waitForFunction(() => document.querySelector('main button[role="combobox"]')?.textContent === "America/New York");
     // Zapis bez okien zapisuje strefę z przeglądarki pod nazwą z listy serwera.

@@ -490,14 +490,15 @@ export function ShareLinkPanel({ shareUrl, autoFocus = true }: ShareLinkPanelPro
 /**
  * Editor banner when there is no availability (#15 story 3), on `/mentor` (also on a draft at the first visit,
  * L20/Z21) and on `/mentor/availability`. On `/mentor` it sits above the share panel (P4, Z40) — pass it as
- * `MentorPageForm notice`.
+ * `MentorPageForm notice`. `href={null}` drops the „Dodaj dostępność” link — on `/mentor/availability` itself
+ * it would lead to the same page.
  */
-export function NoAvailabilityNotice({ href = "/mentor/availability" }: { href?: string }) {
+export function NoAvailabilityNotice({ href = "/mentor/availability" }: { href?: string | null }) {
   return (
     <Alert
       tone="info"
       title="Nie masz dostępności — nikt nie może wybrać terminu"
-      action={<TextLink href={href}>Dodaj dostępność</TextLink>}
+      action={href ? <TextLink href={href}>Dodaj dostępność</TextLink> : undefined}
     />
   );
 }
@@ -657,8 +658,8 @@ export function AvailabilityEditor({
 }: AvailabilityEditorProps) {
   const uid = useId();
   const formRef = useRef<HTMLFormElement>(null);
-  // The browser zone is known only in the browser: the server render (and hydration) use `null`, then the
-  // prefill appears — no hydration mismatch, no effect.
+  // The browser zone is known only in the browser: the server render (and hydration) use `null`, so the field
+  // shows `defaultTimeZone` (never empty), then switches to the browser zone — no hydration mismatch, no effect.
   const detected = useSyncExternalStore(noSubscription, detectTimeZone, () => null);
   const prefill = useMemo(() => matchTimeZoneOption(detected, zones) ?? defaultTimeZone, [detected, zones, defaultTimeZone]);
   const [savedZone, setSavedZone] = useState(initialZone);
@@ -735,7 +736,7 @@ export function AvailabilityEditor({
       <h1 id={`${uid}-title`} className="text-heading-page font-strong">
         Dostępność
       </h1>
-      {savedCount === 0 ? <NoAvailabilityNotice href="#windows" /> : null}
+      {savedCount === 0 ? <NoAvailabilityNotice href={null} /> : null}
       {outcome === "unauthorized" ? <Alert tone="danger" title={SESSION_EXPIRED_MESSAGE}>Twoje okna zostały na ekranie.</Alert> : null}
       {outcome === "server" ? <Alert tone="danger" title="Nie udało się zapisać dostępności — spróbuj ponownie">Twoje okna zostały na ekranie.</Alert> : null}
       {outcome === "network" ? <Alert tone="danger" title={NETWORK_MESSAGE} /> : null}

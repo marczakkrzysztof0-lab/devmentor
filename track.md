@@ -52,7 +52,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 3.4 Edytor `/mentor`: formularz (F1 podpowiedź opisu, F2 „(zł)” w etykiecie + sufiks), panel linku do udostępnienia (L8/Z9), propozycja sluga z imienia (Z10; luka DS D4), `unauthorized` i brak sieci (D5, Z7, Z28), `shareUrl` po publikacji (D6) + testy (Storybook + e2e).
 - [x] 3.5 Dokumentacja: README (skrypty mentora, nowe URL-e), `BACKWARD_COMPATIBILITY.md`.
 
-### Faza 4 — Tygodniowa dostępność i wolne terminy (#15) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
+### Faza 4 — Tygodniowa dostępność i wolne terminy (#15) — ZAKOŃCZONA 2026-10-21 (review Codexa: approve; test ręczny koordynatora OK; 2 drobne uwagi poprawione)
 
 - [x] 4.1 Migracja `0004_availability` (`availability_windows`, `mentors.time_zone`) + testy CHECK i up/down.
 - [x] 4.2 `lib/availability/zone.mjs` + `slots.mjs` (`listOpenSlots`, stałe `MIN_NOTICE_MINUTES=180`, `SLOT_GRID_MINUTES=30`, `HORIZON_DAYS=14`) + testy DST, granic, łączenia okien, `busy`.
@@ -60,7 +60,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 4.4 `saveAvailability` (atomowa zamiana zestawu, limit 21, strefa z `Intl.supportedValuesOf`, `unauthorized`) + testy z bazą (zakres A/B).
 - [x] 4.5 Strona `/mentor/availability` (prefill strefy, ostrzeżenie zmiany strefy, podgląd 10 terminów, limit 21 — luka DS D8, D11) + baner „Nie masz dostępności” na `/mentor` (Z21, Z40) + testy.
 
-### Faza 5 — Publiczna strona mentora: profil i ceny (#16, Phase 1)
+### Faza 5 — Publiczna strona mentora: profil i ceny (#16, Phase 1) — W TOKU
 
 - [ ] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
 - [ ] 5.2 `app/m/[slug]/page.tsx` + not-found + `noindex` + tytuł; testy e2e (kolejność, brak ocen, 404 dla szkicu/nieznanego, `/m` i `/m?search=` → 404).
@@ -90,6 +90,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 4): silnik terminów czysty (`lib/availability/slots.mjs`, `zone.mjs`, bez nowych zależności); UTC akceptowane mimo braku w `Intl.supportedValuesOf`; aliasy stref zapisywane jako nazwa kanoniczna Node (np. Europe/Kyiv → Europe/Kiev). Granica horyzontu to 14 × 24 h od teraz (P1/Z37 potwierdzone: ostatni dzień 2.11).
 - 2026-10-21 (faza 4): `saveAvailability` serializuje zapisy blokadą doradczą na mentora (bez blokady wiersza `mentors`, której używa #17 — zgodnie z Edge Cases). Podgląd = terminy dla 10 najbliższych godzin startu (obie długości), tak jak grupuje DS `SlotPreview`.
 - 2026-10-21 (faza 4): DS — `AvailabilityEditor` (`timeZone: string | null` = pierwsza wizyta z prefill z przeglądarki, błędy przy oknie, limit 21 z `disabledReason`, `unauthorized`), `SlotPreview emptyText`, `MentorPageForm notice` (baner nad panelem linku, Z40), `Select aria-describedby`. Nawigacja: „Strona”, „Dostępność”, „Wyloguj”.
+- 2026-10-21 (po fazie 4): DS `Select` renderuje etykietę wybranej opcji już w HTML z serwera (wcześniej puste pole „Strefa czasowa” do hydracji); `NoAvailabilityNotice href={null}` — na /mentor/availability baner bez linku do samej siebie. W bazie dev zostaje Anna z oknami wt/czw 18–20.
 
 ## Otwarte punkty
 

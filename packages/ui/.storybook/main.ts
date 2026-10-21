@@ -41,7 +41,7 @@ const config: StorybookConfig = {
     return mergeConfig(viteConfig, {
       plugins: [tailwindcss()],
       // Pre-bundle the component dependencies, so the first test run does not reload mid-run.
-      optimizeDeps: { include: ["radix-ui", "lucide-react", "class-variance-authority", "tailwind-merge", "clsx"] },
+      optimizeDeps: { include: ["radix-ui", "lucide-react", "class-variance-authority", "tailwind-merge", "clsx", "react-dom/server"] },
       resolve: { alias: { "@geist-fonts": geistFonts, "@devmentor/ui": path.join(dirname, "../src/index.ts") } },
     });
   },

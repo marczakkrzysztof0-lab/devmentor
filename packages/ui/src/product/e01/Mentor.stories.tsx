@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { renderToString } from "react-dom/server";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { ANNA, ANNA_SLOTS, NOW, SHARE_URL, never, wait } from "../../../.storybook/fixtures";
@@ -522,7 +523,22 @@ export const AvailabilityEmpty: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getAllByText(/Nie masz dostępności/)).toHaveLength(1);
+    // On /mentor/availability the banner has no „Dodaj dostępność” link — it would lead to the same page.
+    await expect(canvas.queryByRole("link", { name: "Dodaj dostępność" })).toBeNull();
     await expect(canvas.getByText("Terminy pojawią się po zapisaniu okien.")).toBeVisible();
+  },
+};
+export const AvailabilityServerRender: Story = {
+  name: "AvailabilityEditor · first visit, server render: zone field shows Europe/Warsaw, never empty (test, Z16)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "America/New_York"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    // The server snapshot has no browser zone: the server HTML (and the hydration render) already show the default.
+    const html = renderToString(<AvailabilityEditor timeZone={null} detectTimeZone={() => "America/New_York"} zones={ZONES} windows={[]} now={NOW} action={saveOk} />);
+    const server = document.createElement("div");
+    server.innerHTML = html;
+    await expect(server.querySelector('button[role="combobox"]')).toHaveTextContent("Europe/Warsaw");
+    // In the browser it then switches to the browser zone.
+    await waitFor(() => expect(zoneCombobox(within(canvasElement))).toHaveTextContent("America/New_York"));
   },
 };
 export const AvailabilityPrefillBrowser: Story = {
