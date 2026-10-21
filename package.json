@@ -17,6 +17,8 @@
     "setup": "node scripts/setup.mjs",
     "db:migrate": "node scripts/db-migrate.mjs up",
     "db:rollback": "node scripts/db-migrate.mjs down",
+    "mentor:invite": "node scripts/mentor-links.mjs invite",
+    "mentor:sign-in-link": "node scripts/mentor-links.mjs sign-in-link",
     "storybook": "npm run storybook -w @devmentor/ui",
     "build-storybook": "npm run build-storybook -w @devmentor/ui",
     "test:storybook": "npm run test -w @devmentor/ui",
