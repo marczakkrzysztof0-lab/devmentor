@@ -19,6 +19,15 @@ import { TextInput } from "../../components/text-input/TextInput";
 import { TextLink } from "../../components/text-link/TextLink";
 import { Textarea } from "../../components/textarea/Textarea";
 import { cn } from "../../lib/cn";
+import {
+  DESCRIPTION_MAX,
+  DISPLAY_NAME_MAX,
+  DISPLAY_NAME_MIN,
+  normalizeDescription,
+  normalizeDisplayName,
+  publicWorkUrlProblem,
+  textLength,
+} from "../../lib/text.mjs";
 import { isNavigationError, NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, SERVER_MESSAGE } from "../shared/form";
 import { useFocusFirstError } from "../shared/use-focus-first-error";
 import { formatDay, formatTime } from "../shared/format";
@@ -252,7 +261,9 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
 
 /**
  * Spec #14 validation, run in the browser too so the mentor sees it on blur. The messages are the server's
- * (`lib/mentor-page/validate.mjs`, `MESSAGES`) word for word.
+ * (`lib/mentor-page/validate.mjs`, `MESSAGES`) word for word; lengths (Unicode code points), the name and
+ * description normalisation and the link rule come from the module the server uses too (`src/lib/text.mjs`,
+ * `@devmentor/ui/text`), so both sides accept exactly the same input.
  */
 export function validateMentorPage(values: MentorPageValues, mode: "blur" | "publish"): FieldErrors<PageField> {
   const errors: FieldErrors<PageField> = {};
@@ -260,13 +271,15 @@ export function validateMentorPage(values: MentorPageValues, mode: "blur" | "pub
   const check = (field: PageField, ok: boolean, message: string) => {
     if ((mode === "publish" || filled(values[field])) && !ok) errors[field] = message;
   };
-  const name = values.displayName.trim();
-  check("displayName", name.length >= 2 && name.length <= 80, "Wpisz imię i nazwisko (od 2 do 80 znaków)");
+  const nameLength = textLength(normalizeDisplayName(values.displayName));
+  check("displayName", nameLength >= DISPLAY_NAME_MIN && nameLength <= DISPLAY_NAME_MAX, "Wpisz imię i nazwisko (od 2 do 80 znaków)");
   const url = values.publicWorkUrl.trim();
+  const urlProblem = filled(url) ? publicWorkUrlProblem(url) : null;
   if (mode === "publish" && !filled(url)) errors.publicWorkUrl = "Dodaj link do publicznej pracy";
-  else if (url.length > 500) errors.publicWorkUrl = "Link może mieć najwyżej 500 znaków";
-  else check("publicWorkUrl", /^https?:\/\/\S+$/i.test(url), "Link musi zaczynać się od https:// albo http://");
-  check("description", filled(values.description) && values.description.length <= 2000, "Opisz swoje doświadczenie (do 2000 znaków)");
+  else if (urlProblem === "tooLong") errors.publicWorkUrl = "Link może mieć najwyżej 500 znaków";
+  else if (urlProblem === "invalid") errors.publicWorkUrl = "Link musi zaczynać się od https:// albo http://";
+  const description = normalizeDescription(values.description);
+  check("description", description !== "" && textLength(description) <= DESCRIPTION_MAX, "Opisz swoje doświadczenie (do 2000 znaków)");
   const priceMessages = {
     price25: "Podaj cenę za 25 min od 20 do 5000 zł, bez groszy",
     price50: "Podaj cenę za 50 min od 20 do 5000 zł, bez groszy",

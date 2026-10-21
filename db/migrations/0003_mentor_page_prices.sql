@@ -7,6 +7,11 @@
 
 -- Strażnik: zastąpienie CHECK-a publikacji to ZAWĘŻENIE (BACKWARD_COMPATIBILITY.md, schemat bazy).
 -- Jednym krokiem jest bezpieczne tylko wtedy, gdy nie ma żadnej opublikowanej strony (brak wdrożeń).
+-- Ten stan jest dziś niemożliwy: publikacja stron powstaje dopiero w tej samej fazie (#14, faza 2), a bazy
+-- produkcyjnej nie ma — strażnik tylko zatrzymuje migrację, gdyby założenie przestało być prawdziwe (review fazy 3).
+-- Gdyby kiedyś trzeba było podobnie zawęzić CHECK przy istniejących opublikowanych stronach, robimy to w DWÓCH
+-- krokach: (1) osobna migracja / krok danych PRZED zaostrzeniem — uzupełnić brakujące dane (tu: ceny) opublikowanych
+-- stron albo je odpublikować; (2) dopiero potem zastąpić CHECK.
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM mentor_pages WHERE published_at IS NOT NULL) THEN

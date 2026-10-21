@@ -44,7 +44,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 2.3 Rdzeń sesji i linków (`acceptInvitation`, `redeemSignInLink`, `startSession`, `endSession`, `getCurrentMentor`) w `.mjs` + DAL `server-only`; testy z bazą (transakcja, jednorazowość, współbieżność, ta sama neutralna odpowiedź, zamiana sesji innego mentora, własny link bez zużycia).
 - [x] 2.4 Strony `/invite/[token]`, `/sign-in/[token]`, powłoka `/mentor`, „Wyloguj”, `MentorNav` bez „Zapytania” (luki DS D2, D3) + `npm run test:e2e` (Playwright na `next start`): GET niczego nie zużywa, ścieżka odmowy, tekst zaproszenia.
 
-### Faza 3 — Edytor strony i publikacja (#14, Phase 2) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
+### Faza 3 — Edytor strony i publikacja (#14, Phase 2) — ZAKOŃCZONA 2026-10-21 (test ręczny koordynatora OK; review Codexa: request changes → poprawki po review)
 
 - [x] 3.1 Migracja `0003_mentor_page_prices` (ceny w groszach, `currency` PLN, nowy CHECK publikacji, strażnik `RAISE` na opublikowanym wierszu) + testy.
 - [x] 3.2 `lib/mentor-page/validate.mjs` + testy jednostkowe (każde brakujące pole nazwane, URL tylko http(s), ceny 20–5000 zł, slug).
@@ -52,7 +52,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 3.4 Edytor `/mentor`: formularz (F1 podpowiedź opisu, F2 „(zł)” w etykiecie + sufiks), panel linku do udostępnienia (L8/Z9), propozycja sluga z imienia (Z10; luka DS D4), `unauthorized` i brak sieci (D5, Z7, Z28), `shareUrl` po publikacji (D6) + testy (Storybook + e2e).
 - [x] 3.5 Dokumentacja: README (skrypty mentora, nowe URL-e), `BACKWARD_COMPATIBILITY.md`.
 
-### Faza 4 — Tygodniowa dostępność i wolne terminy (#15)
+### Faza 4 — Tygodniowa dostępność i wolne terminy (#15) — W TOKU
 
 - [ ] 4.1 Migracja `0004_availability` (`availability_windows`, `mentors.time_zone`) + testy CHECK i up/down.
 - [ ] 4.2 `lib/availability/zone.mjs` + `slots.mjs` (`listOpenSlots`, stałe `MIN_NOTICE_MINUTES=180`, `SLOT_GRID_MINUTES=30`, `HORIZON_DAYS=14`) + testy DST, granic, łączenia okien, `busy`.
@@ -85,6 +85,8 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 3): walidacja serwerowa `lib/mentor-page/validate.mjs` jest źródłem prawdy; komunikaty klienta w DS identyczne (test pilnuje). Szkic przyjmuje puste pola, ale wypełnione muszą być poprawne. Po publikacji każdy zapis waliduje jak publikacja; slug zablokowany.
 - 2026-10-21 (faza 3): DS — `MentorPageForm` (`slugIsPlaceholder`, `shareUrl`, `currencyLabel`, wynik `unauthorized`), `FormField hintPlacement="label"`, `ShareLinkPanel autoFocus`; błąd pola znika po poprawie wartości (wcześniej przesunięcie układu przy blur psuło kliknięcie „Opublikuj stronę”).
 - 2026-10-21 (faza 3): `NEXT_PUBLIC_APP_URL` po stronie serwera czytany w czasie żądania (`Reflect.get(process.env, …)`), bo Next wkleja wartość z czasu buildu. Po zapisie `refresh()` z `next/cache`.
+- 2026-10-21 (review fazy 3, decyzje K. Marczak przez delegację): [Major, ODRZUCONE] strażnik RAISE w 0003 zostaje — stan niemożliwy (publikacja powstaje w tej fazie, brak bazy produkcyjnej); w migracji dopisany komentarz z uzasadnieniem i ścieżką dwuetapową (backfill cen / cofnięcie publikacji przed zaostrzeniem CHECK). Zmiana tylko w komentarzu już zastosowanej migracji. [Minor, PRZYJĘTE] link: tylko kontrakt specyfikacji (http(s)://, ≤ 500), bez wymogu kropki w hoście — `https://localhost` poprawny. [Minor, PRZYJĘTE] jedna reguła długości (punkty kodowe) we wspólnym module `@devmentor/ui/text` (`packages/ui/src/lib/text.mjs`), używanym przez klienta i serwer; `Textarea` liczy limit w punktach kodowych (bez natywnego `maxlength`).
+- 2026-10-21: w bazie dev zostaje opublikowana strona `anna-k` (anna@example.com) z fazy 3 — dane demo do faz 4–5; testy używają jednorazowych schematów.
 
 ## Otwarte punkty
 

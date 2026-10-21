@@ -12,6 +12,10 @@ import {
   slugFromName,
   validateMentorPage,
 } from "../../lib/mentor-page/validate.mjs";
+import * as sharedText from "@devmentor/ui/text";
+
+/** 😀 = 1 punkt kodowy, 2 jednostki UTF-16. */
+const EMOJI = "😀";
 
 const FULL = Object.freeze({
   displayName: "Anna K.",
@@ -119,6 +123,11 @@ describe("imię i nazwisko", () => {
     assert.equal(errorsOf(run({ displayName: "a".repeat(81) })).displayName, MESSAGES.displayName);
   });
 
+  test("emoji liczone jako 1 znak: 80 ok, 81 → błąd", () => {
+    assert.equal(run({ displayName: EMOJI.repeat(80) }).ok, true);
+    assert.equal(errorsOf(run({ displayName: EMOJI.repeat(81) })).displayName, MESSAGES.displayName);
+  });
+
   test("same spacje na publikacji → błąd", () => {
     assert.equal(errorsOf(run({ displayName: "   " })).displayName, MESSAGES.displayName);
   });
@@ -126,13 +135,15 @@ describe("imię i nazwisko", () => {
 
 describe("link do publicznej pracy", () => {
   for (const url of ["javascript:alert(1)", "mailto:a@b.pl", "ftp://example.com/x", "github.com/x", "//github.com/x",
-    "https://", "https://github", "https://github.com@zly.example/x", "https://git hub.com", "http:/github.com"]) {
+    "https://", "https://github.com@zly.example/x", "https://user:pass@github.com/x", "https://git hub.com", "http:/github.com"]) {
     test(`odrzucony: ${url}`, () => {
       assert.equal(errorsOf(run({ publicWorkUrl: url })).publicWorkUrl, MESSAGES.publicWorkUrlInvalid);
     });
   }
 
-  for (const url of ["http://example.com", "https://github.com/anna-k?tab=repositories#readme", "HTTPS://Blog.Example.pl/post"]) {
+  // Kontrakt: tylko http(s)://, parsuje się jako URL, ≤ 500 znaków — host bez kropki (localhost, port) też (review).
+  for (const url of ["http://example.com", "https://github.com/anna-k?tab=repositories#readme", "HTTPS://Blog.Example.pl/post",
+    "https://localhost", "http://localhost:3000/x", "https://github"]) {
     test(`przyjęty: ${url}`, () => {
       const result = run({ publicWorkUrl: `  ${url} ` });
       assert.equal(result.ok, true);
@@ -148,12 +159,28 @@ describe("link do publicznej pracy", () => {
       MESSAGES.publicWorkUrlTooLong,
     );
   });
+
+  test("długość linku liczona w punktach kodowych (emoji = 1)", () => {
+    const base = "https://example.com/";
+    assert.equal(run({ publicWorkUrl: base + EMOJI.repeat(500 - base.length) }).ok, true);
+    assert.equal(
+      errorsOf(run({ publicWorkUrl: base + EMOJI.repeat(501 - base.length) })).publicWorkUrl,
+      MESSAGES.publicWorkUrlTooLong,
+    );
+  });
 });
 
 describe("opis", () => {
   test("2000 znaków ok, 2001 → błąd", () => {
     assert.equal(run({ description: "x".repeat(2000) }).ok, true);
     assert.equal(errorsOf(run({ description: "x".repeat(2001) })).description, MESSAGES.description);
+  });
+
+  test("emoji liczone jako 1 znak: 2000 punktów kodowych ok, 2001 → błąd", () => {
+    const ok = "x".repeat(1000) + EMOJI.repeat(1000); // 2000 punktów kodowych, 3000 jednostek UTF-16
+    assert.equal(ok.length, 3000);
+    assert.equal(run({ description: ok }).ok, true);
+    assert.equal(errorsOf(run({ description: ok + EMOJI })).description, MESSAGES.description);
   });
 
   test("same białe znaki na publikacji → błąd", () => {
@@ -286,5 +313,41 @@ describe("komunikaty serwera = komunikaty DS w przeglądarce (zadanie 3.4)", () 
     for (const key of clientSide) {
       assert.ok(source.includes(`"${MESSAGES[key]}"`), `${key}: „${MESSAGES[key]}” nie występuje w Mentor.tsx`);
     }
+  });
+});
+
+describe("wspólny moduł reguł tekstu (@devmentor/ui/text) — ten sam w przeglądarce i na serwerze", () => {
+  test("textLength liczy punkty kodowe Unicode", () => {
+    assert.equal(sharedText.textLength(""), 0);
+    assert.equal(sharedText.textLength("Łódź"), 4);
+    assert.equal(sharedText.textLength(EMOJI), 1);
+    assert.equal(sharedText.textLength(EMOJI.repeat(2000)), 2000);
+  });
+
+  test("limity serwera to limity wspólnego modułu", async () => {
+    const server = await import("../../lib/mentor-page/validate.mjs");
+    for (const name of ["DISPLAY_NAME_MIN", "DISPLAY_NAME_MAX", "PUBLIC_WORK_URL_MAX", "DESCRIPTION_MAX", "textLength"]) {
+      assert.equal(server[name], sharedText[name], name);
+    }
+  });
+
+  test("publicWorkUrlProblem: localhost i port przyjęte, dane logowania i białe znaki odrzucone", () => {
+    assert.equal(sharedText.publicWorkUrlProblem("https://localhost"), null);
+    assert.equal(sharedText.publicWorkUrlProblem("http://localhost:3000/x"), null);
+    assert.equal(sharedText.publicWorkUrlProblem("https://a@b.example"), "invalid");
+    assert.equal(sharedText.publicWorkUrlProblem("https://a b.example"), "invalid");
+    assert.equal(sharedText.publicWorkUrlProblem("https://example.com/" + "a".repeat(481)), "tooLong");
+  });
+
+  test("walidacja DS w przeglądarce (Mentor.tsx) korzysta z tego samego modułu, bez własnego liczenia długości", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const source = await readFile(new URL("../../packages/ui/src/product/e01/Mentor.tsx", import.meta.url), "utf8");
+    assert.match(source, /from "\.\.\/\.\.\/lib\/text\.mjs"/);
+    const start = source.indexOf("export function validateMentorPage");
+    const body = source.slice(start, source.indexOf("\n}\n", start));
+    for (const fn of ["textLength(", "publicWorkUrlProblem(", "normalizeDisplayName(", "normalizeDescription("]) {
+      assert.ok(body.includes(fn), `validateMentorPage w DS nie używa ${fn}`);
+    }
+    assert.ok(!/\b(?:name|url|description)\.length\b/.test(body), "DS liczy długość pola po swojemu (.length)");
   });
 });

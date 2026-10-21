@@ -3,6 +3,7 @@
 import { useEffect, useState, type ChangeEvent, type TextareaHTMLAttributes } from "react";
 
 import { cn } from "../../lib/cn";
+import { textLength } from "../../lib/text.mjs";
 import { useFormField } from "../form-field/FormField";
 
 /** The counter appears from this share of `maxLength` (S14). */
@@ -10,6 +11,11 @@ const COUNTER_FROM = 0.8;
 /** Screen readers hear the count after the user pauses typing, not on every key (S14). */
 const ANNOUNCE_DELAY_MS = 1000;
 
+/**
+ * `maxLength` counts Unicode code points (an emoji is 1 character), like the server (`textLength`,
+ * `@devmentor/ui/text`). The native `maxlength` counts UTF-16 units (an emoji is 2), so it is not rendered:
+ * an edit that would grow the text past the limit is rejected here instead (the text stays as it was).
+ */
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   /** Shows the error border; set automatically inside a FormField with `error`. */
   invalid?: boolean;
@@ -24,9 +30,10 @@ export function Textarea({ invalid, className, id, rows = 6, maxLength, onChange
   const field = useFormField();
   const isInvalid = invalid ?? field?.invalid ?? false;
 
-  const [length, setLength] = useState(String(props.value ?? props.defaultValue ?? "").length);
+  const [text, setText] = useState(String(props.value ?? props.defaultValue ?? ""));
   const [announced, setAnnounced] = useState("");
-  const current = props.value !== undefined ? String(props.value).length : length;
+  const accepted = props.value !== undefined ? String(props.value) : text;
+  const current = textLength(accepted);
   const showCounter = maxLength !== undefined && current >= Math.ceil(maxLength * COUNTER_FROM);
 
   useEffect(() => {
@@ -36,7 +43,17 @@ export function Textarea({ invalid, className, id, rows = 6, maxLength, onChange
   }, [current, maxLength, showCounter]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setLength(event.currentTarget.value.length);
+    const field = event.currentTarget;
+    const previous = accepted;
+    const next = field.value;
+    if (maxLength !== undefined && textLength(next) > maxLength && textLength(next) > textLength(previous)) {
+      // Over the limit: keep the previous text and put the caret back where the edit started.
+      const caret = Math.max(0, (field.selectionStart ?? next.length) - (next.length - previous.length));
+      field.value = previous;
+      field.setSelectionRange(caret, caret);
+      return;
+    }
+    setText(next);
     onChange?.(event);
   };
 
@@ -46,7 +63,6 @@ export function Textarea({ invalid, className, id, rows = 6, maxLength, onChange
         {...props}
         id={id ?? field?.id}
         rows={rows}
-        maxLength={maxLength}
         onChange={handleChange}
         aria-describedby={[field?.describedBy, props["aria-describedby"]].filter(Boolean).join(" ") || undefined}
         aria-invalid={isInvalid || undefined}

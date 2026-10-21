@@ -373,6 +373,50 @@ export const EditorPriceMessages: Story = {
   },
 };
 
+/*
+ * Lengths and the link rule come from the module the server uses too (`src/lib/text.mjs`, `@devmentor/ui/text`):
+ * an emoji is 1 character (not 2 UTF-16 units) and any http(s) host is fine, also localhost with a port.
+ */
+const EMOJI = "😀";
+const DESCRIPTION_2000 = "x".repeat(1000) + EMOJI.repeat(1000); // 2000 characters, 3000 UTF-16 units
+const SHARED_RULES: MentorPageValues = { ...FILLED, displayName: `Anna ${EMOJI}`, publicWorkUrl: "http://localhost:3000/x", description: DESCRIPTION_2000 };
+const publishShared = fn(async () => ({ ok: true as const, shareUrl: SHARE_URL }));
+
+export const EditorSharedRulesAccepted: Story = {
+  name: "MentorPageForm · 2000 characters with emoji and a localhost link are accepted, as on the server (test)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={SHARED_RULES} baseUrl="http://localhost:3000" action={publishShared} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    publishShared.mockClear();
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    await expect(await canvas.findByRole("textbox", { name: "Twój link" })).toHaveValue(SHARE_URL);
+    await expect(publishShared).toHaveBeenCalledTimes(1);
+    await expect(canvas.getByRole("textbox", { name: /Twoje doświadczenie/ })).not.toHaveAccessibleDescription(/do 2000 znaków/);
+  },
+};
+
+export const EditorSharedRulesTooLong: Story = {
+  name: "MentorPageForm · 2001 characters with emoji are rejected, as on the server (test)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={{ ...SHARED_RULES, description: DESCRIPTION_2000 + EMOJI }} baseUrl="http://localhost:3000" action={publishShared} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    publishShared.mockClear();
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    const description = canvas.getByRole("textbox", { name: /Twoje doświadczenie/ });
+    await waitFor(() => expect(description).toHaveFocus());
+    await expect(description).toHaveAccessibleDescription(/Opisz swoje doświadczenie \(do 2000 znaków\)/);
+    await expect(publishShared).not.toHaveBeenCalled();
+  },
+};
+
 export const EditorPublishedVisit: Story = {
   name: "MentorPageForm · published page, later visit: share panel without focus, slug locked (test, D6)",
   render: () => (
