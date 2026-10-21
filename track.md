@@ -37,7 +37,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 1.3 CI (`postgres:17` service, `DATABASE_URL`) + krok migracji w `scripts/setup.mjs` (z ponawianiem połączenia) + test w `tests/setup.test.mjs`.
 - [x] 1.4 Dokumentacja i kontrakty: README (komendy migracji, `db/`, Node ≥ 20.12, `db:rollback` tylko lokalnie/testowo), `BACKWARD_COMPATIBILITY.md` (schemat → „dziś”, nowe skrypty).
 
-### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1) — W TOKU
+### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
 
 - [x] 2.1 Migracja `0002_mentor_sign_in` (`mentor_sessions`, `mentor_sign_in_links`) + pula `lib/db` (`DATABASE_URL`) + test up/down.
 - [x] 2.2 CLI założycieli `scripts/mentor-links.mjs` + `mentor:invite`, `mentor:sign-in-link` (token 32 B base64url, tylko SHA-256, 14 dni / 72 h); testy z bazą.
@@ -77,9 +77,14 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 1): pg 8.23.1, node-pg-migrate 9.0.0; jedna transakcja na migrację, advisoryLockMode "wait"; harness testów `tests/db/harness.mjs` (`describeDb`, `createTestSchema`) — do użycia w kolejnych zadaniach.
 - 2026-10-21 (faza 1): `runSteps` w `scripts/setup.mjs` jest teraz asynchroniczne; skrypt migracji ładowany dynamicznie (czysty klon przed `npm install`).
 - 2026-10-21 (decyzja K. Marczak przez delegację): `.env.example` commitujemy (bez sekretów, dokumentuje zmienne); `docker-compose.yml` nadal generuje `npm run setup` (niecommitowany); skrypt `db:up` niepotrzebny.
+- 2026-10-21 (faza 2): logika domenowa sesji w `lib/auth/mentor-auth.mjs` (przyjmuje `db` = `pg.Pool`, `now`), DAL `lib/auth/session.ts`; strony czytają sesję/link w `<Suspense>` po `connection()`, ciasteczka zapisują tylko akcje serwera.
+- 2026-10-21 (faza 2): `npm run test:e2e` (`scripts/test-e2e.mjs`) wymaga wcześniejszego `npm run build`; aplikacja pod `next start` dostaje `DATABASE_URL` z `options=-c search_path=<schemat dm_migtest_*>`.
+- 2026-10-21 (faza 2): DS — `MentorNav` (`sections`, `signOutAction`), `InvitationPanel` bez `inviterName`, `useFocusFirstError` przeniesiony do `shared/use-focus-first-error.ts` (barrel `@devmentor/ui/product` importowalny z Server Components); `testTimeout` Storybooka 30 s (wcześniej niestabilny test RequestForm).
+- 2026-10-21 (faza 2): w nawigacji tylko „Strona” + „Wyloguj”; „Dostępność” dojdzie w zadaniu 4.5 razem z `/mentor/availability` (bez martwego linku). Data ważności linku podawana z dopiskiem „(czas polski)”. Strony linków i `/mentor` mają `noindex`.
 
 ## Otwarte punkty
 
 - L12 (z #14): komunikaty „poproś zespół” nie wskazują kanału kontaktu — zaakceptowane tylko na pilotaż.
 - Workflow CI z usługą postgres:17 nie był uruchomiony na GitHubie (brak push) — sprawdzony tylko lokalnie (YAML parsuje się).
+- Z39 (dwie karty) w e2e tylko pośrednio — pokryte testami domeny z bazą.
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
