@@ -17,6 +17,8 @@ A mentor can publish a page and availability (#14, #15), but the share link `/m/
 | Q3 | How many days of slots? | The whole 14-day horizon from #15, grouped by day, earliest first. | The developer's job is "as soon as possible" (A01); the earliest slot comes first. | — |
 | Q4 | Status code for unpublished/unknown slug? | Same not-found page for both; no mentor data, no hint whether the slug exists. | AC "no mentor data is shown"; avoids leaking drafts. | — |
 | Q5 | Caching and streaming? | No caching in 1.0. The slug lookup runs before streaming, so unknown/unpublished slugs get a real 404; only the slot section streams behind its own Suspense + error boundary. | Pilot traffic is tiny; a mentor's edit must be visible immediately (#14 story 3). Revisit with `use cache` + tags if needed. | — |
+| Q7 | How are many slots per day shown? | Grouped by day: the day is a heading shown once, its times follow as a compact row of separate items; at most N = 6 times per day are shown, the rest behind „Pokaż więcej” for that day. Criterion in UI/UX (F3). | Real-person test 2026-10-21 on s06, anchored on a day row „14:30, 15:00, 15:30, … 18:3…”: „to jest do powtórzenia na każdym dniu”. The DS `SlotList` (non-selectable) already printed the day once, but as plain bold text followed by one comma-joined string of every time, which grows long with a wide window. Reading of the comment by the owner. | F3 — decided by Krzysztof Marczak (2026-10-21) |
+| Q8 | Real-person feedback „brak rezerwacji” on s06 — change E01 scope? | No. L1 stands: E01 has no request form or per-slot control; booking starts in #17. Recorded as evidence: the real person expected to book straight from the slot list. #17 makes each slot the entry to the request form (criterion added to #17 UI/UX, F4). | One capability per spec; a dead „Book” button would fail QA (Q1). | F4 — decided by Krzysztof Marczak (2026-10-21) |
 | Q6 | Page language and price formatting? | Polish copy (as #14); `price_25_minor` / `price_50_minor` formatted with `Intl.NumberFormat('pl-PL', { style: 'currency', currency })` from `mentor_pages.currency`. | Currency comes from data, so Q02's answer (⚠ in #14) needs no page change. | — |
 
 ## 👤 User stories
@@ -48,6 +50,8 @@ Developers want "someone who has done the exact thing" quickly and want the pric
 
 Order on the page is a requirement, not styling: identity → public work → description → prices → slots → (later #17: question). Mobile-first (developers arrive from Discord/Slack links on phones); with a 400-character description, identity, public work and prices fit the first screen at 375 × 812. States: published with slots; published without slots (story 3); not found (story 4); slot load error ("Nie udało się wczytać terminów — odśwież stronę", profile and prices still shown); no network while loading slots: the slot section shows its error state, profile and prices stay (Z28). Accessibility: slot toggle is a real radio group; arrow keys change the selected length and filter the slot list at once (WAI-ARIA radio pattern; D12, Z41); times include the date in text, not only by grouping; the viewer's zone is printed in the heading. Page `<title>`: "{displayName} — DevMentor". Absent by design: ratings, reviews, scores, session counts, "similar mentors", search, filters, share counters.
 
+Slot grouping (F3, 2026-10-21, real-person feedback): slots for the selected length are grouped by local day of the viewer. Each day appears exactly once, as a heading element (`h3`, e.g. „jutro”, „czw. 22.10”), and its times follow as a compact, wrapping row in which every time is its own list item (not one comma-joined string). At most **N = 6** times per day are shown, earliest first; if the day has more, a „Pokaż więcej (k)” button (k = hidden count, `aria-expanded`, `aria-controls` on that day's list) reveals the rest of that day only. Changing the 25/50 length resets the expansion. The same rule holds when #17 turns the times into selectable options. Testable: for a fixture with 10 slots on one day and 2 on another, the rendered list has exactly two day headings, each day's label appears once, the first day shows 6 time items and „Pokaż więcej (4)”, the second shows 2 and no button; clicking the button shows all 10 and sets `aria-expanded="true"`; every day label in the slot section is unique.
+
 ## 📝 Edge Cases & Failure Scenarios
 
 - Mentor edits price while a developer has the page open: the developer sees the old price until reload; #17 must charge the price read at request time and show it again before payment.
@@ -64,7 +68,7 @@ Order on the page is a requirement, not styling: identity → public work → de
 
 ## 📝 Decisions in play
 
-Relies on R03, R07, R14, D03, D08, N02. Leaves open Q02 (currency display follows data). Supersedes nothing. Owner: Krzysztof Marczak; R03/N02 owner: founder A.
+Relies on R03, R07, R14, D03, D08, N02. Real-person feedback 2026-10-21 (`lekcja-07/prototype-feedback.md`; one tester, the product owner, not in the target group): F3 slot grouping (applied in UI/UX), F4 „brak rezerwacji” (no E01 change, L1 stands; booking from each slot in #17). Leaves open Q02 (currency display follows data). Supersedes nothing. Owner: Krzysztof Marczak; R03/N02 owner: founder A.
 
 ## 📋 Phasing
 
@@ -82,8 +86,8 @@ Relies on R03, R07, R14, D03, D08, N02. Leaves open Q02 (currency display follow
 
 **Phase 2 — Open slots**
 
-4. Slot section: server-only query for windows + zone, `listOpenSlots`, ISO slots to `slot-list.tsx`, inside its own Suspense + error boundary. Tests: slots shown equal the function's output for a fixed clock; mentor without windows, and mentor with saved windows but no time zone, show the empty-state text and no slot time (#15 AC; P2, Z38); the slot list contains no `button` or `a` element (Z1); a throwing slot loader still renders profile and prices.
-5. `slot-list.tsx`: viewer-zone formatting, day grouping, 25/50 toggle. Unit test of the grouping/formatting helper (`.mjs`) for two zones and for an invalid zone (→ UTC label). QA in a real browser at 375 px and desktop, including the no-slots and not-found states and the 25/50 toggle by keyboard — arrow keys select and filter (Z41) (`needs-qa`).
+4. Slot section: server-only query for windows + zone, `listOpenSlots`, ISO slots to `slot-list.tsx`, inside its own Suspense + error boundary. Tests: slots shown equal the function's output for a fixed clock; mentor without windows, and mentor with saved windows but no time zone, show the empty-state text and no slot time (#15 AC; P2, Z38); the slot list contains no `a` element and no `button` other than the per-day „Pokaż więcej” disclosure (Z1, F3) — no slot time is itself a control in E01; a throwing slot loader still renders profile and prices.
+5. `slot-list.tsx`: viewer-zone formatting, day grouping, 25/50 toggle. Unit test of the grouping/formatting helper (`.mjs`) for two zones and for an invalid zone (→ UTC label); component test of the F3 grouping (one heading per day, 6 visible times, „Pokaż więcej (k)”, expansion per day, reset on length change). QA in a real browser at 375 px and desktop, including the no-slots and not-found states and the 25/50 toggle by keyboard — arrow keys select and filter (Z41) (`needs-qa`).
 
 ## 🔍 Review & grill outcome
 
