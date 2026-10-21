@@ -88,4 +88,5 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - L12 (z #14): komunikaty „poproś zespół” nie wskazują kanału kontaktu — zaakceptowane tylko na pilotaż.
 - Workflow CI z usługą postgres:17 nie był uruchomiony na GitHubie (brak push) — sprawdzony tylko lokalnie (YAML parsuje się).
 - Z39 (dwie karty) w e2e tylko pośrednio — pokryte testami domeny z bazą.
+- 2026-10-21: jednorazowo 1 nieudany test w `npm test` przy weryfikacji zadania 3.3 (commit c780cb8 wszedł mimo to); 11 kolejnych pełnych przebiegów zielonych, nie udało się odtworzyć — obserwować (kandydaci: testy współbieżności w tests/db). Skrypt weryfikacji zapisuje teraz log błędu.
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
