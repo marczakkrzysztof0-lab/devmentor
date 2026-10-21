@@ -51,7 +51,7 @@ Alternatives considered: email+password (adds reset flow and credential storage 
 ## 📝 Architecture
 
 - New: `app/invite/[token]/page.tsx`, `app/sign-in/[token]/page.tsx`, `app/mentor/page.tsx` (+ server actions), `lib/db` pool (first runtime query, as #23 planned), `lib/auth/session` (DAL: `getCurrentMentor`, `startSession`, `endSession`), `lib/mentor-page/validate.mjs` (pure validation, tested by `node --test`, precedent `lib/math.mjs`), `scripts/mentor-links.mjs`.
-- Session reads happen at request time inside a Suspense boundary (`cacheComponents` is on; see `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`). No `proxy.ts`: the DAL check in each page/action is the authority.
+- Session reads happen at request time inside a Suspense boundary (`cacheComponents` is on; see `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`). No `proxy.ts`: the DAL check in each page/action is the authority. Exception (2026-10-21, L08 faza 5, review Codex approve; decided by Krzysztof Marczak): `proxy.ts` exists only to give public `/m/*` routes (#16) a real HTTP 404 under `cacheComponents`; it does no authorization — authorization stays exclusively in the DAL.
 - Consumers: #15 adds `/mentor/availability` behind the same `getCurrentMentor()`; #16 reads `mentor_pages` (published only) for `/m/[slug]`; E02 mentor-side screens (accept/decline, #18) reuse the session DAL.
 
 ## 📝 Data Model

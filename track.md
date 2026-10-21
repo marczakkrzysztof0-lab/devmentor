@@ -60,12 +60,12 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 4.4 `saveAvailability` (atomowa zamiana zestawu, limit 21, strefa z `Intl.supportedValuesOf`, `unauthorized`) + testy z bazą (zakres A/B).
 - [x] 4.5 Strona `/mentor/availability` (prefill strefy, ostrzeżenie zmiany strefy, podgląd 10 terminów, limit 21 — luka DS D8, D11) + baner „Nie masz dostępności” na `/mentor` (Z21, Z40) + testy.
 
-### Faza 5 — Publiczna strona mentora: profil i ceny (#16, Phase 1) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
+### Faza 5 — Publiczna strona mentora: profil i ceny (#16, Phase 1) — ZAKOŃCZONA 2026-10-21 (review Codexa: approve + 1 Minor, ryzyko zaakceptowane; test ręczny koordynatora OK)
 
 - [x] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
 - [x] 5.2 `app/m/[slug]/page.tsx` + not-found + `noindex` + tytuł; testy e2e (kolejność, brak ocen, 404 dla szkicu/nieznanego, `/m` i `/m?search=` → 404).
 
-### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2)
+### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — W TOKU
 
 - [ ] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
 - [ ] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
@@ -92,6 +92,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 4): DS — `AvailabilityEditor` (`timeZone: string | null` = pierwsza wizyta z prefill z przeglądarki, błędy przy oknie, limit 21 z `disabledReason`, `unauthorized`), `SlotPreview emptyText`, `MentorPageForm notice` (baner nad panelem linku, Z40), `Select aria-describedby`. Nawigacja: „Strona”, „Dostępność”, „Wyloguj”.
 - 2026-10-21 (po fazie 4): DS `Select` renderuje etykietę wybranej opcji już w HTML z serwera (wcześniej puste pole „Strefa czasowa” do hydracji); `NoAvailabilityNotice href={null}` — na /mentor/availability baner bez linku do samej siebie. W bazie dev zostaje Anna z oknami wt/czw 18–20.
 - 2026-10-21 (faza 5): prawdziwy status 404 dla `/m/*` przez `proxy.ts` (lekkie `select 1 … published_at is not null` przed renderem, przepisanie na nieistniejącą ścieżkę → `app/not-found.tsx` z 404 i „Nie ma takiej strony mentora”); `notFound()` w stronie dawał 200 przez powłokę PPR (`cacheComponents`). Odstępstwo od #14 „No proxy.ts” dotyczy tylko statusu 404 stron publicznych — autoryzacja dalej wyłącznie w DAL. Każda odpowiedź `/m/*` ma `X-Robots-Tag: noindex, nofollow`. Nowy polski globalny `app/not-found.tsx` (przez `headers()` `/` i `/_not-found` są teraz ◐).
+- 2026-10-21 (decyzje K. Marczak przez delegację po review fazy 5): odstępstwo `proxy.ts` PRZYJĘTE i dopisane w specyfikacjach #14 (wyjątek od „No proxy.ts”, bez autoryzacji) i #16 (Architecture: 404 pod `cacheComponents`); Minor Codexa (wyścig cofnięcia publikacji między proxy a renderem → miękkie 404) — ryzyko zaakceptowane, wpisane w #16 Risks, bez zmiany kodu.
 
 ## Otwarte punkty
 
