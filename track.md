@@ -54,7 +54,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 ### Faza 4 — Tygodniowa dostępność i wolne terminy (#15) — W TOKU
 
-- [ ] 4.1 Migracja `0004_availability` (`availability_windows`, `mentors.time_zone`) + testy CHECK i up/down.
+- [x] 4.1 Migracja `0004_availability` (`availability_windows`, `mentors.time_zone`) + testy CHECK i up/down.
 - [ ] 4.2 `lib/availability/zone.mjs` + `slots.mjs` (`listOpenSlots`, stałe `MIN_NOTICE_MINUTES=180`, `SLOT_GRID_MINUTES=30`, `HORIZON_DAYS=14`) + testy DST, granic, łączenia okien, `busy`.
 - [ ] 4.3 Zapytania okien/strefy + `isSlotOffered` + testy.
 - [ ] 4.4 `saveAvailability` (atomowa zamiana zestawu, limit 21, strefa z `Intl.supportedValuesOf`, `unauthorized`) + testy z bazą (zakres A/B).

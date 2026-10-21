@@ -159,7 +159,7 @@ describeDb(
 
     test("bez opublikowanych stron 0003 przechodzi", async () => {
       await db.query("update mentor_pages set published_at = null");
-      const applied = await db.migrate("up");
+      const applied = await db.migrate("up", 1);
       assert.deepEqual(
         applied.map((m) => m.name),
         ["0003_mentor_page_prices"],
