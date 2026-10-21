@@ -65,7 +65,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
 - [x] 5.2 `app/m/[slug]/page.tsx` + not-found + `noindex` + tytuł; testy e2e (kolejność, brak ocen, 404 dla szkicu/nieznanego, `/m` i `/m?search=` → 404).
 
-### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny
+### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — ZAKOŃCZONA 2026-10-21 (test ręczny koordynatora OK)
 
 - [x] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
 - [x] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
@@ -74,7 +74,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 - 6 faz, 22 zadania + poprawki po review; wszystkie zadania [x]. Specyfikacje #23, #14 (fazy 1–2), #15, #16 (fazy 1–2) zaimplementowane.
 - Migracje 0001–0004; trasy: `/invite/[token]`, `/sign-in/[token]`, `/mentor`, `/mentor/availability`, `/m/[slug]` (+ `proxy.ts` dla 404 `/m/*`); CLI `mentor:invite`, `mentor:sign-in-link`; skrypty `db:migrate`, `db:rollback`, `test:e2e`.
-- Siatka na koniec: `npm test` 402, `npm run test:e2e` 57, `npm run test:storybook` 370 — wszystko zielone; tsc (app + ui), lint, check:tokens, build OK.
+- Siatka na koniec: `npm test` 406, `npm run test:e2e` 57, `npm run test:storybook` 370 — wszystko zielone; tsc (app + ui), lint, check:tokens, build OK.
 - Luki DS zamknięte: D1–D8, D11, D12 (+ F1–F3); otwarte: D9 (część S2), D10.
 - Dalej poza tym planem: E02 (#17 formularz zapytania — w tym F3 dla terminów wybieralnych i `busy`), CI dla e2e, QA `needs-qa`, PR-y z planem rollbacku.
 
@@ -103,6 +103,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (decyzje K. Marczak przez delegację po review fazy 5): odstępstwo `proxy.ts` PRZYJĘTE i dopisane w specyfikacjach #14 (wyjątek od „No proxy.ts”, bez autoryzacji) i #16 (Architecture: 404 pod `cacheComponents`); Minor Codexa (wyścig cofnięcia publikacji między proxy a renderem → miękkie 404) — ryzyko zaakceptowane, wpisane w #16 Risks, bez zmiany kodu.
 - 2026-10-21 (zadanie 6.1): do klienta trafia tylko lista ISO terminów i publiczne ceny (okna, `time_zone`, `mentorId` zostają na serwerze; sprawdzane w HTML i payloadzie RSC). Sekcja terminów ma własny `<Suspense>` i granicę błędu (`catchError` z `next/error`); profil i ceny poza nimi. Czasy renderowane dopiero po hydracji (`useSyncExternalStore`, serwer pokazuje szkielet) — bez niezgodności hydracji i bez mignięcia czasów UTC. Zasada Z1: przełącznik 25/50 to grupa radio (Radix `<button role="radio">`), w liście terminów żadnych `a`/`button`. Nagłówek sekcji bez strefy w stanach pustym/błędu/ładowania (strefa tylko nad listą czasów, D3).
 - 2026-10-21 (zadanie 6.2): grupowanie terminów po dniu we wspólnym module `@devmentor/ui/slots` (`packages/ui/src/lib/slot-days.mjs`, `groupSlotsByDay`) — ten sam kod w DS i w `node --test`; formatery dat przeniesione tam z `format.ts` (re-eksport). `SlotList` (tryb tekstowy): dzień raz jako `h3`, czasy jako `li` z ukrytą datą w tekście, maks. 6 + „Pokaż więcej (k)” (rozwinięty: „Pokaż mniej”), reset po zmianie długości. `RadioGroup` (D12): strzałka przenosi fokus i zaznacza od razu. Pusta lista dla jednej długości: „Brak terminów 50 min w najbliższych 14 dniach — wybierz 25 min”.
+- 2026-10-21 (review końcowe Codexa main..HEAD, decyzje K. Marczak przez delegację): [Major, PRZYJĘTE] CI uruchamia teraz `npm run lint` i `npm run build` (osobne joby; build bez bazy, `NEXT_PUBLIC_APP_URL` testowy) obok `npm test` z Postgresem — zgodnie z SDLC.md; zamyka też action item z review PR #3. [Minor, PRZYJĘTE] „jutro”/„dziś” w `slot-days.mjs` liczone na dacie kalendarzowej w strefie widza, nie now + 24 h (testy DST 24→25.10 i 28→29.03).
 
 ## Otwarte punkty
 
@@ -110,7 +111,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - Workflow CI z usługą postgres:17 nie był uruchomiony na GitHubie (brak push) — sprawdzony tylko lokalnie (YAML parsuje się).
 - Z39 (dwie karty) w e2e tylko pośrednio — pokryte testami domeny z bazą.
 - Niestabilny test `tests/db/harness.test.mjs` (wyścig sprzątania między plikami): przyczyna znaleziona, poprawka (oczekiwanie do 5 s) — obserwować.
-- `npm run test:e2e` nie jest w CI ani w bramce walidacji (`.ai/agentic.config.json`) — przepływy edytora i „GET niczego nie zużywa” są sprawdzane tylko lokalnie; dodanie wymaga joba CI (build + postgres + Chromium) i zgody maintainera.
+- `npm run test:e2e` nadal nie jest w CI (decyzja 2026-10-21: nie dodajemy teraz) ani w bramce walidacji (`.ai/agentic.config.json`) — przepływy edytora i „GET niczego nie zużywa” są sprawdzane tylko lokalnie; dodanie wymaga joba CI (build + postgres + Chromium) i zgody maintainera.
 - Opis PR (#14) musi zawierać: plan rollbacku (`db:rollback` cofa 0003 i 0002 po kolei, brak danych produkcyjnych), ⚠ Q2–Q4 (potwierdzone, D12), wynik ręcznego przejścia na czas (D08).
 - (faza 4) QA w prawdziwej przeglądarce z wąskim ekranem (`needs-qa`) — nie wykonane; dopasowanie aliasów stref sprawdzone tylko w Chromium. Lista ~420 stref w zwykłym `Select` (bez wyszukiwania; combobox w DS „Not built”). Powód „Maksymalnie 21 okien…” powtarza się przy każdym z 7 przycisków „+ okno”.
 - (faza 5) Dwa zapytania do bazy na wyświetlenie opublikowanej strony (proxy + strona). Wyścig „mentor cofa publikację między proxy a renderem” daje miękkie 404 (200 + noindex). Przy niedziałającej bazie `/m/*` zwraca 500.

@@ -61,6 +61,38 @@ describe("groupSlotsByDay — strefa widza", () => {
   });
 });
 
+describe("groupSlotsByDay — „jutro” to następny dzień KALENDARZOWY (zmiana czasu), nie teraz + 24 h", () => {
+  const labels = (slots, now) =>
+    groupSlotsByDay(slots, { lengthMinutes: 25, timeZone: "Europe/Warsaw", now }).days.map((d) => d.dayLabel);
+
+  test("jesień: sob. 24.10 23:30 → nd. 25.10 (dzień 25 h) to „jutro”, pon. 26.10 już nie", () => {
+    const now = new Date("2026-10-24T21:30:00Z"); // 23:30 CEST
+    // 11:00 i 23:30 CET w nd. 25.10; 11:00 CET w pon. 26.10.
+    const slots = [slot("2026-10-25T10:00:00Z"), slot("2026-10-25T22:30:00Z"), slot("2026-10-26T10:00:00Z")];
+    assert.deepEqual(labels(slots, now), ["jutro", "pon. 26.10"]);
+  });
+
+  test("jesień: nd. 25.10 00:30 — teraz + 24 h to nadal 25.10, a „jutro” to pon. 26.10", () => {
+    const now = new Date("2026-10-24T22:30:00Z"); // 00:30 CEST w nd. 25.10; + 24 h = 23:30 CET tego samego dnia
+    const slots = [slot("2026-10-25T20:00:00Z"), slot("2026-10-26T08:00:00Z")];
+    assert.deepEqual(labels(slots, now), ["dziś", "jutro"]);
+  });
+
+  test("wiosna: sob. 28.03 23:30 → nd. 29.03 (dzień 23 h) to „jutro”, pon. 30.03 nie (teraz + 24 h trafia w 30.03)", () => {
+    const now = new Date("2026-03-28T22:30:00Z"); // 23:30 CET; + 24 h = 00:30 CEST pon. 30.03
+    const slots = [slot("2026-03-29T10:00:00Z"), slot("2026-03-30T08:00:00Z")];
+    assert.deepEqual(labels(slots, now), ["jutro", "pon. 30.03"]);
+    const { days } = groupSlotsByDay(slots, { lengthMinutes: 25, timeZone: "Europe/Warsaw", now });
+    assert.equal(plain(days[0].dayLabelFull), "jutro, niedziela 29.03");
+    assert.equal(plain(days[1].dayLabelFull), "poniedziałek 30.03");
+  });
+
+  test("przełom miesiąca i roku: 31.12 → 1.01 to „jutro”", () => {
+    const now = new Date("2026-12-31T20:00:00Z"); // 21:00 CET
+    assert.deepEqual(labels([slot("2027-01-01T09:00:00Z")], now), ["jutro"]);
+  });
+});
+
 describe("groupSlotsByDay — strefa nieznana → UTC z flagą", () => {
   for (const [label, timeZone] of [
     ["nieprawidłowa", "Mars/Olympus"],

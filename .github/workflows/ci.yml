@@ -6,6 +6,35 @@ on:
   pull_request:
 
 jobs:
+  # Validation gate (SDLC.md): `npm run lint`, `npm test`, `npm run build` — each its own job.
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  # No database: lib/db opens its pool lazily, at request time, never during `next build`.
+  # NEXT_PUBLIC_APP_URL is read at runtime as well; a harmless value keeps the build independent of it.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
   test:
     runs-on: ubuntu-latest
     # PostgreSQL for the DB tests in tests/db/ (spec #23 Q7). GitHub Actions sets CI=true,

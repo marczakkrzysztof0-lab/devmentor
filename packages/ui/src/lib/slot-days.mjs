@@ -33,6 +33,17 @@ function dayKeyOf(date, timeZone) {
 }
 
 /**
+ * The calendar day after a day key („2026-10-24” → „2026-10-25”), computed on the date itself, not as now + 24 h:
+ * a local day around a DST change lasts 23 or 25 hours, so now + 24 h can skip a day or stay on the same one.
+ * @param {string} dayKey
+ * @returns {string}
+ */
+function nextDayKey(dayKey) {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+/**
  * Key of the local day of an instant: „2026-10-22”.
  * @param {string} iso
  * @param {string} timeZone
@@ -75,8 +86,9 @@ export function formatDateLong(iso, timeZone) {
 export function formatDay(iso, timeZone, now, style = "short") {
   const date = new Date(iso);
   const key = dayKeyOf(date, timeZone);
-  if (key === dayKeyOf(now, timeZone)) return "dziś";
-  if (key === dayKeyOf(new Date(now.getTime() + 86_400_000), timeZone)) return "jutro";
+  const today = dayKeyOf(now, timeZone);
+  if (key === today) return "dziś";
+  if (key === nextDayKey(today)) return "jutro";
   return new Intl.DateTimeFormat("pl-PL", {
     timeZone,
     weekday: style === "short" ? "short" : "long",
