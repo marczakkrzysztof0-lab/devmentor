@@ -52,6 +52,21 @@ export const ANNA_SLOTS = slotsFromWindows([
   { date: "2026-11-03", from: "18:00", to: "20:00" },
 ]);
 
+/**
+ * F3 criterion (spec #16 Q7): 25 min → 10 slots on Tuesday 20.10 („jutro”) and 2 on Thursday 22.10;
+ * 50 min → 9 and 1 (12:00–17:00 and 18:00–19:00).
+ */
+export const F3_SLOTS = slotsFromWindows([
+  { date: "2026-10-20", from: "12:00", to: "17:00" },
+  { date: "2026-10-22", from: "18:00", to: "19:00" },
+]);
+
+/** Only 30-minute windows: every slot fits 25 min, none fits 50 (the empty 50-min list, task 6.2). */
+export const ONLY_25_SLOTS = slotsFromWindows([
+  { date: "2026-10-20", from: "18:00", to: "18:30" },
+  { date: "2026-10-22", from: "12:00", to: "12:30" },
+]);
+
 /** Many slots: windows every weekday 9:00–17:00 for two weeks (the "lots of data" state). */
 export const MANY_SLOTS = slotsFromWindows(
   ["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-11-02"].map(

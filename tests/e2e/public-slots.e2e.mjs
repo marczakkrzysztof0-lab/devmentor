@@ -4,7 +4,8 @@
 // bazy; pliki e2e idą po kolei (`--test-concurrency=1`), testy w pliku też.
 //
 // Dane funkcjami domeny (zaproszenie → `acceptInvitation` → `saveMentorPage` → `saveAvailability`):
-// - „olga-sloty”: okna codziennie 18:00–20:00 Europe/Warsaw (14 dni → terminy każdego dnia),
+// - „olga-sloty”: okna codziennie 18:00–20:00 Europe/Warsaw (14 dni → terminy każdego dnia, ≤ 6 na dzień),
+// - „dawid-caly-dzien”: okna codziennie 08:00–22:00 (28 terminów 25 min na dzień → F3: 6 + „Pokaż więcej (k)”),
 // - „bartek-bez-okien”: opublikowany, bez dostępności (story 3),
 // - „celina-bez-strefy”: okna zapisane, potem `time_zone = null` (P2/Z38 — okna bez strefy).
 // Oczekiwane terminy liczy ta sama funkcja (`listOpenSlots`) tuż przed i tuż po żądaniu (granica 3 h wyprzedzenia
@@ -34,6 +35,10 @@ const MENTOR_ZONE = "Europe/Warsaw";
 const VIEWER_ZONE = "Europe/London";
 /** Codziennie 18:00–20:00 czasu mentora (ISO 1–7). */
 const DAILY_18_20 = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, startMinute: 18 * 60, endMinute: 20 * 60 }));
+/** Codziennie 08:00–22:00 czasu mentora — dużo terminów dziennie (F3). */
+const DAILY_08_22 = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, startMinute: 8 * 60, endMinute: 22 * 60 }));
+/** Spec #16 F3: najwyżej 6 godzin na dzień przed „Pokaż więcej (k)”. */
+const PER_DAY = 6;
 const TIME = /\b\d{2}:\d{2}\b/;
 
 const page = (displayName, slug, price25 = "150", price50 = "280") => ({
@@ -47,6 +52,7 @@ const page = (displayName, slug, price25 = "150", price50 = "280") => ({
 const OLGA = page("Olga S.", "olga-sloty", "150", "280");
 const BARTEK = page("Bartek B.", "bartek-bez-okien", "120", "220");
 const CELINA = page("Celina C.", "celina-bez-strefy", "130", "240");
+const DAWID = page("Dawid D.", "dawid-caly-dzien", "100", "190");
 
 /** NBSP z Intl → zwykła spacja. */
 const normalize = (text) => text.replace(/[  ]/g, " ");
@@ -110,21 +116,38 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
   /** Sekcja terminów (DS `SlotList` i stany bez godzin mają h2 `slots-heading`). */
   const slotSection = (tab) => tab.locator('section[aria-labelledby="slots-heading"]');
 
-  /** Dni z listy terminów: etykieta dnia i godziny (każdy wiersz DS `SlotList`, selectable={false}). */
+  /**
+   * Dni z listy terminów (DS `SlotList`, selectable={false}, F3): nagłówek `h3` dnia, lista `ul` z jednym `li` na
+   * godzinę (tekst „jutro, wtorek 20.10, 18:00” — data w tekście) i ewentualny przycisk „Pokaż więcej (k)”.
+   */
   async function shownDays(tab) {
     return slotSection(tab)
-      .locator("li")
-      .evaluateAll((items) =>
-        items.map((li) => {
-          const [label, times] = [...li.children].map((child) => (child.textContent ?? "").trim());
-          return { label, times: times ? times.split(", ") : [] };
-        }),
+      .locator("h3")
+      .evaluateAll((headings) =>
+        headings
+          .filter((h3) => h3.nextElementSibling?.tagName === "UL")
+          .map((h3) => {
+            const list = /** @type {HTMLUListElement} */ (h3.nextElementSibling);
+            const items = [...list.querySelectorAll("li")].map((li) => (li.textContent ?? "").trim());
+            const button = list.nextElementSibling?.tagName === "BUTTON" ? list.nextElementSibling : null;
+            return {
+              label: (h3.textContent ?? "").trim(),
+              items,
+              times: items.map((text) => text.slice(-5)),
+              listId: list.id,
+              listLabelledBy: list.getAttribute("aria-labelledby"),
+              headingId: h3.id,
+              button: button
+                ? { text: (button.textContent ?? "").trim(), expanded: button.getAttribute("aria-expanded"), controls: button.getAttribute("aria-controls") }
+                : null,
+            };
+          }),
       );
   }
 
   /** Lista na stronie = `listOpenSlots` z „teraz” sprzed albo spod żądania (strefa widza). */
-  function assertSlotsMatch(shown, nows, length, timeZone) {
-    const candidates = nows.map((now) => expectedDays(listOpenSlots({ windows: DAILY_18_20, timeZone: MENTOR_ZONE, now }), length, timeZone));
+  function assertSlotsMatch(shown, nows, length, timeZone, windows = DAILY_18_20) {
+    const candidates = nows.map((now) => expectedDays(listOpenSlots({ windows, timeZone: MENTOR_ZONE, now }), length, timeZone));
     const shownTimes = shown.map((day) => day.times);
     assert.ok(
       candidates.some((days) => JSON.stringify(days.map((d) => d.times)) === JSON.stringify(shownTimes)),
@@ -135,6 +158,8 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     assert.equal(new Set(shown.map((d) => d.label)).size, shown.length, "etykieta dnia tylko raz");
     shown.forEach((day, i) => {
       const [, month, date] = expected[i].key.split("-");
+      // Każda godzina ma datę w tekście (`li`: „…20.10, 18:00”), nie tylko przez grupowanie.
+      for (const item of day.items) assert.ok(item.includes(`${Number(date)}.${month}, `), `godzina z datą: ${item}`);
       if (day.label !== "dziś" && day.label !== "jutro") {
         assert.ok(day.label.includes(`${Number(date)}.${month}`), `etykieta ${day.label} zawiera ${Number(date)}.${month}`);
       }
@@ -152,6 +177,9 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     const savedCelina = await saveAvailability({ db, mentorId: celina.id, input: { timeZone: MENTOR_ZONE, windows: DAILY_18_20 } });
     assert.equal(savedCelina.ok, true);
     await db.query("update mentors set time_zone = null where id = $1", [celina.id]);
+    const dawid = await createMentor(DAWID);
+    const savedDawid = await saveAvailability({ db, mentorId: dawid.id, input: { timeZone: MENTOR_ZONE, windows: DAILY_08_22 } });
+    assert.equal(savedDawid.ok, true);
   });
 
   after(async () => {
@@ -337,5 +365,103 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     assert.match(normalize(await tab.getByRole("region", { name: "Ceny" }).innerText()), /150 zł[\s\S]*280 zł/);
     assert.deepEqual(requests, [], "przełącznik nie wysyła żądań");
     await tab.context().setOffline(false);
+  });
+
+  test("F3: codziennie 08:00–22:00 → każdy dzień raz (h3), najwyżej 6 godzin i „Pokaż więcej (k)”; rozwija tylko ten dzień", async () => {
+    const { tab } = await newPage();
+    const before = new Date();
+    await tab.goto(`${BASE_URL}/m/${DAWID.slug}`);
+    const after = new Date();
+    await tab.getByRole("heading", { level: 2, name: `Najbliższe terminy (twoja strefa: ${VIEWER_ZONE})` }).waitFor();
+    const section = slotSection(tab);
+    const shown = await shownDays(tab);
+    assert.ok(shown.length >= 13, `dni: ${shown.length}`);
+    assert.equal(new Set(shown.map((d) => d.label)).size, shown.length, "etykieta dnia tylko raz");
+    assert.equal(await section.locator("h3").count(), shown.length, "jeden nagłówek h3 na dzień");
+    // Pełne listy dni (przed lub po żądaniu) — do porównania liczby ukrytych godzin i rozwinięcia.
+    const candidates = [before, after].map((now) => expectedDays(listOpenSlots({ windows: DAILY_08_22, timeZone: MENTOR_ZONE, now }), 25, VIEWER_ZONE));
+    const expected = candidates.find(
+      (days) => days.length === shown.length && days.every((d, i) => JSON.stringify(d.times.slice(0, PER_DAY)) === JSON.stringify(shown[i].times)),
+    );
+    assert.ok(expected, `widoczne godziny = pierwsze ${PER_DAY} z listOpenSlots dla każdego dnia`);
+    shown.forEach((day, i) => {
+      const hidden = expected[i].times.length - PER_DAY;
+      assert.equal(day.listLabelledBy, day.headingId, "lista godzin nazwana nagłówkiem dnia");
+      if (hidden > 0) {
+        assert.equal(day.times.length, PER_DAY);
+        assert.deepEqual(day.button, { text: `Pokaż więcej (${hidden})`, expanded: "false", controls: day.listId });
+      } else {
+        assert.equal(day.button, null, `${day.label}: bez przycisku`);
+      }
+    });
+    // Jedyne przyciski w sekcji to „Pokaż więcej (k)”; żadnych linków ani innych kontrolek (Z1/F3).
+    const buttons = await section.locator("button").allInnerTexts();
+    assert.ok(buttons.length > 0 && buttons.every((text) => /^Pokaż więcej \(\d+\)$/.test(text.trim())), JSON.stringify(buttons));
+    assert.equal(await section.locator("a, input, select, textarea, [role=link], [role=radio], [tabindex]").count(), 0);
+    assert.equal(await section.getByRole("button").count(), buttons.length);
+
+    // Pełny dzień (drugi — pierwszy może być skrócony 3-godzinnym wyprzedzeniem): rozwinięcie tylko jego.
+    const index = shown.findIndex((day, i) => i > 0 && day.button);
+    const day = shown[index];
+    // Wiele dni ma ten sam napis (np. „Pokaż więcej (22)”) — przycisk tego dnia przez `aria-controls` jego listy.
+    const more = section.locator(`button[aria-controls="${day.listId}"]`);
+    assert.equal(await more.innerText(), day.button.text);
+    await more.click();
+    assert.equal(await more.getAttribute("aria-expanded"), "true");
+    const expanded = await shownDays(tab);
+    assert.deepEqual(expanded[index].times, expected[index].times, "po rozwinięciu wszystkie godziny tego dnia");
+    expanded.forEach((other, i) => {
+      if (i !== index) assert.ok(other.times.length <= PER_DAY, `${other.label}: nadal zwinięty`);
+    });
+    // Zmiana długości zwija wszystkie dni (F3).
+    await tab.getByRole("radio", { name: /50 min/ }).click();
+    const after50 = await shownDays(tab);
+    assert.ok(after50.every((d) => d.times.length <= PER_DAY && (d.button === null || d.button.expanded === "false")));
+  });
+
+  test("klawiatura (Z41): Tab do przełącznika, strzałka w prawo zaznacza 50 min i od razu filtruje listę; w lewo wraca", async () => {
+    const { tab } = await newPage();
+    await tab.goto(`${BASE_URL}/m/${OLGA.slug}`);
+    await tab.getByRole("heading", { level: 2, name: /twoja strefa/ }).waitFor();
+    const r25 = tab.getByRole("radio", { name: /25 min/ });
+    const r50 = tab.getByRole("radio", { name: /50 min/ });
+    // Tab od początku strony aż do grupy radiowej (jeden przystanek: zaznaczona opcja).
+    let onRadio = false;
+    for (let i = 0; i < 10 && !onRadio; i++) {
+      await tab.keyboard.press("Tab");
+      onRadio = await tab.evaluate(() => document.activeElement?.getAttribute("role") === "radio");
+    }
+    assert.ok(onRadio, "Tab dochodzi do przełącznika 25/50");
+    assert.equal(await r25.evaluate((el) => el === document.activeElement), true, "fokus na zaznaczonym 25 min");
+    assert.ok((await shownDays(tab)).flatMap((d) => d.times).includes("18:30"));
+
+    await tab.keyboard.press("ArrowRight");
+    assert.equal(await r50.evaluate((el) => el === document.activeElement), true, "fokus na 50 min");
+    assert.equal(await r50.getAttribute("aria-checked"), "true", "strzałka zaznacza (nie tylko przenosi fokus)");
+    assert.equal(await r25.getAttribute("aria-checked"), "false");
+    assert.ok(!(await shownDays(tab)).flatMap((d) => d.times).includes("18:30"), "lista od razu przefiltrowana do 50 min");
+
+    await tab.keyboard.press("ArrowLeft");
+    assert.equal(await r25.getAttribute("aria-checked"), "true");
+    assert.ok((await shownDays(tab)).flatMap((d) => d.times).includes("18:30"), "z powrotem 25 min");
+  });
+
+  test("telefon 375 px: wiersze godzin zawijają się bez przewijania w poziomie (także po rozwinięciu dnia)", async () => {
+    const { tab } = await newPage({ viewport: { width: 375, height: 812 } });
+    await tab.goto(`${BASE_URL}/m/${DAWID.slug}`);
+    await tab.getByRole("heading", { level: 2, name: /twoja strefa/ }).waitFor();
+    const noHorizontalScroll = () =>
+      tab.evaluate(() => {
+        const section = document.querySelector('section[aria-labelledby="slots-heading"]');
+        return {
+          page: document.documentElement.scrollWidth <= window.innerWidth,
+          section: section ? section.scrollWidth <= section.clientWidth : false,
+          items: [...(section?.querySelectorAll("li") ?? [])].every((li) => li.getBoundingClientRect().right <= window.innerWidth),
+        };
+      });
+    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, items: true });
+    assert.ok((await slotSection(tab).locator("li").count()) > 0);
+    await slotSection(tab).getByRole("button", { name: /^Pokaż więcej/ }).first().click();
+    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, items: true });
   });
 });

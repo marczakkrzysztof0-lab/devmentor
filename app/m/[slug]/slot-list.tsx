@@ -13,9 +13,17 @@
 // Brak strefy w przeglądarce albo strefa, której nie obsługuje formatter → UTC z etykietą „UTC” (DS `SlotList`
 // przez `resolveTimeZone`).
 //
-// Reguła E1 (Z1/F3): żadna godzina nie jest kontrolką — `SlotList selectable={false}` renderuje tekst (bez `a` i
-// `button`). Przełącznik długości to grupa radiowa (DS `LengthToggle`, role="radio"). Grupowanie po dniu z
-// „Pokaż więcej (k)” i strzałki w przełączniku — zadanie 6.2.
+// Nagłówek „Najbliższe terminy (twoja strefa: {strefa})”, przy braku strefy „Najbliższe terminy (czas UTC)”.
+//
+// Grupowanie (F3, zadanie 6.2): DS `SlotList selectable={false}` grupuje po lokalnym dniu WIDZA wspólnym helperem
+// `groupSlotsByDay` (`@devmentor/ui/slots`, ten sam kod w testach `node --test`): dzień raz jako `h3`, godziny jako
+// osobne `li` z datą w tekście, najwyżej 6 na dzień, reszta za „Pokaż więcej (k)” (`aria-expanded`,
+// `aria-controls`) — tylko ten dzień; zmiana 25/50 zwija wszystko. Brak terminów 50 min przy terminach 25 min →
+// „Brak terminów 50 min w najbliższych 14 dniach — wybierz 25 min”.
+//
+// Reguła E1 (Z1/F3): żadna godzina nie jest kontrolką — jedyne przyciski w liście to „Pokaż więcej” (bez `a`).
+// Przełącznik długości to grupa radiowa (DS `LengthToggle`, role="radio"); strzałki przenoszą fokus I zaznaczają,
+// a lista filtruje się od razu (luka D12, Z41 — poprawka w DS `RadioGroup`).
 import { useState, useSyncExternalStore } from "react";
 import { LengthToggle, SlotList, type OpenSlot, type SessionLength } from "@devmentor/ui/product";
 import { SlotSectionMessage, SlotsSkeleton } from "./slot-section-states";

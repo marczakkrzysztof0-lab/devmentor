@@ -2,10 +2,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { ANNA, ANNA_SLOTS, LONG_DESCRIPTION, MANY_SLOTS, NOW, ZONE } from "../../../.storybook/fixtures";
+import { ANNA, ANNA_SLOTS, F3_SLOTS, LONG_DESCRIPTION, MANY_SLOTS, NOW, ONLY_25_SLOTS, ZONE } from "../../../.storybook/fixtures";
 import { narrow } from "../../../.storybook/helpers";
-import type { SessionLength } from "../shared/types";
-import { LengthToggle, MentorDescription, MentorIdentity, MentorNotFound, PriceList, SlotList } from "./SharePage";
+import type { OpenSlot, SessionLength } from "../shared/types";
+import {
+  LengthToggle,
+  MentorDescription,
+  MentorIdentity,
+  MentorNotFound,
+  noSlotsForLengthMessage,
+  PriceList,
+  SlotList,
+} from "./SharePage";
 
 // One file for the share-page building blocks (#16); every block has its data states.
 const meta = {
@@ -66,15 +74,115 @@ export const Prices: Story = {
   },
 };
 
-function ToggleDemo() {
+function ToggleDemo({ slots = ANNA_SLOTS }: { slots?: OpenSlot[] }) {
   const [length, setLength] = useState<SessionLength>(25);
   return (
     <div className="flex flex-col gap-between-groups">
       <LengthToggle price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} value={length} onValueChange={setLength} />
-      <SlotList slots={ANNA_SLOTS} length={length} timeZone={ZONE} now={NOW} />
+      <SlotList slots={slots} length={length} timeZone={ZONE} now={NOW} />
     </div>
   );
 }
+
+/** The slot section (h2 „Najbliższe terminy…” and everything under it). */
+function slotSection(canvasElement: HTMLElement) {
+  const heading = within(canvasElement).getByRole("heading", { level: 2, name: /Najbliższe terminy/ });
+  return heading.closest("section")!;
+}
+
+export const LengthArrowKeys: Story = {
+  name: "LengthToggle · arrow keys select and filter at once (test, D12/Z41)",
+  render: () => <ToggleDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const short = canvas.getByRole("radio", { name: /25 min/ });
+    const long = canvas.getByRole("radio", { name: /50 min/ });
+    await userEvent.click(short);
+    await expect(short).toHaveFocus();
+    await expect(canvas.getAllByText(/19:30/).length).toBeGreaterThan(0);
+    // A quick press, like a person: focus AND selection move; the list filters immediately.
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(long).toHaveFocus();
+    await expect(long).toBeChecked();
+    await expect(canvas.queryByText(/19:30/)).toBeNull();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(short).toHaveFocus();
+    await expect(short).toBeChecked();
+    await expect(canvas.getAllByText(/19:30/).length).toBeGreaterThan(0);
+  },
+};
+
+export const SlotsGroupedF3: Story = {
+  name: "SlotList · by day, 6 per day + „Pokaż więcej (k)” (test, F3: 10 + 2)",
+  render: () => <ToggleDemo slots={F3_SLOTS} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const section = slotSection(canvasElement);
+    const slots = within(section);
+    // Exactly two day headings, each day label once in the whole slot section.
+    const days = slots.getAllByRole("heading", { level: 3 });
+    await expect(days.map((h) => h.textContent)).toEqual(["jutro", "czw. 22.10"]);
+    for (const label of ["jutro", "czw. 22.10"]) await expect(slots.getAllByText(label)).toHaveLength(1);
+    const lists = slots.getAllByRole("list");
+    await expect(lists).toHaveLength(2);
+    await expect(lists[0]).toHaveAccessibleName("jutro");
+    // First day: 6 time items (each its own li, earliest first, the date in text) and „Pokaż więcej (4)”.
+    const firstItems = within(lists[0]).getAllByRole("listitem");
+    await expect(firstItems).toHaveLength(6);
+    await expect(firstItems.map((li) => li.textContent)).toEqual(
+      ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30"].map((time) => `jutro, wtorek 20.10, ${time}`),
+    );
+    await expect(within(lists[1]).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "czwartek 22.10, 18:00",
+      "czwartek 22.10, 18:30",
+    ]);
+    // The only buttons in the slot list are the per-day disclosures; no link, no other control (Z1/F3).
+    const more = slots.getByRole("button", { name: "Pokaż więcej (4)" });
+    await expect(slots.getAllByRole("button")).toEqual([more]);
+    await expect(section.querySelectorAll("a, input, select, textarea, [role=radio], [tabindex]")).toHaveLength(0);
+    await expect(more).toHaveAttribute("aria-expanded", "false");
+    await expect(more.getAttribute("aria-controls")).toBe(lists[0].id);
+    // Expanding shows the rest of THAT day only.
+    await userEvent.click(more);
+    await expect(more).toHaveAttribute("aria-expanded", "true");
+    await expect(within(lists[0]).getAllByRole("listitem")).toHaveLength(10);
+    await expect(within(lists[1]).getAllByRole("listitem")).toHaveLength(2);
+    await expect(more).toHaveFocus();
+    // Changing the length resets the expansion (50 min: 9 on the first day → 6 + „Pokaż więcej (3)”).
+    await userEvent.click(canvas.getByRole("radio", { name: /50 min/ }));
+    const after = within(slotSection(canvasElement));
+    const more50 = after.getByRole("button", { name: "Pokaż więcej (3)" });
+    await expect(more50).toHaveAttribute("aria-expanded", "false");
+    const lists50 = after.getAllByRole("list");
+    await expect(within(lists50[0]).getAllByRole("listitem")).toHaveLength(6);
+    await expect(within(lists50[1]).getAllByRole("listitem")).toHaveLength(1);
+    // Every day label in the slot section is unique.
+    const labels = after.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    await expect(new Set(labels).size).toBe(labels.length);
+  },
+};
+
+export const SlotsGroupedNarrow: Story = {
+  name: "SlotList · by day at 320 px, wraps without horizontal scroll (test)",
+  decorators: [narrow],
+  args: { slots: MANY_SLOTS },
+  play: async ({ canvasElement }) => {
+    const section = slotSection(canvasElement);
+    await expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth);
+    await expect(within(section).getAllByRole("button", { name: /^Pokaż więcej \(\d+\)$/ }).length).toBeGreaterThan(0);
+  },
+};
+
+export const SlotsNoneForLength: Story = {
+  name: "SlotList · 50 min when only 30-minute windows exist (test)",
+  args: { slots: ONLY_25_SLOTS, length: 50 },
+  play: async ({ canvasElement }) => {
+    const section = within(slotSection(canvasElement));
+    await expect(noSlotsForLengthMessage(50)).toBe("Brak terminów 50 min w najbliższych 14 dniach — wybierz 25 min");
+    await expect(section.getByRole("heading", { level: 3 })).toHaveTextContent(noSlotsForLengthMessage(50));
+    await expect(section.queryByText(/\d{2}:\d{2}/)).toBeNull();
+  },
+};
 
 export const LengthFiltersSlots: Story = {
   name: "LengthToggle filters slots (test)",

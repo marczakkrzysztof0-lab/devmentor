@@ -65,10 +65,10 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
 - [x] 5.2 `app/m/[slug]/page.tsx` + not-found + `noindex` + tytuł; testy e2e (kolejność, brak ocen, 404 dla szkicu/nieznanego, `/m` i `/m?search=` → 404).
 
-### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — W TOKU
+### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny
 
 - [x] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
-- [ ] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
+- [x] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
 
 ## Dziennik decyzji implementacyjnych
 
@@ -94,6 +94,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 5): prawdziwy status 404 dla `/m/*` przez `proxy.ts` (lekkie `select 1 … published_at is not null` przed renderem, przepisanie na nieistniejącą ścieżkę → `app/not-found.tsx` z 404 i „Nie ma takiej strony mentora”); `notFound()` w stronie dawał 200 przez powłokę PPR (`cacheComponents`). Odstępstwo od #14 „No proxy.ts” dotyczy tylko statusu 404 stron publicznych — autoryzacja dalej wyłącznie w DAL. Każda odpowiedź `/m/*` ma `X-Robots-Tag: noindex, nofollow`. Nowy polski globalny `app/not-found.tsx` (przez `headers()` `/` i `/_not-found` są teraz ◐).
 - 2026-10-21 (decyzje K. Marczak przez delegację po review fazy 5): odstępstwo `proxy.ts` PRZYJĘTE i dopisane w specyfikacjach #14 (wyjątek od „No proxy.ts”, bez autoryzacji) i #16 (Architecture: 404 pod `cacheComponents`); Minor Codexa (wyścig cofnięcia publikacji między proxy a renderem → miękkie 404) — ryzyko zaakceptowane, wpisane w #16 Risks, bez zmiany kodu.
 - 2026-10-21 (zadanie 6.1): do klienta trafia tylko lista ISO terminów i publiczne ceny (okna, `time_zone`, `mentorId` zostają na serwerze; sprawdzane w HTML i payloadzie RSC). Sekcja terminów ma własny `<Suspense>` i granicę błędu (`catchError` z `next/error`); profil i ceny poza nimi. Czasy renderowane dopiero po hydracji (`useSyncExternalStore`, serwer pokazuje szkielet) — bez niezgodności hydracji i bez mignięcia czasów UTC. Zasada Z1: przełącznik 25/50 to grupa radio (Radix `<button role="radio">`), w liście terminów żadnych `a`/`button`. Nagłówek sekcji bez strefy w stanach pustym/błędu/ładowania (strefa tylko nad listą czasów, D3).
+- 2026-10-21 (zadanie 6.2): grupowanie terminów po dniu we wspólnym module `@devmentor/ui/slots` (`packages/ui/src/lib/slot-days.mjs`, `groupSlotsByDay`) — ten sam kod w DS i w `node --test`; formatery dat przeniesione tam z `format.ts` (re-eksport). `SlotList` (tryb tekstowy): dzień raz jako `h3`, czasy jako `li` z ukrytą datą w tekście, maks. 6 + „Pokaż więcej (k)” (rozwinięty: „Pokaż mniej”), reset po zmianie długości. `RadioGroup` (D12): strzałka przenosi fokus i zaznacza od razu. Pusta lista dla jednej długości: „Brak terminów 50 min w najbliższych 14 dniach — wybierz 25 min”.
 
 ## Otwarte punkty
 
@@ -105,4 +106,5 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - Opis PR (#14) musi zawierać: plan rollbacku (`db:rollback` cofa 0003 i 0002 po kolei, brak danych produkcyjnych), ⚠ Q2–Q4 (potwierdzone, D12), wynik ręcznego przejścia na czas (D08).
 - (faza 4) QA w prawdziwej przeglądarce z wąskim ekranem (`needs-qa`) — nie wykonane; dopasowanie aliasów stref sprawdzone tylko w Chromium. Lista ~420 stref w zwykłym `Select` (bez wyszukiwania; combobox w DS „Not built”). Powód „Maksymalnie 21 okien…” powtarza się przy każdym z 7 przycisków „+ okno”.
 - (faza 5) Dwa zapytania do bazy na wyświetlenie opublikowanej strony (proxy + strona). Wyścig „mentor cofa publikację między proxy a renderem” daje miękkie 404 (200 + noindex). Przy niedziałającej bazie `/m/*` zwraca 500.
+- (faza 6) Reguła F3 (6 + „Pokaż więcej”) dla terminów wybieralnych w formularzu zapytania należy do #17 — nie zrobione. Data w ukrytym tekście każdego terminu powtarza się w czytniku ekranu — do odsłuchu w QA.
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
