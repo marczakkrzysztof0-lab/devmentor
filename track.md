@@ -34,7 +34,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 - [x] 1.1 Narzędzia: `pg` + `node-pg-migrate` (przypięte wersje), `scripts/db-migrate.mjs` (`migrate()` + CLI z `.env.local`, czytelny błąd braku bazy), skrypty `db:migrate` / `db:rollback`, `engines.node >=20.12`, pusty `db/migrations/`; test jednostkowy wrappera z wstrzykniętym runnerem.
 - [x] 1.2 Migracja `0001_mentors_invitations_pages.sql` + `tests/db/migrations.test.mjs` (up → down → up) + `tests/db/schema.test.mjs` (CHECK-i reguł biznesowych) + test harnessu (obcy schemat `test_x` przetrwa sprzątanie).
-- [ ] 1.3 CI (`postgres:17` service, `DATABASE_URL`) + krok migracji w `scripts/setup.mjs` (z ponawianiem połączenia) + test w `tests/setup.test.mjs`.
+- [x] 1.3 CI (`postgres:17` service, `DATABASE_URL`) + krok migracji w `scripts/setup.mjs` (z ponawianiem połączenia) + test w `tests/setup.test.mjs`.
 - [ ] 1.4 Dokumentacja i kontrakty: README (komendy migracji, `db/`, Node ≥ 20.12, `db:rollback` tylko lokalnie/testowo), `BACKWARD_COMPATIBILITY.md` (schemat → „dziś”, nowe skrypty).
 
 ### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1)
