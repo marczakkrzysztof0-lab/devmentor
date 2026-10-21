@@ -40,6 +40,12 @@ export type FormFieldProps = {
   label: ReactNode;
   /** One sentence that helps fill the field, e.g. „Mentor zobaczy tylko imię.” */
   hint?: ReactNode;
+  /**
+   * Where the hint sits: under the control (default) or directly under the label — for a hint that says why
+   * the field exists and should be read before typing (spec #14 F1, „Twoje doświadczenie”). Either way it is
+   * part of the control's accessible description.
+   */
+  hintPlacement?: "control" | "label";
   /** What is wrong and what to do, e.g. „Dodaj link do publicznej pracy”. Shown under the field. */
   error?: ReactNode;
   /** Marks the field „(opcjonalnie)”; otherwise the control gets `required`. */
@@ -52,26 +58,37 @@ export type FormFieldProps = {
 };
 
 /** Label + control + hint + error, wired together for assistive technology. */
-export function FormField({ label, hint, error, optional = false, id, className, children }: FormFieldProps) {
+export function FormField({ label, hint, hintPlacement = "control", error, optional = false, id, className, children }: FormFieldProps) {
   const generated = useId();
   const controlId = id ?? `${generated}-control`;
   const hintId = hint ? `${controlId}-hint` : undefined;
   const errorId = error ? `${controlId}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const hintNode = hint ? (
+    <p id={hintId} className="text-meta text-muted">
+      {hint}
+    </p>
+  ) : null;
+  const labelNode = (
+    <Label htmlFor={controlId} optional={optional}>
+      {label}
+    </Label>
+  );
 
   return (
     <FormFieldContext.Provider value={{ id: controlId, describedBy, invalid: Boolean(error), required: !optional }}>
       <div className={cn("flex flex-col gap-in-group", className)}>
-        <Label htmlFor={controlId} optional={optional}>
-          {label}
-        </Label>
+        {hintPlacement === "label" && hintNode ? (
+          <div className="flex flex-col gap-inline">
+            {labelNode}
+            {hintNode}
+          </div>
+        ) : (
+          labelNode
+        )}
         <div className="flex flex-col gap-inline">
           {children}
-          {hint ? (
-            <p id={hintId} className="text-meta text-muted">
-              {hint}
-            </p>
-          ) : null}
+          {hintPlacement === "control" ? hintNode : null}
           {error ? (
             <p id={errorId} className="flex items-start gap-inline text-meta text-status-danger">
               <CircleAlert aria-hidden="true" className="size-icon-sm shrink-0" />

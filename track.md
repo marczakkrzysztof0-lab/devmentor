@@ -49,7 +49,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 3.1 Migracja `0003_mentor_page_prices` (ceny w groszach, `currency` PLN, nowy CHECK publikacji, strażnik `RAISE` na opublikowanym wierszu) + testy.
 - [x] 3.2 `lib/mentor-page/validate.mjs` + testy jednostkowe (każde brakujące pole nazwane, URL tylko http(s), ceny 20–5000 zł, slug).
 - [x] 3.3 `saveMentorPage` (zapis szkicu / publikacja / edycja po publikacji, slug zablokowany, wyścig o slug, `unauthorized`) + testy z bazą (zakres mentora A/B).
-- [ ] 3.4 Edytor `/mentor`: formularz (F1 podpowiedź opisu, F2 „(zł)” w etykiecie + sufiks), panel linku do udostępnienia (L8/Z9), propozycja sluga z imienia (Z10; luka DS D4), `unauthorized` i brak sieci (D5, Z7, Z28), `shareUrl` po publikacji (D6) + testy (Storybook + e2e).
+- [x] 3.4 Edytor `/mentor`: formularz (F1 podpowiedź opisu, F2 „(zł)” w etykiecie + sufiks), panel linku do udostępnienia (L8/Z9), propozycja sluga z imienia (Z10; luka DS D4), `unauthorized` i brak sieci (D5, Z7, Z28), `shareUrl` po publikacji (D6) + testy (Storybook + e2e).
 - [ ] 3.5 Dokumentacja: README (skrypty mentora, nowe URL-e), `BACKWARD_COMPATIBILITY.md`.
 
 ### Faza 4 — Tygodniowa dostępność i wolne terminy (#15)

@@ -38,9 +38,16 @@ export type MentorPageEditorData = {
   currencyLabel: string;
 };
 
-/** Adres aplikacji (NEXT_PUBLIC_APP_URL) bez końcowego ukośnika. */
+/** Odczyt przez `Reflect.get`: `process.env.NEXT_PUBLIC_*` (także `process.env[stała]`) Next.js wkleja do kodu przy `next build`. */
+const APP_URL_ENV = "NEXT_PUBLIC_APP_URL";
+
+/**
+ * Adres aplikacji (NEXT_PUBLIC_APP_URL) bez końcowego ukośnika — czytany w czasie działania serwera, a nie
+ * wklejony przy buildzie (inaczej serwer uruchomiony z innym adresem, np. e2e na losowym porcie, dawałby
+ * link z adresem z czasu buildu).
+ */
 export function appBaseUrl(): string {
-  const value = (process.env.NEXT_PUBLIC_APP_URL ?? "").trim().replace(/\/+$/, "");
+  const value = String(Reflect.get(process.env, APP_URL_ENV) ?? "").trim().replace(/\/+$/, "");
   if (value === "") throw new Error("Brak NEXT_PUBLIC_APP_URL. Uzupełnij .env.local (wzór w .env.example).");
   return value;
 }

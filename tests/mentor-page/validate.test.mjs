@@ -276,3 +276,15 @@ describe("komunikaty (C12)", () => {
     for (const message of Object.values(MESSAGES)) assert.ok(message.trim().length > 0);
   });
 });
+
+describe("komunikaty serwera = komunikaty DS w przeglądarce (zadanie 3.4)", () => {
+  test("każdy komunikat pola z MESSAGES występuje dosłownie w validateMentorPage z DS", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const source = await readFile(new URL("../../packages/ui/src/product/e01/Mentor.tsx", import.meta.url), "utf8");
+    // slugLocked i slugTaken zna tylko serwer (blokada po publikacji, unikalność w bazie) — DS pokazuje je jako błąd z serwera.
+    const clientSide = ["displayName", "publicWorkUrlMissing", "publicWorkUrlInvalid", "publicWorkUrlTooLong", "description", "price25", "price50", "slug"];
+    for (const key of clientSide) {
+      assert.ok(source.includes(`"${MESSAGES[key]}"`), `${key}: „${MESSAGES[key]}” nie występuje w Mentor.tsx`);
+    }
+  });
+});

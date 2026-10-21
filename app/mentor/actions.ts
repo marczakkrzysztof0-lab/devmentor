@@ -2,6 +2,7 @@
 // Server actions edytora /mentor (spec #14). Każda akcja sama sprawdza sesję (`getCurrentMentor()`), bo
 // server action jest osiągalna bezpośrednim POST-em (data-security.md); id mentora nigdy nie przychodzi
 // z klienta.
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { signOutCurrentMentor } from "@/lib/auth/session";
 import { saveCurrentMentorPage, type SaveMentorPageActionResult } from "@/lib/mentor-page/editor";
@@ -24,5 +25,10 @@ export async function signOutAction(): Promise<void> {
 export async function saveMentorPageAction(values: unknown, options: unknown): Promise<SaveMentorPageActionResult> {
   const publish =
     options !== null && typeof options === "object" && (options as { publish?: unknown }).publish === true;
-  return saveCurrentMentorPage(values, publish);
+  const result = await saveCurrentMentorPage(values, publish);
+  // Dane strony nie są w cache (odczyt w czasie żądania), więc wg server-actions.md wystarcza `refresh()`:
+  // odpowiedź akcji niesie świeży RSC payload /mentor (published, shareUrl), a router klienta nie trzyma
+  // starej wersji przy powrocie na stronę. Tylko po udanym zapisie — przy błędzie nic się nie zmieniło.
+  if (result.ok) refresh();
+  return result;
 }

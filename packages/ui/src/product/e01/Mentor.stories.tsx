@@ -6,10 +6,12 @@ import { narrow } from "../../../.storybook/helpers";
 import {
   AccessMessage,
   AvailabilityEditor,
+  DESCRIPTION_HINT,
   InvitationPanel,
   MentorNav,
   MentorPageForm,
   NoAvailabilityNotice,
+  SESSION_EXPIRED_MESSAGE,
   ShareLinkPanel,
   SlotPreview,
   type AvailabilityWindow,
@@ -176,6 +178,7 @@ export const EditorPublishSuccess: Story = {
     await expect(link).toHaveValue(SHARE_URL);
     await waitFor(() => expect(link).toHaveFocus());
     await expect(canvas.getByRole("textbox", { name: "Adres strony" })).toHaveAttribute("readonly");
+    await expect(canvas.getByRole("textbox", { name: "Adres strony" })).toHaveAccessibleDescription(`Pełny link: ${SHARE_URL}. Adresu nie można zmienić po publikacji.`);
   },
 };
 export const EditorFieldErrors: Story = {
@@ -188,6 +191,10 @@ export const EditorFieldErrors: Story = {
     await waitFor(() => expect(url).toHaveFocus());
     await expect(url).toHaveAccessibleDescription(/Dodaj link do publicznej pracy/);
     await expect(canvas.getByRole("textbox", { name: "Imię i nazwisko" })).toHaveValue("Anna K.");
+    // A fixed value clears its error while typing (no layout shift on the way to the button).
+    await userEvent.type(url, "https://github.com/annak");
+    await expect(url).not.toHaveAccessibleDescription(/Dodaj link/);
+    await expect(url).toHaveFocus();
   },
 };
 export const EditorSlugTaken: Story = {
@@ -234,7 +241,7 @@ export const EditorNetwork: Story = {
 };
 export const EditorPublished: Story = {
   name: "MentorPageForm · published (edit, slug locked)",
-  render: () => <div className="p-page-gutter"><MentorPageForm initial={FILLED} published baseUrl="http://localhost:3000" action={ok} /></div>,
+  render: () => <div className="p-page-gutter"><MentorPageForm initial={FILLED} published shareUrl={SHARE_URL} baseUrl="http://localhost:3000" action={ok} /></div>,
 };
 export const EditorSlugSuggestion: Story = {
   name: "MentorPageForm · link suggested from the name (test)",
@@ -251,8 +258,165 @@ export const EditorNarrow: Story = {
   render: () => <MentorPageForm initial={FILLED} baseUrl="http://localhost:3000" action={ok} />,
 };
 
+/* ------------------------------------------ editor: task 3.4 (D4, D5, D6, F1, F2) */
+const PLACEHOLDER: MentorPageValues = { ...EMPTY, slug: "mentor-k3x7qa" };
+/** Second-person past forms with a gender (C12): „zrobiłeś”, „byłaś”… — „jesteś” is neutral. */
+const GENDERED_WORD = /(?<!\p{L})\p{L}*(?:łeś|łaś|eś|aś)(?!\p{L})/giu;
+const gendered = (text: string) => [...text.matchAll(GENDERED_WORD)].map((m) => m[0]).filter((w) => w.toLowerCase() !== "jesteś");
+const unauthorized = fn(async () => ({ ok: false as const, reason: "unauthorized" as const }));
+
+export const EditorLabelsAndHints: Story = {
+  name: "MentorPageForm · six labelled fields, F1 hint, F2 prices in zł, nothing about payouts (test)",
+  render: () => <div className="p-page-gutter"><MentorPageForm initial={PLACEHOLDER} slugIsPlaceholder baseUrl="http://localhost:3000" action={ok} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // W1/Z23: every field has a programmatic label; the public-work field is exactly „Link do publicznej pracy”.
+    for (const label of ["Imię i nazwisko", "Link do publicznej pracy", "Twoje doświadczenie", "Cena za 25 min (zł)", "Cena za 50 min (zł)", "Adres strony"]) {
+      await expect(canvas.getByLabelText(label)).toBeVisible();
+    }
+    await expect(canvas.getAllByRole("textbox")).toHaveLength(6);
+    // F1: the hint is visible, sits between the label and the field, and is the field's description.
+    const description = canvas.getByLabelText("Twoje doświadczenie");
+    await expect(description).toHaveAccessibleDescription(/zamiast ocen/);
+    await expect(description).toHaveAccessibleDescription(/np\./);
+    await expect(description).toHaveAccessibleDescription(DESCRIPTION_HINT);
+    const hint = canvas.getByText(DESCRIPTION_HINT);
+    await expect(hint).toBeVisible();
+    await expect(canvas.getByText("Twoje doświadczenie").compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(hint.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // F2: currency in the label, a visible „zł” inside each field (not sr-only) that is part of the description.
+    for (const label of ["Cena za 25 min (zł)", "Cena za 50 min (zł)"]) {
+      const input = canvas.getByLabelText(label);
+      const suffix = within(input.parentElement as HTMLElement).getByText("zł");
+      await expect(suffix).toBeVisible();
+      await expect(suffix).not.toHaveClass("sr-only");
+      await expect(input).toHaveAccessibleDescription(/zł/);
+      await expect(input).toHaveAccessibleDescription(/Tyle zapłaci deweloper\./);
+    }
+    // R13, N02, Z36: no payout, bank, tax or rating fields or words; C12: no gendered forms.
+    const text = canvasElement.textContent ?? "";
+    await expect(text).not.toMatch(/wypłat|bank|konto|IBAN|podat|NIP|ocen[aęy]\b|gwiazd|opini/i);
+    await expect(gendered(text)).toEqual([]);
+  },
+};
+
+export const EditorPlaceholderSlug: Story = {
+  name: "MentorPageForm · placeholder slug: the name suggestion overwrites it until a manual edit (test, D4)",
+  render: () => <div className="p-page-gutter"><MentorPageForm initial={PLACEHOLDER} slugIsPlaceholder baseUrl="http://localhost:3000" action={ok} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const name = canvas.getByLabelText("Imię i nazwisko");
+    const slug = canvas.getByLabelText("Adres strony");
+    await expect(slug).toHaveValue("mentor-k3x7qa");
+    await expect(slug).toHaveAccessibleDescription(/http:\/\/localhost:3000\/m\/mentor-k3x7qa/);
+    await userEvent.type(name, "A");
+    await expect(slug).toHaveValue("mentor-k3x7qa"); // „a” is not an address yet: the placeholder stays
+    await userEvent.type(name, "nna K.");
+    await expect(slug).toHaveValue("anna-k");
+    await expect(slug).toHaveAccessibleDescription(/http:\/\/localhost:3000\/m\/anna-k/);
+    await userEvent.clear(slug);
+    await userEvent.type(slug, "anna-dev");
+    await userEvent.type(name, "owalska");
+    await expect(slug).toHaveValue("anna-dev");
+  },
+};
+
+export const EditorUnauthorized: Story = {
+  name: "MentorPageForm · session expired on save: alert, input kept, no redirect (test, D5)",
+  render: () => <div className="p-page-gutter"><MentorPageForm initial={FILLED} baseUrl="http://localhost:3000" action={unauthorized} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.clear(canvas.getByLabelText("Twoje doświadczenie"));
+    await userEvent.type(canvas.getByLabelText("Twoje doświadczenie"), "Nowy opis.");
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    const alert = await canvas.findByRole("alert");
+    await expect(alert).toHaveTextContent(SESSION_EXPIRED_MESSAGE);
+    await expect(canvas.getByLabelText("Twoje doświadczenie")).toHaveValue("Nowy opis.");
+    await expect(canvas.getByLabelText("Imię i nazwisko")).toHaveValue("Anna K.");
+    await expect(canvas.getByRole("button", { name: "Opublikuj stronę" })).toBeVisible();
+    await expect(canvas.queryByRole("textbox", { name: "Twój link" })).toBeNull();
+  },
+};
+
+export const EditorServerFieldErrors: Story = {
+  name: "MentorPageForm · server field errors inline, focus on the first (test)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm
+        initial={FILLED}
+        baseUrl="http://localhost:3000"
+        action={async () => ({ ok: false as const, errors: { publicWorkUrl: "Dodaj link do publicznej pracy", description: "Opisz swoje doświadczenie (do 2000 znaków)" } })}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    const url = canvas.getByLabelText("Link do publicznej pracy");
+    await waitFor(() => expect(url).toHaveFocus());
+    await expect(url).toHaveAccessibleDescription(/Dodaj link do publicznej pracy/);
+    await expect(canvas.getByLabelText("Twoje doświadczenie")).toHaveAccessibleDescription(/Opisz swoje doświadczenie/);
+    await expect(canvas.getByLabelText("Twoje doświadczenie")).toHaveValue(ANNA.description);
+  },
+};
+
+export const EditorPriceMessages: Story = {
+  name: "MentorPageForm · price errors name the length, as on the server (test)",
+  render: () => <div className="p-page-gutter"><MentorPageForm initial={{ ...FILLED, price25: "10", price50: "150,50" }} baseUrl="http://localhost:3000" action={ok} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    const price25 = canvas.getByLabelText("Cena za 25 min (zł)");
+    await waitFor(() => expect(price25).toHaveFocus());
+    await expect(price25).toHaveAccessibleDescription(/Podaj cenę za 25 min od 20 do 5000 zł, bez groszy/);
+    await expect(canvas.getByLabelText("Cena za 50 min (zł)")).toHaveAccessibleDescription(/Podaj cenę za 50 min od 20 do 5000 zł, bez groszy/);
+  },
+};
+
+export const EditorPublishedVisit: Story = {
+  name: "MentorPageForm · published page, later visit: share panel without focus, slug locked (test, D6)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={FILLED} published shareUrl={SHARE_URL} baseUrl="http://localhost:3000" action={ok} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole("textbox", { name: "Twój link" });
+    await expect(link).toHaveValue(SHARE_URL);
+    await expect(link).toHaveAccessibleDescription("Wklej go tam, gdzie ludzie już cię pytają.");
+    await expect(canvas.getByRole("button", { name: "Kopiuj link" })).toBeVisible();
+    await expect(link).not.toHaveFocus();
+    await expect(canvasElement.contains(document.activeElement)).toBe(false);
+    // Share panel above the form.
+    const form = canvasElement.querySelector("form") as HTMLFormElement;
+    await expect(link.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const slug = canvas.getByLabelText("Adres strony");
+    await expect(slug).toHaveAttribute("readonly");
+    await expect(slug).toHaveAccessibleDescription(`Pełny link: ${SHARE_URL}. Adresu nie można zmienić po publikacji.`);
+    await expect(canvas.getByRole("button", { name: "Zapisz zmiany" })).toBeVisible();
+    await expect(canvas.queryByRole("button", { name: "Zapisz szkic" })).toBeNull();
+  },
+};
+
+export const EditorPublishedSave: Story = {
+  name: "MentorPageForm · published page, save changes: panel stays, focus stays (test)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={FILLED} published shareUrl={SHARE_URL} baseUrl="http://localhost:3000" action={ok} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const button = canvas.getByRole("button", { name: "Zapisz zmiany" });
+    await userEvent.click(button);
+    await expect(await canvas.findByText("Zmiany są już na twojej stronie — link się nie zmienił")).toBeVisible();
+    await expect(canvas.getByRole("textbox", { name: "Twój link" })).not.toHaveFocus();
+  },
+};
+
 /* ---------------------------------------------------- share link, notice */
-export const ShareLink: Story = { name: "ShareLinkPanel", render: () => <div className="p-page-gutter max-w-text"><ShareLinkPanel shareUrl={SHARE_URL} /></div> };
+export const ShareLink: Story = { name: "ShareLinkPanel · right after publishing (focus on the link)", render: () => <div className="p-page-gutter max-w-text"><ShareLinkPanel shareUrl={SHARE_URL} /></div> };
 export const NoAvailability: Story = { name: "NoAvailabilityNotice", render: () => <div className="p-page-gutter max-w-text"><NoAvailabilityNotice /></div> };
 
 /* -------------------------------------------------------- availability */

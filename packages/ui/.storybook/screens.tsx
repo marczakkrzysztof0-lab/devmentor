@@ -4,6 +4,7 @@
 import type { Decorator } from "@storybook/react-vite";
 import { fn } from "storybook/test";
 
+import { Skeleton } from "../src/components/skeleton/Skeleton";
 import { StateMessage } from "../src/components/state-message/StateMessage";
 import {
   AccessMessage,
@@ -89,7 +90,8 @@ export function NoSessionScreen() {
   );
 }
 
-const EMPTY_PAGE: MentorPageValues = { displayName: "", publicWorkUrl: "", description: "", price25: "", price50: "", slug: "" };
+/** First visit: empty draft with the random placeholder slug given at acceptance (spec #14 Q6). */
+const EMPTY_PAGE: MentorPageValues = { displayName: "", publicWorkUrl: "", description: "", price25: "", price50: "", slug: "mentor-k3x7qa" };
 const ANNA_PAGE: MentorPageValues = {
   displayName: ANNA.displayName,
   publicWorkUrl: ANNA.publicWorkUrl,
@@ -102,13 +104,32 @@ const ANNA_PAGE: MentorPageValues = {
 export function EditorScreen({
   state,
 }: {
-  state: "first-visit" | "filled-draft" | "published-no-availability" | "published" | "slug-taken" | "server-error" | "network" | "publishing";
+  state:
+    | "loading"
+    | "first-visit"
+    | "filled-draft"
+    | "published-no-availability"
+    | "published"
+    | "slug-taken"
+    | "server-error"
+    | "network"
+    | "session-expired"
+    | "publishing";
 }) {
+  // The app wraps the whole page in <Suspense>; the fallback is its own PageLayout (gap D9).
+  if (state === "loading")
+    return (
+      <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} />}>
+        <Skeleton label="Wczytywanie strony" lines={6} className="max-w-text" />
+      </PageLayout>
+    );
   const action: (v: MentorPageValues, o: { publish: boolean }) => Promise<SaveMentorPageResult> =
     state === "slug-taken"
       ? async () => ({ ok: false, errors: { slug: "Ten adres jest zajęty" } })
       : state === "server-error"
         ? async () => ({ ok: false, code: "server_error" })
+        : state === "session-expired"
+          ? async () => ({ ok: false, reason: "unauthorized" })
         : state === "network"
           ? async () => {
               throw new TypeError("Failed to fetch");
@@ -123,7 +144,15 @@ export function EditorScreen({
   return (
     <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={async () => {}} />}>
       {state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : null}
-      <MentorPageForm initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE} published={published} baseUrl="http://localhost:3000" action={action} />
+      <MentorPageForm
+        initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE}
+        slugIsPlaceholder={state === "first-visit"}
+        published={published}
+        shareUrl={published ? SHARE_URL : null}
+        baseUrl="http://localhost:3000"
+        currencyLabel="zł"
+        action={action}
+      />
     </PageLayout>
   );
 }

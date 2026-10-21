@@ -59,6 +59,13 @@ export const S2Inactive: Story = { name: "S2 Sign-in · inactive link", render: 
 export const S3NoSession: Story = { name: "S3 /mentor · no session (invitation only)", render: () => <NoSessionScreen /> };
 
 /* S4 /mentor editor */
+export const S4Loading: Story = {
+  name: "S4 Editor · loading (Suspense fallback, D9)",
+  render: () => <EditorScreen state="loading" />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("status")).toHaveTextContent("Wczytywanie strony");
+  },
+};
 export const S4FirstVisit: Story = {
   name: "S4 Editor · first visit (test: E01 nav without „Zapytania”)",
   render: () => <EditorScreen state="first-visit" />,
@@ -67,6 +74,12 @@ export const S4FirstVisit: Story = {
     await expect(nav.getByRole("link", { name: "Strona" })).toHaveAttribute("aria-current", "page");
     await expect(nav.queryByRole("link", { name: "Zapytania" })).toBeNull();
     await expect(nav.getByRole("button", { name: "Wyloguj" })).toBeVisible();
+    // Placeholder slug shown; the name suggestion replaces it (D4, L9, Z10).
+    const canvas = within(canvasElement);
+    const slug = canvas.getByLabelText("Adres strony");
+    await expect(slug).toHaveValue("mentor-k3x7qa");
+    await userEvent.type(canvas.getByLabelText("Imię i nazwisko"), "Anna K.");
+    await expect(slug).toHaveValue("anna-k");
   },
 };
 export const S4Publish: Story = {
@@ -110,7 +123,26 @@ export const S4Network: Story = {
     await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
   },
 };
-export const S4Published: Story = { name: "S4 Editor · published, editing", render: () => <EditorScreen state="published" /> };
+export const S4SessionExpired: Story = {
+  name: "S4 Editor · session expired on save (L6, Z7)",
+  render: () => <EditorScreen state="session-expired" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Opublikuj stronę" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent("Sesja wygasła — poproś zespół o link do logowania");
+    await expect(canvas.getByLabelText("Imię i nazwisko")).toHaveValue("Anna K.");
+  },
+};
+export const S4Published: Story = {
+  name: "S4 Editor · published, editing (share panel without focus, L8, Z9)",
+  render: () => <EditorScreen state="published" />,
+  play: async ({ canvasElement }) => {
+    const link = within(canvasElement).getByRole("textbox", { name: "Twój link" });
+    await expect(link).toHaveValue("http://localhost:3000/m/anna-k");
+    await expect(link).not.toHaveFocus();
+    await expect(within(canvasElement).getByLabelText("Adres strony")).toHaveAttribute("readonly");
+  },
+};
 export const S4NoAvailability: Story = { name: "S4 Editor · published, no availability", render: () => <EditorScreen state="published-no-availability" /> };
 export const S4Narrow: Story = { name: "S4 Editor · 320 px", decorators: [narrow], render: () => <EditorScreen state="published" /> };
 
