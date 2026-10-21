@@ -1,4 +1,6 @@
 // Ograniczenia bazy kodujące reguły biznesowe (spec #23, Data Model; migracja 0001).
+// Schemat jest zmigrowany do najnowszej wersji, więc „komplet” zawiera też ceny wymagane od 0003
+// (testy cen i waluty: tests/db/prices-schema.test.mjs).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
@@ -19,6 +21,8 @@ const complete = {
   display_name: "Ala Kowalska",
   public_work_url: "https://github.com/ala",
   description: "Pomagam w code review i architekturze frontendu.",
+  price_25_minor: 15000,
+  price_50_minor: 28000,
 };
 
 describeDb("schemat 0001: mentors, invitations, mentor_pages", (db) => {
@@ -33,13 +37,25 @@ describeDb("schemat 0001: mentors, invitations, mentor_pages", (db) => {
       display_name: null,
       public_work_url: null,
       description: null,
+      price_25_minor: null,
+      price_50_minor: null,
       published_at: null,
       ...fields,
     };
     const { rows } = await db.query(
-      `insert into mentor_pages (mentor_id, slug, display_name, public_work_url, description, published_at)
-       values ($1, $2, $3, $4, $5, $6) returning id`,
-      [mentorId, page.slug, page.display_name, page.public_work_url, page.description, page.published_at],
+      `insert into mentor_pages
+         (mentor_id, slug, display_name, public_work_url, description, price_25_minor, price_50_minor, published_at)
+       values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+      [
+        mentorId,
+        page.slug,
+        page.display_name,
+        page.public_work_url,
+        page.description,
+        page.price_25_minor,
+        page.price_50_minor,
+        page.published_at,
+      ],
     );
     return rows[0].id;
   }
