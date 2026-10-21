@@ -62,7 +62,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 ### Faza 5 — Publiczna strona mentora: profil i ceny (#16, Phase 1) — W TOKU
 
-- [ ] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
+- [x] 5.1 `lib/mentor-page/public` — `getPublishedPageBySlug` (tylko `mentor_pages`, allowlista kluczy) + testy z bazą.
 - [ ] 5.2 `app/m/[slug]/page.tsx` + not-found + `noindex` + tytuł; testy e2e (kolejność, brak ocen, 404 dla szkicu/nieznanego, `/m` i `/m?search=` → 404).
 
 ### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2)
