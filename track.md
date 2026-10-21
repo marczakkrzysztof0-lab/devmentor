@@ -70,6 +70,14 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
 - [x] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
 
+## Podsumowanie Epiku 01 (2026-10-21)
+
+- 6 faz, 22 zadania + poprawki po review; wszystkie zadania [x]. Specyfikacje #23, #14 (fazy 1–2), #15, #16 (fazy 1–2) zaimplementowane.
+- Migracje 0001–0004; trasy: `/invite/[token]`, `/sign-in/[token]`, `/mentor`, `/mentor/availability`, `/m/[slug]` (+ `proxy.ts` dla 404 `/m/*`); CLI `mentor:invite`, `mentor:sign-in-link`; skrypty `db:migrate`, `db:rollback`, `test:e2e`.
+- Siatka na koniec: `npm test` 402, `npm run test:e2e` 57, `npm run test:storybook` 370 — wszystko zielone; tsc (app + ui), lint, check:tokens, build OK.
+- Luki DS zamknięte: D1–D8, D11, D12 (+ F1–F3); otwarte: D9 (część S2), D10.
+- Dalej poza tym planem: E02 (#17 formularz zapytania — w tym F3 dla terminów wybieralnych i `busy`), CI dla e2e, QA `needs-qa`, PR-y z planem rollbacku.
+
 ## Dziennik decyzji implementacyjnych
 
 - 2026-10-21: plan 6 faz zgodnie z Phasing specyfikacji i kolejnością podaną przez Krzysztofa (#23 → #14 → #15 → #16). Strona `/m/{slug}` dostępna dopiero od fazy 5 — do tego czasu link do udostępnienia prowadzi do 404 (zgodnie z „release gate” w #14 i #16).
