@@ -29,16 +29,16 @@ export type AvailabilityPreviewSlot = { startsAt: string; lengthMinutes: Session
 
 /**
  * Wynik zapisu dla klienta (spec #15 API Contracts; `unauthorized` = L6/Z7). Przypisywalny do DS
- * `SaveAvailabilityResult` (`{ ok: true; preview } | { ok: false }`); `errors` i `reason` DS jeszcze nie
- * pokazuje (luka D5, część dostępności — zadanie 4.5). Klucze `errors`: `timeZone`, `windows` (cały zestaw,
- * np. „Maksymalnie 21 okien w tygodniu”), `windows.<i>` (okno o indeksie i w wysłanej liście).
+ * `SaveAvailabilityResult` (luka D5 zamknięta w zadaniu 4.5): klucze `errors` — `timeZone` (przy polu strefy),
+ * `windows` (cały zestaw, np. „Maksymalnie 21 okien w tygodniu”, pod listą), `windows.<i>` (okno o indeksie i
+ * w wysłanej liście, przy jego wierszu).
  */
 export type SaveAvailabilityActionResult =
   | { ok: true; preview: AvailabilityPreviewSlot[] }
   | { ok: false; errors: AvailabilityErrors }
   | { ok: false; reason: "unauthorized" };
 
-/** Dane startowe edytora dostępności (dla `AvailabilityEditor`, zadanie 4.5). */
+/** Dane startowe edytora dostępności (dla `AvailabilityEditor`). */
 export type AvailabilityEditorData = {
   /** Zapisana strefa (kanoniczna) albo `null`, gdy mentor jeszcze nie zapisał dostępności (prefill z przeglądarki, Z16). */
   timeZone: string | null;

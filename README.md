@@ -2,7 +2,7 @@
 
 Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zamiast nauczycieli języków są tu doświadczeni developerzy. Prowadzą sesje 1:1, code review, przygotowanie do rozmów rekrutacyjnych i pomagają przy wyborze ścieżki kariery.
 
-> **Status:** początkowy etap. Działają: zaproszenia mentorów, linki logowania, sesje oraz edytor i publikacja strony mentora (`/mentor`). Publiczna strona mentora `/m/{slug}` i dostępność (kalendarz) są dopiero w drodze, a reszta marketplace'u jest planowana.
+> **Status:** początkowy etap. Działają: zaproszenia mentorów, linki logowania, sesje, edytor i publikacja strony mentora (`/mentor`) oraz tygodniowa dostępność (`/mentor/availability`). Publiczna strona mentora `/m/{slug}` jest dopiero w drodze, a reszta marketplace'u jest planowana.
 
 ## Spis treści
 
@@ -220,7 +220,8 @@ npm run mentor:invite -- --help                   # pomoc
 |-------|------------|
 | `/invite/[token]` | Przyjęcie zaproszenia: zakłada konto mentora i loguje. Samo otwarcie linku niczego nie zużywa. |
 | `/sign-in/[token]` | Logowanie jednorazowym linkiem. Samo otwarcie linku niczego nie zużywa. |
-| `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia. Nawigacja: „Strona” i „Wyloguj”. |
+| `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia; baner „Nie masz dostępności”, gdy brak okien. Nawigacja: „Strona”, „Dostępność” i „Wyloguj”. |
+| `/mentor/availability` | Tygodniowe okna dostępności w strefie mentora (strefa z przeglądarki przy pierwszej wizycie), podgląd 10 najbliższych terminów. |
 | `/m/[slug]` | Link do udostępnienia (publiczna strona mentora). Slug jest stały po publikacji. Strona będzie działać od fazy 5 (#16). |
 
 ## Skrypty npm

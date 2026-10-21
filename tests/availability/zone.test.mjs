@@ -108,3 +108,32 @@ describe("zonedWallTimeLowerBound (koniec okna)", () => {
     assert.equal(new Date(zonedWallTimeLowerBound(2026, 10, 25, 150, "Europe/Warsaw")).toISOString(), "2026-10-25T00:30:00.000Z");
   });
 });
+
+describe("timeZoneOptions (lista wyboru edytora, zadanie 4.5)", async () => {
+  const { timeZoneOptions } = await import("../../lib/availability/zone.mjs");
+
+  test("zawiera dokładnie nazwy przyjmowane przez serwer bez zmiany (Intl.supportedValuesOf + UTC)", () => {
+    const values = timeZoneOptions().flatMap((group) => group.options.map((option) => option.value));
+    assert.equal(new Set(values).size, values.length, "bez duplikatów");
+    assert.deepEqual([...values].sort(), [...Intl.supportedValuesOf("timeZone"), "UTC"].sort());
+    for (const value of values) assert.equal(canonicalTimeZone(value), value, value);
+  });
+
+  test("grupy po regionie z polskimi nazwami; Europe/Warsaw w „Europa”, UTC w „Inne”", () => {
+    const groups = timeZoneOptions();
+    assert.equal(groups[0].label, "Europa");
+    const europe = groups.find((group) => group.label === "Europa");
+    assert.ok(europe.options.some((option) => option.value === "Europe/Warsaw" && option.label === "Europe/Warsaw"));
+    const other = groups.find((group) => group.label === "Inne");
+    assert.ok(other.options.some((option) => option.value === "UTC"));
+    const ny = groups.find((group) => group.label === "Ameryka").options.find((option) => option.value === "America/New_York");
+    assert.equal(ny.label, "America/New York");
+  });
+
+  test("strefa z przeglądarki (także alias) po kanonizacji jest opcją listy", () => {
+    const values = new Set(timeZoneOptions().flatMap((group) => group.options.map((option) => option.value)));
+    for (const browserZone of ["Europe/Warsaw", "America/New_York", "Europe/Kyiv", "Asia/Kolkata", "Etc/UTC"]) {
+      assert.ok(values.has(resolveMentorTimeZone(browserZone)), browserZone);
+    }
+  });
+});

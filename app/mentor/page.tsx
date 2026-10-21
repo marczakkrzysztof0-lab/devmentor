@@ -3,13 +3,17 @@
 // zaproszenie…”, bez formularza, bez danych, bez rejestracji. Odczyt sesji i strony za <Suspense>
 // (cacheComponents) — granica obejmuje cały PageLayout, fallback ma własny PageLayout.
 //
-// Nawigacja E01 (L7, L10, Z8, Z11): bez „Zapytania” i bez licznika. „Dostępność” dojdzie razem ze stroną
-// /mentor/availability (#15, faza 4) — do tego czasu tylko „Strona” i „Wyloguj”. Bez wzmianki o wypłatach (Z36).
+// Nawigacja E01 (L7, L10, Z8, Z11): „Strona”, „Dostępność”, „Wyloguj” — bez „Zapytania” i bez licznika.
+// Bez wzmianki o wypłatach (Z36).
+//
+// Baner „Nie masz dostępności — nikt nie może wybrać terminu” (#15 story 3), gdy mentor nie ma żadnego okna —
+// także na szkicu przy pierwszej wizycie (L20, Z21). Kolejność w DOM (P4, Z40): nagłówek → baner → panel linku
+// → formularz; z oknami banera nie ma i panel linku jest pierwszy (`MentorPageForm notice`).
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { Skeleton } from "@devmentor/ui";
-import { AccessMessage, MentorNav, MentorPageForm, PageLayout } from "@devmentor/ui/product";
+import { AccessMessage, MentorNav, MentorPageForm, NoAvailabilityNotice, PageLayout } from "@devmentor/ui/product";
 import { loadMentorPageEditor } from "@/lib/mentor-page/editor";
 import { saveMentorPageAction, signOutAction } from "./actions";
 
@@ -46,7 +50,7 @@ async function MentorArea() {
     );
   }
   return (
-    <PageLayout nav={<MentorNav current="page" sections={["page"]} signOutAction={signOutAction} />}>
+    <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={signOutAction} />}>
       <MentorPageForm
         initial={editor.initial}
         published={editor.published}
@@ -54,6 +58,7 @@ async function MentorArea() {
         shareUrl={editor.shareUrl}
         baseUrl={editor.baseUrl}
         currencyLabel={editor.currencyLabel}
+        notice={editor.hasWindows ? undefined : <NoAvailabilityNotice />}
         action={saveMentorPageAction}
       />
     </PageLayout>

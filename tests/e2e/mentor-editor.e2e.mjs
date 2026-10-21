@@ -183,7 +183,7 @@ describe("mentor: edytor strony /mentor", { skip }, () => {
     assert.deepEqual(found, []);
     assert.equal(await page.getByRole("link", { name: /Zapytania|zapyta/ }).count(), 0);
     const nav = page.getByRole("navigation", { name: "Panel mentora" });
-    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Strona"]);
+    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Strona", "Dostępność"]);
     assert.equal(await nav.getByRole("button", { name: "Wyloguj" }).count(), 1);
     // Tylko pola treści — żadnych pól wypłaty, banku, podatku, ocen.
     const names = await page.locator("main input[name], main textarea[name], main select[name]").evaluateAll((els) => els.map((el) => el.getAttribute("name")));

@@ -6,6 +6,7 @@
 import "server-only";
 import { getCurrentMentor } from "@/lib/auth/session";
 import { getPool } from "@/lib/db";
+import { hasAvailabilityWindows } from "@/lib/availability/queries.mjs";
 import {
   getMentorPageForEditor,
   saveMentorPageForSession,
@@ -36,6 +37,11 @@ export type MentorPageEditorData = {
   /** Kod waluty z `mentor_pages.currency` i jej etykieta („zł”) do etykiet i sufiksu cen (F2). */
   currency: string;
   currencyLabel: string;
+  /**
+   * Czy mentor ma jakiekolwiek okno dostępności (#15 story 3). `false` → baner „Nie masz dostępności” nad
+   * panelem linku — także na szkicu przy pierwszej wizycie (L20/Z21, P4/Z40).
+   */
+  hasWindows: boolean;
 };
 
 /** Odczyt przez `Reflect.get`: `process.env.NEXT_PUBLIC_*` (także `process.env[stała]`) Next.js wkleja do kodu przy `next build`. */
@@ -59,7 +65,11 @@ export function appBaseUrl(): string {
 export async function loadMentorPageEditor(): Promise<MentorPageEditorData | null> {
   const mentor = await getCurrentMentor();
   if (!mentor) return null;
-  const page = await getMentorPageForEditor({ db: getPool(), mentorId: mentor.mentorId });
+  const db = getPool();
+  const [page, hasWindows] = await Promise.all([
+    getMentorPageForEditor({ db, mentorId: mentor.mentorId }),
+    hasAvailabilityWindows({ db, mentorId: mentor.mentorId }),
+  ]);
   if (!page) throw new Error("Brak strony mentora dla bieżącej sesji.");
   const baseUrl = appBaseUrl();
   const published = page.publishedAt !== null;
@@ -71,6 +81,7 @@ export async function loadMentorPageEditor(): Promise<MentorPageEditorData | nul
     baseUrl,
     currency: page.currency,
     currencyLabel: currencyLabel(page.currency),
+    hasWindows,
   };
 }
 

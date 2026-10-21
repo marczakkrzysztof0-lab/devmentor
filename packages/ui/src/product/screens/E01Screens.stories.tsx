@@ -143,19 +143,77 @@ export const S4Published: Story = {
     await expect(within(canvasElement).getByLabelText("Adres strony")).toHaveAttribute("readonly");
   },
 };
-export const S4NoAvailability: Story = { name: "S4 Editor · published, no availability", render: () => <EditorScreen state="published-no-availability" /> };
+export const S4NoAvailability: Story = {
+  name: "S4 Editor · published, no availability: notice above the share panel (test, Z40)",
+  render: () => <EditorScreen state="published-no-availability" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const notice = canvas.getByText("Nie masz dostępności — nikt nie może wybrać terminu");
+    const link = canvas.getByRole("textbox", { name: "Twój link" });
+    await expect(notice.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(within(canvas.getByRole("main")).getByRole("heading", { level: 1 })).toHaveTextContent("Twoja strona");
+  },
+};
 export const S4Narrow: Story = { name: "S4 Editor · 320 px", decorators: [narrow], render: () => <EditorScreen state="published" /> };
 
 /* S5 /mentor/availability */
+export const S5Loading: Story = {
+  name: "S5 Availability · loading (Suspense fallback, D9)",
+  render: () => <AvailabilityScreen state="loading" />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("status")).toHaveTextContent("Wczytywanie dostępności");
+  },
+};
+export const S5FirstVisit: Story = {
+  name: "S5 Availability · first visit: zone from the browser, banner once (test, Z16, D11)",
+  render: () => <AvailabilityScreen state="first-visit" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = within(canvas.getByRole("navigation", { name: "Panel mentora" }));
+    await expect(nav.getByRole("link", { name: "Dostępność" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getAllByRole("link").map((link) => link.textContent)).toEqual(["Strona", "Dostępność"]);
+    await expect(nav.getByRole("button", { name: "Wyloguj" })).toBeVisible();
+    await expect(canvas.getByRole("combobox", { name: "Strefa czasowa" })).toHaveTextContent("Europe/Warsaw");
+    await expect(canvas.getAllByText(/Nie masz dostępności/)).toHaveLength(1);
+  },
+};
 export const S5Set: Story = { name: "S5 Availability · set", render: () => <AvailabilityScreen state="set" /> };
 export const S5Empty: Story = { name: "S5 Availability · empty", render: () => <AvailabilityScreen state="empty" /> };
-export const S5ZoneDiffers: Story = { name: "S5 Availability · zone being changed", render: () => <AvailabilityScreen state="zone-differs" /> };
+export const S5ZoneDiffers: Story = {
+  name: "S5 Availability · zone being changed (test, Z27)",
+  render: () => <AvailabilityScreen state="zone-differs" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("combobox", { name: "Strefa czasowa" }));
+    await userEvent.click(await within(document.body).findByRole("option", { name: "Europe/Warsaw" }));
+    await expect(await canvas.findByText("Okna zachowają godziny (np. 18:00) w nowej strefie")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Zapisz i zmień strefę" })).toBeVisible();
+  },
+};
 export const S5ServerError: Story = {
   name: "S5 Availability · save failed",
   render: () => <AvailabilityScreen state="server-error" />,
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("button", { name: "Zapisz" }));
     await expect(await within(canvasElement).findByRole("alert")).toBeVisible();
+  },
+};
+export const S5Network: Story = {
+  name: "S5 Availability · no network (Z28, D9)",
+  render: () => <AvailabilityScreen state="network" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Zapisz" }));
+    await expect(await within(canvasElement).findByRole("alert")).toHaveTextContent("Brak połączenia z internetem");
+  },
+};
+export const S5SessionExpired: Story = {
+  name: "S5 Availability · session expired on save (L6, Z7)",
+  render: () => <AvailabilityScreen state="session-expired" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent("Sesja wygasła — poproś zespół o link do logowania");
+    await expect(canvas.getByRole("button", { name: "Usuń okno wtorek 18:00–20:00" })).toBeVisible();
   },
 };
 export const S5Narrow: Story = { name: "S5 Availability · 320 px", decorators: [narrow], render: () => <AvailabilityScreen state="set" /> };

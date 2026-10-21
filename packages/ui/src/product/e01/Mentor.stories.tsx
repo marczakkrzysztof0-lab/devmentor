@@ -463,60 +463,267 @@ export const EditorPublishedSave: Story = {
 export const ShareLink: Story = { name: "ShareLinkPanel · right after publishing (focus on the link)", render: () => <div className="p-page-gutter max-w-text"><ShareLinkPanel shareUrl={SHARE_URL} /></div> };
 export const NoAvailability: Story = { name: "NoAvailabilityNotice", render: () => <div className="p-page-gutter max-w-text"><NoAvailabilityNotice /></div> };
 
+export const EditorNoAvailabilityPublished: Story = {
+  name: "MentorPageForm · published, no availability: notice above the share panel (test, Z40)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={FILLED} published shareUrl={SHARE_URL} baseUrl="http://localhost:3000" notice={<NoAvailabilityNotice />} action={ok} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const notice = canvas.getByText("Nie masz dostępności — nikt nie może wybrać terminu");
+    await expect(canvas.getByRole("link", { name: "Dodaj dostępność" })).toHaveAttribute("href", "/mentor/availability");
+    const link = canvas.getByRole("textbox", { name: "Twój link" });
+    const heading = canvas.getByRole("heading", { level: 1, name: "Twoja strona" });
+    await expect(heading.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(notice.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  },
+};
+export const EditorNoAvailabilityDraft: Story = {
+  name: "MentorPageForm · draft at the first visit, no availability: notice (Z21)",
+  render: () => (
+    <div className="p-page-gutter">
+      <MentorPageForm initial={{ ...EMPTY, slug: "mentor-k3x7qa" }} slugIsPlaceholder baseUrl="http://localhost:3000" notice={<NoAvailabilityNotice />} action={ok} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText("Nie masz dostępności — nikt nie może wybrać terminu")).toBeVisible();
+  },
+};
+
 /* -------------------------------------------------------- availability */
 const ZONES = [
-  { label: "Europa", options: ["Europe/Warsaw", "Europe/London", "Europe/Berlin"].map((z) => ({ value: z, label: z })) },
+  { label: "Europa", options: ["Europe/Berlin", "Europe/Bucharest", "Europe/Kiev", "Europe/London", "Europe/Warsaw"].map((z) => ({ value: z, label: z })) },
   { label: "Ameryka", options: ["America/New_York"].map((z) => ({ value: z, label: z })) },
+  { label: "Inne", options: [{ value: "UTC", label: "UTC" }] },
 ];
 const WINDOWS: AvailabilityWindow[] = [
   { weekday: 1, start: "18:00", end: "20:00" },
   { weekday: 3, start: "12:00", end: "13:00" },
 ];
+/** 21 windows: three on every day (the limit, L16). */
+const WINDOWS_21: AvailabilityWindow[] = ([0, 1, 2, 3, 4, 5, 6] as const).flatMap((weekday) =>
+  (["08:00", "12:00", "18:00"] as const).map((start) => ({ weekday, start, end: start.replace(/^(\d\d)/, (h) => String(Number(h) + 1).padStart(2, "0")) })),
+);
 const saveOk = fn(async () => {
   await wait(300);
   return { ok: true as const, preview: ANNA_SLOTS };
 });
+const zoneCombobox = (canvas: ReturnType<typeof within>) => canvas.getByRole("combobox", { name: "Strefa czasowa" });
 
 export const Availability: Story = {
   name: "AvailabilityEditor · Tuesday and Thursday",
   render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={WINDOWS} preview={ANNA_SLOTS} now={NOW} action={saveOk} /></div>,
 };
 export const AvailabilityEmpty: Story = {
-  name: "AvailabilityEditor · empty (first visit)",
-  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
-};
-export const AvailabilityAddAndSave: Story = {
-  name: "AvailabilityEditor · add a window and save (test)",
-  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  name: "AvailabilityEditor · empty (first visit): banner once, short empty preview (test, D11)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "Europe/Warsaw"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    await expect(canvas.getAllByText(/Nie masz dostępności/)).toHaveLength(1);
+    await expect(canvas.getByText("Terminy pojawią się po zapisaniu okien.")).toBeVisible();
+  },
+};
+export const AvailabilityPrefillBrowser: Story = {
+  name: "AvailabilityEditor · first visit: zone from the browser (test, Z16)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "America/New_York"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(zoneCombobox(within(canvasElement))).toHaveTextContent("America/New_York"));
+  },
+};
+export const AvailabilityPrefillAlias: Story = {
+  name: "AvailabilityEditor · browser alias „Europe/Kyiv” → list option „Europe/Kiev” (test, Z16)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "Europe/Kyiv"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(zoneCombobox(within(canvasElement))).toHaveTextContent("Europe/Kiev"));
+  },
+};
+export const AvailabilityPrefillUnsupported: Story = {
+  name: "AvailabilityEditor · browser zone not on the list → Europe/Warsaw, field visible (test, Z16)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "Mars/Olympus_Mons"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    const box = zoneCombobox(within(canvasElement));
+    await expect(box).toHaveTextContent("Europe/Warsaw");
+    await expect(box).toBeVisible();
+  },
+};
+export const AvailabilityPrefillMissing: Story = {
+  name: "AvailabilityEditor · browser gives no zone → Europe/Warsaw, field visible (test, Z16)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => undefined} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    const box = zoneCombobox(within(canvasElement));
+    await expect(box).toHaveTextContent("Europe/Warsaw");
+    await expect(box).toBeVisible();
+  },
+};
+export const AvailabilityAddAndSave: Story = {
+  name: "AvailabilityEditor · add a window and save, prefilled zone sent (test)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "Europe/Warsaw"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    saveOk.mockClear();
     await userEvent.click(canvas.getByRole("button", { name: "Dodaj okno: wtorek" }));
     await expect(canvas.getByRole("button", { name: "Usuń okno wtorek 18:00–20:00" })).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
     await expect(await canvas.findByText("Dostępność zapisana")).toBeVisible();
+    await expect(saveOk).toHaveBeenCalledWith({ timeZone: "Europe/Warsaw", windows: [{ weekday: 1, start: "18:00", end: "20:00" }] });
     await expect(canvas.getAllByText("25 lub 50 min").length).toBeGreaterThan(0);
+    await expect(canvas.queryByText(/Nie masz dostępności/)).toBeNull();
   },
 };
 export const AvailabilityZoneChange: Story = {
-  name: "AvailabilityEditor · zone changed, warning (test)",
+  name: "AvailabilityEditor · zone of a saved set changed: warning, „Zapisz i zmień strefę” (test, Z27)",
   render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/London" zones={ZONES} windows={WINDOWS} now={NOW} action={saveOk} /></div>,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const select = canvas.getByRole("combobox", { name: "Strefa czasowa" });
-    await userEvent.click(select);
+    await expect(canvas.queryByText("Okna zachowają godziny (np. 18:00) w nowej strefie")).toBeNull();
+    await userEvent.click(zoneCombobox(canvas));
     await userEvent.click(await within(document.body).findByRole("option", { name: "Europe/Warsaw" }));
     await expect(await canvas.findByText("Okna zachowają godziny (np. 18:00) w nowej strefie")).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Zapisz i zmień strefę" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz i zmień strefę" }));
+    await expect(await canvas.findByText("Dostępność zapisana")).toBeVisible();
+    // Saved: the new zone is now the saved one — no warning, plain „Zapisz”.
+    await expect(canvas.queryByText("Okna zachowają godziny (np. 18:00) w nowej strefie")).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Zapisz" })).toBeVisible();
+  },
+};
+export const AvailabilityFirstZoneNoWarning: Story = {
+  name: "AvailabilityEditor · first visit, zone changed before the first save: no warning (test)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone={null} detectTimeZone={() => "Europe/Warsaw"} zones={ZONES} windows={[]} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(zoneCombobox(canvas));
+    await userEvent.click(await within(document.body).findByRole("option", { name: "Europe/London" }));
+    await expect(zoneCombobox(canvas)).toHaveTextContent("Europe/London");
+    await expect(canvas.queryByText("Okna zachowają godziny (np. 18:00) w nowej strefie")).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Zapisz" })).toBeVisible();
   },
 };
 export const AvailabilityServerError: Story = {
-  name: "AvailabilityEditor · server error keeps the set",
+  name: "AvailabilityEditor · server error keeps the set (test)",
   render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={WINDOWS} now={NOW} action={async () => ({ ok: false as const })} /></div>,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
     await expect(await canvas.findByRole("alert")).toHaveTextContent("Nie udało się zapisać dostępności");
     await expect(canvas.getByRole("button", { name: "Usuń okno wtorek 18:00–20:00" })).toBeVisible();
+  },
+};
+export const AvailabilityUnauthorized: Story = {
+  name: "AvailabilityEditor · session expired on save: alert, set kept, no redirect (test, D5, Z7)",
+  render: () => (
+    <div className="p-page-gutter">
+      <AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={WINDOWS} now={NOW} action={async () => ({ ok: false as const, reason: "unauthorized" as const })} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Dodaj okno: piątek" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent(SESSION_EXPIRED_MESSAGE);
+    await expect(canvas.getByRole("button", { name: "Usuń okno piątek 18:00–20:00" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Usuń okno wtorek 18:00–20:00" })).toBeVisible();
+  },
+};
+export const AvailabilityNetwork: Story = {
+  name: "AvailabilityEditor · no network: alert, set kept (test, Z28, D9)",
+  render: () => (
+    <div className="p-page-gutter">
+      <AvailabilityEditor
+        timeZone="Europe/Warsaw"
+        zones={ZONES}
+        windows={WINDOWS}
+        now={NOW}
+        action={async () => {
+          throw new TypeError("Failed to fetch");
+        }}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Usuń okno czwartek 12:00–13:00" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent("Brak połączenia z internetem");
+    await expect(canvas.getByRole("button", { name: "Usuń okno wtorek 18:00–20:00" })).toBeVisible();
+    await expect(canvas.queryByRole("button", { name: "Usuń okno czwartek 12:00–13:00" })).toBeNull();
+  },
+};
+export const AvailabilityLimit: Story = {
+  name: "AvailabilityEditor · 21 windows: „+ okno” unavailable with its reason (test, D8, Z17)",
+  render: () => <div className="p-page-gutter"><AvailabilityEditor timeZone="Europe/Warsaw" zones={ZONES} windows={WINDOWS_21.slice(1)} now={NOW} action={saveOk} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const monday = canvas.getByRole("button", { name: "Dodaj okno: poniedziałek" });
+    await expect(monday).not.toHaveAttribute("aria-disabled");
+    await userEvent.click(monday);
+    for (const day of ["poniedziałek", "wtorek", "niedziela"]) {
+      const add = canvas.getByRole("button", { name: `Dodaj okno: ${day}` });
+      await expect(add).toHaveAttribute("aria-disabled", "true");
+      await expect(add).toHaveAccessibleDescription("Maksymalnie 21 okien w tygodniu");
+    }
+    await userEvent.click(canvas.getByRole("button", { name: "Dodaj okno: wtorek" }));
+    await expect(canvas.getAllByRole("button", { name: /^Usuń okno / })).toHaveLength(21);
+    // Removing one makes „+ okno” available again.
+    await userEvent.click(canvas.getByRole("button", { name: "Usuń okno niedziela 18:00–19:00" }));
+    await expect(canvas.getByRole("button", { name: "Dodaj okno: wtorek" })).not.toHaveAttribute("aria-disabled");
+  },
+};
+export const AvailabilityFieldErrors: Story = {
+  name: "AvailabilityEditor · server field errors: zone at the field, set under the list, window at its row (test, D5, W4, Z26)",
+  render: () => (
+    <div className="p-page-gutter">
+      <AvailabilityEditor
+        timeZone="Europe/Warsaw"
+        zones={ZONES}
+        windows={WINDOWS}
+        now={NOW}
+        action={async () => ({
+          ok: false as const,
+          errors: { timeZone: "Wybierz strefę czasową z listy", windows: "Maksymalnie 21 okien w tygodniu", "windows.1": "Koniec okna musi być po jego początku" },
+        })}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
+    const zone = zoneCombobox(canvas);
+    await waitFor(() => expect(zone).toHaveAccessibleDescription(/Wybierz strefę czasową z listy/));
+    await expect(zone).toHaveAttribute("aria-invalid", "true");
+    await waitFor(() => expect(zone).toHaveFocus());
+    await expect(canvas.getByText("Maksymalnie 21 okien w tygodniu")).toBeVisible();
+    // The error of window 1 (Thursday) sits at its row and describes both of its selects; Tuesday has none.
+    await expect(canvas.getByRole("combobox", { name: "czwartek, od" })).toHaveAccessibleDescription("Koniec okna musi być po jego początku");
+    await expect(canvas.getByRole("combobox", { name: "czwartek, do" })).toHaveAttribute("aria-invalid", "true");
+    await expect(canvas.getByRole("combobox", { name: "wtorek, od" })).not.toHaveAttribute("aria-invalid");
+    await expect(canvas.queryByRole("columnheader", { name: "Błąd" })).toBeNull();
+    // The set stays on screen; editing the set clears the window errors.
+    await expect(canvas.getByRole("button", { name: "Usuń okno czwartek 12:00–13:00" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Usuń okno czwartek 12:00–13:00" }));
+    await expect(canvas.queryByText("Maksymalnie 21 okien w tygodniu")).toBeNull();
+  },
+};
+export const AvailabilityTooManySent: Story = {
+  name: "AvailabilityEditor · 22 windows sent (e.g. a second tab): field error under the list, set kept (test, Z17)",
+  render: () => (
+    <div className="p-page-gutter">
+      <AvailabilityEditor
+        timeZone="Europe/Warsaw"
+        zones={ZONES}
+        windows={[...WINDOWS_21, { weekday: 0, start: "20:00", end: "21:00" }]}
+        now={NOW}
+        action={async () => ({ ok: false as const, errors: { windows: "Maksymalnie 21 okien w tygodniu" } })}
+      />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Zapisz" }));
+    const error = await canvas.findByText("Maksymalnie 21 okien w tygodniu", { selector: "p span" });
+    await waitFor(() => expect(error.parentElement).toHaveFocus());
+    await expect(canvas.getAllByRole("button", { name: /^Usuń okno / })).toHaveLength(22);
   },
 };
 export const AvailabilityNarrow: Story = {
@@ -526,5 +733,23 @@ export const AvailabilityNarrow: Story = {
 };
 
 /* ----------------------------------------------------------- preview */
-export const Preview: Story = { name: "SlotPreview · next 10", render: () => <div className="p-page-gutter max-w-text"><SlotPreview slots={ANNA_SLOTS} timeZone="Europe/Warsaw" now={NOW} /></div> };
-export const PreviewEmpty: Story = { name: "SlotPreview · empty", render: () => <div className="p-page-gutter max-w-text"><SlotPreview slots={[]} timeZone="Europe/Warsaw" now={NOW} /></div> };
+export const Preview: Story = {
+  name: "SlotPreview · next 10 in the mentor's zone (test)",
+  render: () => <div className="p-page-gutter max-w-text"><SlotPreview slots={ANNA_SLOTS} timeZone="Europe/Warsaw" now={NOW} /></div>,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const rows = within(canvas.getByRole("list", { name: "Najbliższe terminy" })).getAllByRole("listitem");
+    await expect(rows).toHaveLength(10);
+    await expect(rows[0]).toHaveTextContent("jutro 18:00");
+    await expect(rows[0]).toHaveTextContent("25 lub 50 min");
+    await expect(rows[3]).toHaveTextContent("tylko 25 min");
+    await expect(canvas.getByText("Godziny w strefie Europe/Warsaw.")).toBeVisible();
+  },
+};
+export const PreviewEmpty: Story = {
+  name: "SlotPreview · empty: short text, not the banner again (D11)",
+  render: () => <div className="p-page-gutter max-w-text"><SlotPreview slots={[]} timeZone="Europe/Warsaw" now={NOW} /></div>,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).queryByText(/Nie masz dostępności/)).toBeNull();
+  },
+};

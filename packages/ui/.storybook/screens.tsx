@@ -34,6 +34,7 @@ import {
   type MentorRequestItem,
   type RefundStatus,
   type RequestStatus,
+  type SaveAvailabilityResult,
   type SaveMentorPageResult,
   type StartRequestResult,
 } from "../src/product";
@@ -143,7 +144,6 @@ export function EditorScreen({
   const published = state === "published" || state === "published-no-availability";
   return (
     <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={async () => {}} />}>
-      {state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : null}
       <MentorPageForm
         initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE}
         slugIsPlaceholder={state === "first-visit"}
@@ -151,6 +151,7 @@ export function EditorScreen({
         shareUrl={published ? SHARE_URL : null}
         baseUrl="http://localhost:3000"
         currencyLabel="zł"
+        notice={state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : undefined}
         action={action}
       />
     </PageLayout>
@@ -166,16 +167,38 @@ const WINDOWS: AvailabilityWindow[] = [
   { weekday: 3, start: "12:00", end: "13:00" },
 ];
 
-export function AvailabilityScreen({ state }: { state: "set" | "empty" | "zone-differs" | "server-error" }) {
+export type AvailabilityScreenState = "loading" | "first-visit" | "set" | "empty" | "zone-differs" | "server-error" | "network" | "session-expired";
+
+export function AvailabilityScreen({ state }: { state: AvailabilityScreenState }) {
+  const nav = <MentorNav current="availability" sections={["page", "availability"]} signOutAction={async () => {}} />;
+  // The app wraps the whole page in <Suspense>; the fallback is its own PageLayout (gap D9).
+  if (state === "loading")
+    return (
+      <PageLayout nav={nav}>
+        <Skeleton label="Wczytywanie dostępności" lines={8} className="max-w-text" />
+      </PageLayout>
+    );
+  const action: (input: { timeZone: string; windows: AvailabilityWindow[] }) => Promise<SaveAvailabilityResult> =
+    state === "server-error"
+      ? async () => ({ ok: false })
+      : state === "session-expired"
+        ? async () => ({ ok: false, reason: "unauthorized" })
+        : state === "network"
+          ? async () => {
+              throw new TypeError("Failed to fetch");
+            }
+          : async () => ({ ok: true, preview: ANNA_SLOTS });
+  const empty = state === "empty" || state === "first-visit";
   return (
-    <PageLayout nav={<MentorNav current="availability" sections={["page", "availability"]} signOutAction={async () => {}} />}>
+    <PageLayout nav={nav}>
       <AvailabilityEditor
-        timeZone={state === "zone-differs" ? "Europe/London" : ZONE}
+        timeZone={state === "first-visit" ? null : state === "zone-differs" ? "Europe/London" : ZONE}
+        detectTimeZone={() => ZONE}
         zones={ZONES}
-        windows={state === "empty" ? [] : WINDOWS}
-        preview={state === "empty" ? [] : ANNA_SLOTS}
+        windows={empty ? [] : WINDOWS}
+        preview={empty ? [] : ANNA_SLOTS}
         now={NOW}
-        action={state === "server-error" ? async () => ({ ok: false }) : async () => ({ ok: true, preview: ANNA_SLOTS })}
+        action={action}
       />
     </PageLayout>
   );

@@ -25,6 +25,11 @@ export type SelectProps = {
   disabled?: boolean;
   invalid?: boolean;
   "aria-label"?: string;
+  /**
+   * Extra description ids (e.g. the error of a repeated row, #15 W4/Z26). Added to the FormField description
+   * when the select sits in one.
+   */
+  "aria-describedby"?: string;
   className?: string;
   /** Documentation only: frozen hover/focus preview. */
   "data-preview-state"?: string;
@@ -78,7 +83,7 @@ export function Select({
       <SelectPrimitive.Trigger
         id={id ?? field?.id}
         aria-label={rest["aria-label"]}
-        aria-describedby={field?.describedBy}
+        aria-describedby={[rest["aria-describedby"], field?.describedBy].filter(Boolean).join(" ") || undefined}
         aria-invalid={isInvalid || undefined}
         data-preview-state={rest["data-preview-state"]}
         className={cn(
