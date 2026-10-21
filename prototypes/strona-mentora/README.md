@@ -87,5 +87,8 @@ Stały „teraz”: poniedziałek 19.10.2026, 19:00 Europe/Warsaw (C14 „+1 dzi
   To nie jest implementacja `listOpenSlots`.
 - **Inny zalogowany mentor** (C5) nie ma danych: edytor i dostępność pokazują tylko notatkę.
 - **Wczytywanie** (stan Ł) trwa stałe 0,5 s przy każdym wejściu na s04/s05; nieskończone — C16.
+- **s06 nie ma rezerwacji — celowo.** W E01 strona publiczna pokazuje terminy jako tekst, bez formularza,
+  przycisku ani linku przy terminie (L1, #16 Q1/Q8). Rezerwacja z terminu (każdy termin = wejście do formularza)
+  należy do #17 (E02). Uwaga testera z 2026-10-21 „brak rezerwacji” to potwierdzenie oczekiwania, nie błąd prototypu.
 - **Opis Piotra N.** to fikcyjny tekst pomocniczy (bez ocen, liczb ani opinii).
 - **Komentarze** zapisują się w przeglądarce recenzenta; do zespołu trafiają przez eksport i commit `src/silnik/comments.js`.
