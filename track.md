@@ -44,13 +44,13 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 2.3 Rdzeń sesji i linków (`acceptInvitation`, `redeemSignInLink`, `startSession`, `endSession`, `getCurrentMentor`) w `.mjs` + DAL `server-only`; testy z bazą (transakcja, jednorazowość, współbieżność, ta sama neutralna odpowiedź, zamiana sesji innego mentora, własny link bez zużycia).
 - [x] 2.4 Strony `/invite/[token]`, `/sign-in/[token]`, powłoka `/mentor`, „Wyloguj”, `MentorNav` bez „Zapytania” (luki DS D2, D3) + `npm run test:e2e` (Playwright na `next start`): GET niczego nie zużywa, ścieżka odmowy, tekst zaproszenia.
 
-### Faza 3 — Edytor strony i publikacja (#14, Phase 2) — W TOKU
+### Faza 3 — Edytor strony i publikacja (#14, Phase 2) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
 
 - [x] 3.1 Migracja `0003_mentor_page_prices` (ceny w groszach, `currency` PLN, nowy CHECK publikacji, strażnik `RAISE` na opublikowanym wierszu) + testy.
 - [x] 3.2 `lib/mentor-page/validate.mjs` + testy jednostkowe (każde brakujące pole nazwane, URL tylko http(s), ceny 20–5000 zł, slug).
 - [x] 3.3 `saveMentorPage` (zapis szkicu / publikacja / edycja po publikacji, slug zablokowany, wyścig o slug, `unauthorized`) + testy z bazą (zakres mentora A/B).
 - [x] 3.4 Edytor `/mentor`: formularz (F1 podpowiedź opisu, F2 „(zł)” w etykiecie + sufiks), panel linku do udostępnienia (L8/Z9), propozycja sluga z imienia (Z10; luka DS D4), `unauthorized` i brak sieci (D5, Z7, Z28), `shareUrl` po publikacji (D6) + testy (Storybook + e2e).
-- [ ] 3.5 Dokumentacja: README (skrypty mentora, nowe URL-e), `BACKWARD_COMPATIBILITY.md`.
+- [x] 3.5 Dokumentacja: README (skrypty mentora, nowe URL-e), `BACKWARD_COMPATIBILITY.md`.
 
 ### Faza 4 — Tygodniowa dostępność i wolne terminy (#15)
 
@@ -82,11 +82,16 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 2): DS — `MentorNav` (`sections`, `signOutAction`), `InvitationPanel` bez `inviterName`, `useFocusFirstError` przeniesiony do `shared/use-focus-first-error.ts` (barrel `@devmentor/ui/product` importowalny z Server Components); `testTimeout` Storybooka 30 s (wcześniej niestabilny test RequestForm).
 - 2026-10-21 (faza 2): w nawigacji tylko „Strona” + „Wyloguj”; „Dostępność” dojdzie w zadaniu 4.5 razem z `/mentor/availability` (bez martwego linku). Data ważności linku podawana z dopiskiem „(czas polski)”. Strony linków i `/mentor` mają `noindex`.
 - 2026-10-21 (po review fazy 2): strony z danymi z bazy mają `<Suspense>` OBEJMUJĄCY cały `PageLayout` (fallback z własnym `PageLayout`), żeby treść nigdy nie była poza `<main>`; props stron przez globalny `PageProps<"/trasa">`. Świeży klon: `npx tsc --noEmit` wymaga wcześniej `npx next typegen` / `next build` (tak samo dla istniejącego `LayoutProps`).
+- 2026-10-21 (faza 3): walidacja serwerowa `lib/mentor-page/validate.mjs` jest źródłem prawdy; komunikaty klienta w DS identyczne (test pilnuje). Szkic przyjmuje puste pola, ale wypełnione muszą być poprawne. Po publikacji każdy zapis waliduje jak publikacja; slug zablokowany.
+- 2026-10-21 (faza 3): DS — `MentorPageForm` (`slugIsPlaceholder`, `shareUrl`, `currencyLabel`, wynik `unauthorized`), `FormField hintPlacement="label"`, `ShareLinkPanel autoFocus`; błąd pola znika po poprawie wartości (wcześniej przesunięcie układu przy blur psuło kliknięcie „Opublikuj stronę”).
+- 2026-10-21 (faza 3): `NEXT_PUBLIC_APP_URL` po stronie serwera czytany w czasie żądania (`Reflect.get(process.env, …)`), bo Next wkleja wartość z czasu buildu. Po zapisie `refresh()` z `next/cache`.
 
 ## Otwarte punkty
 
 - L12 (z #14): komunikaty „poproś zespół” nie wskazują kanału kontaktu — zaakceptowane tylko na pilotaż.
 - Workflow CI z usługą postgres:17 nie był uruchomiony na GitHubie (brak push) — sprawdzony tylko lokalnie (YAML parsuje się).
 - Z39 (dwie karty) w e2e tylko pośrednio — pokryte testami domeny z bazą.
-- 2026-10-21: jednorazowo 1 nieudany test w `npm test` przy weryfikacji zadania 3.3 (commit c780cb8 wszedł mimo to); 11 kolejnych pełnych przebiegów zielonych, nie udało się odtworzyć — obserwować (kandydaci: testy współbieżności w tests/db). Skrypt weryfikacji zapisuje teraz log błędu.
+- Niestabilny test `tests/db/harness.test.mjs` (wyścig sprzątania między plikami): przyczyna znaleziona, poprawka (oczekiwanie do 5 s) — obserwować.
+- `npm run test:e2e` nie jest w CI ani w bramce walidacji (`.ai/agentic.config.json`) — przepływy edytora i „GET niczego nie zużywa” są sprawdzane tylko lokalnie; dodanie wymaga joba CI (build + postgres + Chromium) i zgody maintainera.
+- Opis PR (#14) musi zawierać: plan rollbacku (`db:rollback` cofa 0003 i 0002 po kolei, brak danych produkcyjnych), ⚠ Q2–Q4 (potwierdzone, D12), wynik ręcznego przejścia na czas (D08).
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
