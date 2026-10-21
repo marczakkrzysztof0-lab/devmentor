@@ -30,12 +30,12 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 ## Fazy i zadania
 
-### Faza 1 — Magazyn danych i migracja 0001 (#23, Phase 1)
+### Faza 1 — Magazyn danych i migracja 0001 (#23, Phase 1) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
 
 - [x] 1.1 Narzędzia: `pg` + `node-pg-migrate` (przypięte wersje), `scripts/db-migrate.mjs` (`migrate()` + CLI z `.env.local`, czytelny błąd braku bazy), skrypty `db:migrate` / `db:rollback`, `engines.node >=20.12`, pusty `db/migrations/`; test jednostkowy wrappera z wstrzykniętym runnerem.
 - [x] 1.2 Migracja `0001_mentors_invitations_pages.sql` + `tests/db/migrations.test.mjs` (up → down → up) + `tests/db/schema.test.mjs` (CHECK-i reguł biznesowych) + test harnessu (obcy schemat `test_x` przetrwa sprzątanie).
 - [x] 1.3 CI (`postgres:17` service, `DATABASE_URL`) + krok migracji w `scripts/setup.mjs` (z ponawianiem połączenia) + test w `tests/setup.test.mjs`.
-- [ ] 1.4 Dokumentacja i kontrakty: README (komendy migracji, `db/`, Node ≥ 20.12, `db:rollback` tylko lokalnie/testowo), `BACKWARD_COMPATIBILITY.md` (schemat → „dziś”, nowe skrypty).
+- [x] 1.4 Dokumentacja i kontrakty: README (komendy migracji, `db/`, Node ≥ 20.12, `db:rollback` tylko lokalnie/testowo), `BACKWARD_COMPATIBILITY.md` (schemat → „dziś”, nowe skrypty).
 
 ### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1)
 
@@ -74,8 +74,11 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 - 2026-10-21: plan 6 faz zgodnie z Phasing specyfikacji i kolejnością podaną przez Krzysztofa (#23 → #14 → #15 → #16). Strona `/m/{slug}` dostępna dopiero od fazy 5 — do tego czasu link do udostępnienia prowadzi do 404 (zgodnie z „release gate” w #14 i #16).
 - 2026-10-21: specyfikacje nie wprowadzają sekretów (sesje w bazie, bez kluczy) — `.env.local` zawiera tylko `DATABASE_URL` i `NEXT_PUBLIC_APP_URL`; utworzony przez `npm run setup`, niecommitowany.
+- 2026-10-21 (faza 1): pg 8.23.1, node-pg-migrate 9.0.0; jedna transakcja na migrację, advisoryLockMode "wait"; harness testów `tests/db/harness.mjs` (`describeDb`, `createTestSchema`) — do użycia w kolejnych zadaniach.
+- 2026-10-21 (faza 1): `runSteps` w `scripts/setup.mjs` jest teraz asynchroniczne; skrypt migracji ładowany dynamicznie (czysty klon przed `npm install`).
 
 ## Otwarte punkty
 
 - L12 (z #14): komunikaty „poproś zespół” nie wskazują kanału kontaktu — zaakceptowane tylko na pilotaż.
+- Workflow CI z usługą postgres:17 nie był uruchomiony na GitHubie (brak push) — sprawdzony tylko lokalnie (YAML parsuje się).
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
