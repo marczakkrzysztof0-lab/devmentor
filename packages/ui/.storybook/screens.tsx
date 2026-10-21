@@ -19,6 +19,7 @@ import {
   MentorPageForm,
   NoAvailabilityNotice,
   PageLayout,
+  PriceList,
   QuestionCopyBox,
   QuestionText,
   RequestDecision,
@@ -38,7 +39,7 @@ import {
   type SaveMentorPageResult,
   type StartRequestResult,
 } from "../src/product";
-import { ANNA, ANNA_SLOTS, NOW, QUESTION, REQUEST_URL, SHARE_URL, ZONE, never, wait, warsaw } from "./fixtures";
+import { ANNA, ANNA_SLOTS, LONG_DESCRIPTION, NOW, QUESTION, REQUEST_URL, SHARE_URL, ZONE, never, wait, warsaw } from "./fixtures";
 
 /** 375 px phone frame (spec #16: first screen at 375 × 812). */
 export const phone: Decorator = (Story) => (
@@ -200,6 +201,38 @@ export function AvailabilityScreen({ state }: { state: AvailabilityScreenState }
         now={NOW}
         action={action}
       />
+    </PageLayout>
+  );
+}
+
+/* S6 · #16 only (gap D1, closed in epic 01 task 5.2): /m/{slug} without the request form of #17. */
+
+/** A 400-character description: the first-screen check at 375 × 812 (spec #16 UI/UX, K2). */
+export const DESCRIPTION_400 = `${ANNA.description}\n${"Pracuję z zespołami, które przenoszą duże aplikacje na nowe wersje frameworków. ".repeat(4)}`.slice(0, 400);
+
+export type ShareProfileState = "ready" | "long-description" | "description-400" | "not-found";
+
+/**
+ * Phase 1 of #16 as the app renders it (app/m/[slug]/page.tsx): identity → public work → description → prices,
+ * in that order. No slots yet (they come in phase 2 as LengthToggle + SlotList selectable={false} below the
+ * prices) and no request form, question field or booking control (L1, Z1, F4).
+ */
+export function ShareProfileScreen({ state }: { state: ShareProfileState }) {
+  if (state === "not-found")
+    return (
+      <PageLayout width="narrow">
+        <MentorNotFound />
+      </PageLayout>
+    );
+  const description =
+    state === "long-description" ? LONG_DESCRIPTION : state === "description-400" ? DESCRIPTION_400 : ANNA.description;
+  return (
+    <PageLayout width="narrow">
+      <section className="flex flex-col gap-between-groups">
+        <MentorIdentity displayName={ANNA.displayName} publicWorkUrl={ANNA.publicWorkUrl} />
+        <MentorDescription text={description} />
+      </section>
+      <PriceList price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} currency={ANNA.currency} />
     </PageLayout>
   );
 }

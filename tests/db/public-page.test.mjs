@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { acceptInvitation } from "../../lib/auth/mentor-auth.mjs";
 import { saveMentorPage } from "../../lib/mentor-page/mentor-page.mjs";
-import { getPublishedPageBySlug, PUBLIC_PAGE_KEYS } from "../../lib/mentor-page/public.mjs";
+import { getPublishedPageBySlug, isPublishedSlug, PUBLIC_PAGE_KEYS } from "../../lib/mentor-page/public.mjs";
 import { createInvitation } from "../../scripts/mentor-links.mjs";
 import { describeDb } from "./harness.mjs";
 
@@ -146,5 +146,23 @@ describeDb("public-page: getPublishedPageBySlug", (db) => {
     assert.doesNotMatch(sql, /\bemail\b|\btime_zone\b/);
     assert.match(sql, /published_at is not null/);
     assert.match(sql, /slug = \$1/);
+  });
+
+  test("isPublishedSlug (Proxy, zadanie 5.2): opublikowana → true; szkic, nieznany → false; niepoprawny bez zapytania", async () => {
+    await publishedMentor("exists-public");
+    const draftId = await newMentor();
+    assert.equal((await save(draftId, { ...FULL, slug: "exists-draft" }, false)).ok, true);
+    assert.equal(await isPublishedSlug({ db: db.pool, slug: "exists-public" }), true);
+    assert.equal(await isPublishedSlug({ db: db.pool, slug: "exists-draft" }), false);
+    assert.equal(await isPublishedSlug({ db: db.pool, slug: "exists-unknown" }), false);
+    const spy = spyDb();
+    for (const slug of ["Anna-K", "../x", "", "a".repeat(41), undefined]) {
+      assert.equal(await isPublishedSlug({ db: spy, slug }), false, `slug: ${String(slug)}`);
+    }
+    assert.equal(spy.calls.length, 0);
+    // Tylko sprawdzenie istnienia: bez danych strony i bez tabeli mentors.
+    await isPublishedSlug({ db: spy, slug: "exists-public" });
+    const sql = spy.calls[0].toLowerCase().replace(/\s+/g, " ");
+    assert.match(sql, /^select 1 from mentor_pages where slug = \$1 and published_at is not null$/);
   });
 });

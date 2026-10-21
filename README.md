@@ -2,7 +2,7 @@
 
 Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zamiast nauczycieli języków są tu doświadczeni developerzy. Prowadzą sesje 1:1, code review, przygotowanie do rozmów rekrutacyjnych i pomagają przy wyborze ścieżki kariery.
 
-> **Status:** początkowy etap. Działają: zaproszenia mentorów, linki logowania, sesje, edytor i publikacja strony mentora (`/mentor`) oraz tygodniowa dostępność (`/mentor/availability`). Publiczna strona mentora `/m/{slug}` jest dopiero w drodze, a reszta marketplace'u jest planowana.
+> **Status:** początkowy etap. Działają: zaproszenia mentorów, linki logowania, sesje, edytor i publikacja strony mentora (`/mentor`) oraz tygodniowa dostępność (`/mentor/availability`). Publiczna strona mentora `/m/{slug}` pokazuje profil i ceny (wolne terminy dojdą w fazie 6), a reszta marketplace'u jest planowana.
 
 ## Spis treści
 
@@ -212,7 +212,7 @@ npm run mentor:invite -- --help                   # pomoc
 - W bazie zapisujemy tylko hash SHA-256 tokenu, więc linku nie da się później odczytać. Skopiuj go od razu i **wyślij osobiście** (mail, komunikator) wyłącznie tej osobie.
 - Po przyjęciu zaproszenia albo użyciu linku logowania mentor ma sesję zapisaną w bazie (ciasteczko `dm_session`, 30 dni, bez przedłużania). „Wyloguj” w edytorze kończy sesję.
 
-> ⚠️ **Bramka wydania:** nie wysyłamy zaproszeń prawdziwym mentorom, dopóki nie zostanie scalona publiczna strona mentora (#16). Do tego czasu link do udostępnienia `/m/{slug}` prowadzi do 404.
+> ⚠️ **Bramka wydania:** nie wysyłamy zaproszeń prawdziwym mentorom, dopóki nie zostanie scalona publiczna strona mentora z wolnymi terminami (#16, faza 2). Do tego czasu `/m/{slug}` pokazuje tylko profil i ceny.
 
 **Adresy (URL)**
 
@@ -222,7 +222,7 @@ npm run mentor:invite -- --help                   # pomoc
 | `/sign-in/[token]` | Logowanie jednorazowym linkiem. Samo otwarcie linku niczego nie zużywa. |
 | `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia; baner „Nie masz dostępności”, gdy brak okien. Nawigacja: „Strona”, „Dostępność” i „Wyloguj”. |
 | `/mentor/availability` | Tygodniowe okna dostępności w strefie mentora (strefa z przeglądarki przy pierwszej wizycie), podgląd 10 najbliższych terminów. |
-| `/m/[slug]` | Link do udostępnienia (publiczna strona mentora). Slug jest stały po publikacji. Strona będzie działać od fazy 5 (#16). |
+| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min. Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
 
 ## Skrypty npm
 
@@ -244,7 +244,7 @@ npm run mentor:invite -- --help                   # pomoc
 
 ```
 devmentor/
-├── app/                 # App Router: strony (/, /invite, /sign-in, /mentor), layouty, akcje serwera
+├── app/                 # App Router: strony (/, /invite, /sign-in, /mentor, /m), layouty, akcje serwera
 │   ├── layout.tsx
 │   ├── page.tsx
 │   └── globals.css
@@ -257,6 +257,7 @@ devmentor/
 ├── .agents/skills/      # Skille dla agentów AI (patrz skills-lock.json)
 ├── AGENTS.md            # Instrukcje dla agentów AI
 ├── next.config.ts
+├── proxy.ts             # Proxy Next.js: 404 przed renderem dla /m/* bez opublikowanej strony
 ├── tsconfig.json
 └── eslint.config.mjs
 ```

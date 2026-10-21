@@ -12,7 +12,7 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 |---|---|---|---|
 | #14 E01-S01 Mentor publishes the page | S1 Invitation, S2 Sign-in, S3 no session, S4 Editor; `InvitationPanel`, `AccessMessage`, `MentorPageForm`, `ShareLinkPanel` | Ready – gaps D9 (S2 offline story), D10 (D2–D7, F1, F2 closed 2026-10-21) | Now (pilot) |
 | #15 E01-S02 Availability | S5 Availability; `AvailabilityEditor`, `SlotPreview`, `NoAvailabilityNotice` | Ready (D5, D8, D9, D11 closed 2026-10-21) | Now |
-| #16 E01-S03 Share page without ratings | S6; `MentorIdentity`, `MentorDescription`, `LengthToggle`, `SlotList`, `MentorNotFound` | Ready – gaps D1, D12 | Now |
+| #16 E01-S03 Share page without ratings | S6 · #16 only, S7 not found (E01 Screens); `MentorIdentity`, `MentorDescription`, `PriceList`, `LengthToggle`, `SlotList`, `MentorNotFound` | Ready – gap D12 (D1 closed 2026-10-21) | Now |
 | #23 Data store | — (no UI) | Not applicable | — |
 | #17 E02-S01 Prepaid request | S6 form, S7 `/r/{token}`; `RequestForm`, `RequestStatusView`, `SaveLinkBox`, `QuestionCopyBox` | Ready | Now |
 | #24 Stripe payment, refund, webhook | Hosted Stripe Checkout — no own payment screen; states shown on S7 | Not applicable | — |
@@ -52,7 +52,6 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 |---|---|---|
 | `app/page.tsx` copy is still generic marketing | Values now come from tokens (A1, 2026-10-19), but the text „Rozwijaj się w IT”, „wiedzę, inspirację i wsparcie” and the centred eyebrow contradict 1.0 scope and What to avoid (audyt.md) | Rewrite the home page content: one sentence about what 1.0 does, no eyebrow |
 | Tests run only in Chromium | CI jobs `tokens` and `storybook` run `check:tokens` (packages/ui + app/) and every story with axe in both themes | Add WebKit/Firefox if the pilot shows Safari users |
-| D1: no screen composition of `/m/[slug]` for #16 alone | S6 combines #16 and #17 (`RequestForm`); E01 shows the page without the form (screen map L1, 2026-10-20) | Story „S6 · #16 only” with `PriceList`, `LengthToggle`, `SlotList selectable=false` |
 | D9 (S2 part): no offline story for S2 | The component handles it, the screen stories do not show it | Add the state story |
 | D12: `RadioGroup` arrow keys move focus but do not select | Found while building the E01 prototype (2026-10-20): arrow on the 25/50 toggle focused „50 min” with `checked` false; the WAI-ARIA radio pattern selects on arrow | Fix before #16 phase 2 (spec #16 now requires arrow selection, Z41) |
 
@@ -75,6 +74,7 @@ What is ready, how the backlog is covered, and what is deliberately not built ye
 | D11: empty S5 said „Nie masz dostępności…” twice | 2026-10-21 (task 4.5) | `SlotPreview emptyText` (default „Brak terminów w najbliższych 14 dniach.”); the editor passes „Terminy pojawią się po zapisaniu okien.” while nothing is saved — the banner is the only „Nie masz dostępności” |
 | Zone prefill (#15 Q2, Z16, Z27) | 2026-10-21 (task 4.5) | `AvailabilityEditor timeZone={null}` prefills the browser zone (`useSyncExternalStore`, no hydration mismatch), matched to a list option by `matchTimeZoneOption` (exact → alias resolved by the browser → same UTC offsets over two years, same region and closest city name first); missing / unknown → `defaultTimeZone` Europe/Warsaw, the field stays visible. The warning „Okna zachowają godziny (np. 18:00) w nowej strefie” and „Zapisz i zmień strefę” only for a saved set; after saving, the new zone is the saved one |
 | Notice above the share panel on `/mentor` (P4, Z40) | 2026-10-21 (task 4.5) | `MentorPageForm notice`: rendered under the heading, before the share panel and the form |
+| D1: no screen composition of `/m/[slug]` for #16 alone | 2026-10-21 (epic 01, task 5.2) | „E01 Mentor page/Screens”: „S6 · #16 only” (identity → public work → description → `PriceList`; no `RequestForm`, question field or booking control — L1, Z1; tests the order, „150 zł” / „280 zł” for 15000 / 28000 grosze (C1) and no ratings), „· 2000-character description” (wrapped, not truncated), „· phone 375 px” (400-character description: h1, public-work link and both prices within 812 px, K2), „· 320 px” and „S7 · no such mentor page”. Phase 1 of #16 has no slot section; phase 2 adds `LengthToggle` + `SlotList selectable={false}` below the prices. The app route `app/m/[slug]/page.tsx` uses the same composition |
 | Invitation named a person (`inviterName`) | 2026-10-21 (task 2.4) | Prop removed: the text is always „Zespół DevMentora zaprasza cię do DevMentora” (spec #14 L2, Z2). `onAccept` may call `redirect()`: a rejection whose `digest` starts with `NEXT_REDIRECT` is a navigation, not „no network” |
 
 ## Not verified

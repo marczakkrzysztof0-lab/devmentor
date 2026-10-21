@@ -2,9 +2,17 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { narrow } from "../../../.storybook/helpers";
-import { AvailabilityScreen, EditorScreen, InvitationScreen, NoSessionScreen, SignInScreen } from "../../../.storybook/screens";
+import {
+  AvailabilityScreen,
+  EditorScreen,
+  InvitationScreen,
+  NoSessionScreen,
+  ShareProfileScreen,
+  SignInScreen,
+  phone,
+} from "../../../.storybook/screens";
 
-// Full-screen stories of E01 mentor screens S1–S5. State map: "E01 Mentor page/Screens – state map".
+// Full-screen stories of E01 screens: mentor S1–S5 and the share page S6 for #16 alone (gap D1). State map: "E01 Mentor page/Screens – state map".
 const meta = {
   title: "Product/E01 Mentor page/Screens",
   component: InvitationScreen,
@@ -217,3 +225,79 @@ export const S5SessionExpired: Story = {
   },
 };
 export const S5Narrow: Story = { name: "S5 Availability · 320 px", decorators: [narrow], render: () => <AvailabilityScreen state="set" /> };
+
+/* S6 /m/{slug} — #16 only (gap D1): profile and prices, no request form (L1, Z1). Phase 1 of #16 has no slot
+   section; phase 2 adds LengthToggle + SlotList selectable={false} below the prices. The S6 stories with
+   RequestForm (#16 + #17) are in „E02 Paid request/Screens”. */
+export const S6Only16: Story = {
+  name: "S6 · #16 only: identity, public work, description, prices (test: order, no form, C1)",
+  render: () => <ShareProfileScreen state="ready" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const main = within(canvas.getByRole("main"));
+    const h1 = main.getByRole("heading", { level: 1 });
+    await expect(h1).toHaveTextContent("Anna K.");
+    const link = main.getByRole("link", { name: /github\.com\/annak/ });
+    await expect(link).toHaveAttribute("rel", "nofollow noopener ugc");
+    await expect(link).toHaveAttribute("target", "_blank");
+    const description = main.getByText(/Migrowałam dwa duże projekty/);
+    // C1: whole amounts without „,00” — 15000 and 28000 grosze.
+    const price25 = main.getByText("150 zł");
+    const price50 = main.getByText("280 zł");
+    // Order is a requirement (spec #16 UI/UX): identity → public work → description → prices.
+    const order = [h1, link, description, price25, price50];
+    for (let i = 1; i < order.length; i++) {
+      await expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    // No request form, question field or booking control in E01 (L1, Z1); the only link is the public work.
+    await expect(canvas.queryAllByRole("textbox")).toHaveLength(0);
+    await expect(canvas.queryAllByRole("button")).toHaveLength(0);
+    await expect(canvas.queryAllByRole("radio")).toHaveLength(0);
+    await expect(canvasElement.querySelectorAll("form, input, textarea")).toHaveLength(0);
+    await expect(canvas.getAllByRole("link")).toHaveLength(1);
+    // No ratings or reviews in the page's own copy (N02, A03). The mentor's description is their own text
+    // (the fixture says „Pomogę ci ocenić…”), so it is left out of this check.
+    const copy = (canvasElement.textContent ?? "").replace(description.textContent ?? "", "");
+    await expect(copy).not.toMatch(/ocen|opini|rating|review|★/i);
+  },
+};
+export const S6Only16LongDescription: Story = {
+  name: "S6 · #16 only: 2000-character description, wrapped, not truncated",
+  render: () => <ShareProfileScreen state="long-description" />,
+  play: async ({ canvasElement }) => {
+    const description = within(canvasElement).getByText(/Prowadziłam migracje aplikacji/);
+    await expect(description.textContent?.length).toBe(2000);
+    await expect(description.scrollWidth).toBeLessThanOrEqual(description.clientWidth);
+  },
+};
+export const S6Only16Phone: Story = {
+  name: "S6 · #16 only: phone 375 px, 400-character description — identity, work and prices in the first screen (test, K2)",
+  decorators: [phone],
+  render: () => <ShareProfileScreen state="description-400" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frameTop = canvasElement.getBoundingClientRect().top;
+    for (const element of [
+      canvas.getByRole("heading", { level: 1 }),
+      canvas.getByRole("link", { name: /github\.com\/annak/ }),
+      canvas.getByText("150 zł"),
+      canvas.getByText("280 zł"),
+    ]) {
+      await expect(element.getBoundingClientRect().bottom - frameTop).toBeLessThanOrEqual(812);
+    }
+  },
+};
+export const S6Only16Narrow: Story = {
+  name: "S6 · #16 only: 320 px",
+  decorators: [narrow],
+  render: () => <ShareProfileScreen state="ready" />,
+};
+export const S7NotFound: Story = {
+  name: "S7 · no such mentor page (draft, unknown slug, /m): no mentor data",
+  render: () => <ShareProfileScreen state="not-found" />,
+  play: async ({ canvasElement }) => {
+    const main = within(within(canvasElement).getByRole("main"));
+    await expect(main.getByRole("heading", { level: 1 })).toHaveTextContent("Nie ma takiej strony mentora");
+    await expect(canvasElement.textContent).not.toMatch(/Anna|zł|github/);
+  },
+};

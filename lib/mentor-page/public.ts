@@ -7,7 +7,7 @@
 import "server-only";
 import type { MentorPublicPage } from "@devmentor/ui/product";
 import { getPool } from "@/lib/db";
-import { getPublishedPageBySlug as getPublishedPageBySlugFrom, PUBLIC_PAGE_KEYS } from "./public.mjs";
+import { getPublishedPageBySlug as getPublishedPageBySlugFrom, isPublishedSlug, PUBLIC_PAGE_KEYS } from "./public.mjs";
 
 export { PUBLIC_PAGE_KEYS };
 
@@ -21,4 +21,9 @@ export type PublishedMentorPage = {
 /** Opublikowana strona po slugu albo `null` (szkic, nieznany lub niepoprawny slug — ten sam wynik, Q4). */
 export async function getPublishedPageBySlug(slug: string): Promise<PublishedMentorPage | null> {
   return getPublishedPageBySlugFrom({ db: getPool(), slug });
+}
+
+/** Czy slug wskazuje opublikowaną stronę (lekkie sprawdzenie dla `proxy.ts`, bez danych strony). */
+export async function isPublishedMentorSlug(slug: string): Promise<boolean> {
+  return isPublishedSlug({ db: getPool(), slug });
 }
