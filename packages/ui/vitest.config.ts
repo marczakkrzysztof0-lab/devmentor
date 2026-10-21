@@ -16,6 +16,9 @@ export default defineConfig({
         plugins: [storybookTest({ configDir: path.join(dirname, ".storybook") })],
         test: {
           name: "storybook",
+          // Stories that type whole sentences (RequestForm) took >15 s under a full parallel run on Windows
+          // and timed out at the default (also on the tree before epic 01, task 2.4); 30 s leaves headroom.
+          testTimeout: 30_000,
           browser: {
             enabled: true,
             headless: true,

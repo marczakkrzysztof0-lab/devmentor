@@ -12,6 +12,7 @@ import { existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { createPool, MISSING_DATABASE_URL_MESSAGE } from "../lib/db/pool.mjs";
 import {
+  formatLinkExpiry,
   generateToken,
   hashToken,
   INVITATION_TTL_DAYS,
@@ -148,23 +149,13 @@ export async function createSignInLink({ db, email, appUrl, now }) {
   return { url: `${baseUrl}/sign-in/${token}`, expiresAt };
 }
 
-const EXPIRY_FORMAT = new Intl.DateTimeFormat("pl-PL", {
-  timeZone: "Europe/Warsaw",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
 /**
- * Data ważności w czasie polskim, np. „04.11.2026, 12:00”.
+ * Data ważności w czasie polskim, np. „04.11.2026, 12:00” (ten sam format pokazują strony linków).
  * @param {Date} date
  * @returns {string}
  */
 export function formatExpiry(date) {
-  return EXPIRY_FORMAT.format(date);
+  return formatLinkExpiry(date);
 }
 
 export const COMMANDS = {

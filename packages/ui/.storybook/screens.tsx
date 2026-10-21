@@ -64,7 +64,7 @@ export function InvitationScreen({ state }: { state: "valid" | "accepting" | "in
         : fn(async () => ({ ok: true as const }));
   return (
     <PageLayout width="narrow">
-      <InvitationPanel kind="invite" inviterName="Oliwia" expiresLabel="2.11.2026, 19:00" onAccept={onAccept} />
+      <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={onAccept} />
     </PageLayout>
   );
 }
@@ -73,7 +73,7 @@ export function SignInScreen({ state }: { state: "valid" | "inactive" }) {
   return (
     <PageLayout width="narrow">
       {state === "valid" ? (
-        <InvitationPanel kind="sign-in" expiresLabel="20.10.2026, 19:00" onAccept={async () => ({ ok: true })} />
+        <InvitationPanel kind="sign-in" expiresLabel="22.10.2026, 19:00" onAccept={async () => ({ ok: true })} />
       ) : (
         <AccessMessage kind="inactive-link" />
       )}
@@ -121,7 +121,7 @@ export function EditorScreen({
               };
   const published = state === "published" || state === "published-no-availability";
   return (
-    <PageLayout nav={<MentorNav current="page" pendingCount={published ? 1 : 0} />}>
+    <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={async () => {}} />}>
       {state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : null}
       <MentorPageForm initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE} published={published} baseUrl="http://localhost:3000" action={action} />
     </PageLayout>
@@ -139,7 +139,7 @@ const WINDOWS: AvailabilityWindow[] = [
 
 export function AvailabilityScreen({ state }: { state: "set" | "empty" | "zone-differs" | "server-error" }) {
   return (
-    <PageLayout nav={<MentorNav current="availability" pendingCount={1} />}>
+    <PageLayout nav={<MentorNav current="availability" sections={["page", "availability"]} signOutAction={async () => {}} />}>
       <AvailabilityEditor
         timeZone={state === "zone-differs" ? "Europe/London" : ZONE}
         zones={ZONES}

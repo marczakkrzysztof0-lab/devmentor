@@ -41,14 +41,83 @@ export const NavPlural: Story = {
   },
 };
 
+/** What Next.js `redirect()` in a server action rejects the caller with (the router navigates meanwhile). */
+const redirecting = async (): Promise<never> => {
+  throw Object.assign(new Error("NEXT_REDIRECT"), { digest: "NEXT_REDIRECT;push;/mentor;303;" });
+};
+
+export const NavE01: Story = {
+  name: "MentorNav · E01: Strona, Dostępność, Wyloguj — no „Zapytania” (test)",
+  args: { current: "page", pendingCount: 2, sections: ["page", "availability"], signOutAction: fn(async () => {}) },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const nav = canvas.getByRole("navigation", { name: "Panel mentora" });
+    await expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual(["Strona", "Dostępność"]);
+    await expect(canvas.queryByRole("link", { name: /Zapytania|zapyta/ })).toBeNull();
+    const signOut = within(nav).getByRole("button", { name: "Wyloguj" });
+    signOut.focus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(args.signOutAction).toHaveBeenCalledTimes(1));
+  },
+};
+export const NavE01PageOnly: Story = {
+  name: "MentorNav · E01 before availability: Strona, Wyloguj, 320 px",
+  args: { current: "page", pendingCount: 0, sections: ["page"], signOutAction: fn(async () => {}) },
+  decorators: [narrow],
+};
+export const NavSignOutRedirect: Story = {
+  name: "MentorNav · Wyloguj → redirect keeps the button busy, no error (test)",
+  args: { current: "page", sections: ["page", "availability"], signOutAction: redirecting },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const button = canvas.getByRole("button", { name: "Wyloguj" });
+    await userEvent.click(button);
+    await waitFor(() => expect(button).toHaveAttribute("aria-busy", "true"));
+    await expect(canvas.queryByRole("alert")).toBeNull();
+  },
+};
+export const NavSignOutNetwork: Story = {
+  name: "MentorNav · Wyloguj without network (test)",
+  args: {
+    current: "page",
+    sections: ["page", "availability"],
+    signOutAction: async () => {
+      throw new TypeError("Failed to fetch");
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Wyloguj" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent("Brak połączenia");
+    await expect(canvas.getByRole("button", { name: "Wyloguj" })).not.toHaveAttribute("aria-busy");
+  },
+};
+
 /* ------------------------------------------------- invitation, sign-in */
 export const Invitation: Story = {
-  name: "InvitationPanel · invite",
-  render: () => <InvitationPanel kind="invite" inviterName="Oliwia" expiresLabel="2.11.2026, 19:00" onAccept={fn(async () => { await wait(300); return { ok: true as const }; })} />,
+  name: "InvitationPanel · invite, team text without a name (test)",
+  render: () => <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={fn(async () => { await wait(300); return { ok: true as const }; })} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent(/^Zespół DevMentora zaprasza cię do DevMentora$/);
+    await expect(canvas.getByText("Link ważny do 2.11.2026, 19:00.")).toBeVisible();
+    await expect(canvas.getAllByRole("button").map((b) => b.textContent)).toEqual(["Akceptuję zaproszenie"]);
+  },
+};
+export const InvitationRedirect: Story = {
+  name: "InvitationPanel · accept → redirect keeps the button busy, no error (test)",
+  render: () => <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={redirecting} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const button = canvas.getByRole("button", { name: "Akceptuję zaproszenie" });
+    await userEvent.click(button);
+    await waitFor(() => expect(button).toHaveAttribute("aria-busy", "true"));
+    await expect(canvas.queryByRole("alert")).toBeNull();
+  },
 };
 export const InvitationPending: Story = {
   name: "InvitationPanel · accepting (test: no double click)",
-  render: () => <InvitationPanel kind="invite" inviterName="Oliwia" expiresLabel="2.11.2026, 19:00" onAccept={never} />,
+  render: () => <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={never} />,
   play: async ({ canvasElement }) => {
     const button = within(canvasElement).getByRole("button", { name: "Akceptuję zaproszenie" });
     await userEvent.click(button);
@@ -57,7 +126,7 @@ export const InvitationPending: Story = {
 };
 export const InvitationUsed: Story = {
   name: "InvitationPanel · link already used → neutral message (test)",
-  render: () => <InvitationPanel kind="invite" inviterName="Oliwia" expiresLabel="2.11.2026, 19:00" onAccept={async () => ({ ok: false as const })} />,
+  render: () => <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={async () => ({ ok: false as const })} />,
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("button", { name: "Akceptuję zaproszenie" }));
     await expect(await within(canvasElement).findByRole("heading", { level: 1 })).toHaveTextContent("Ten link jest nieaktywny — poproś zespół o nowy");
@@ -65,15 +134,15 @@ export const InvitationUsed: Story = {
 };
 export const InvitationNetwork: Story = {
   name: "InvitationPanel · no network",
-  render: () => <InvitationPanel kind="sign-in" expiresLabel="20.10.2026, 19:00" onAccept={async () => { throw new TypeError("Failed to fetch"); }} />,
+  render: () => <InvitationPanel kind="sign-in" expiresLabel="22.10.2026, 19:00" onAccept={async () => { throw new TypeError("Failed to fetch"); }} />,
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("button", { name: "Zaloguj" }));
     await expect(await within(canvasElement).findByRole("alert")).toHaveTextContent("Brak połączenia");
   },
 };
 export const SignIn: Story = {
-  name: "InvitationPanel · sign-in link",
-  render: () => <InvitationPanel kind="sign-in" expiresLabel="20.10.2026, 19:00" onAccept={async () => ({ ok: true as const })} />,
+  name: "InvitationPanel · sign-in link (valid 72 h)",
+  render: () => <InvitationPanel kind="sign-in" expiresLabel="22.10.2026, 19:00" onAccept={async () => ({ ok: true as const })} />,
 };
 export const Inactive: Story = { name: "AccessMessage · inactive link", render: () => <AccessMessage kind="inactive-link" /> };
 export const InvitationOnly: Story = { name: "AccessMessage · /mentor without session", render: () => <AccessMessage kind="invitation-only" /> };

@@ -19,7 +19,8 @@ import { TextInput } from "../../components/text-input/TextInput";
 import { TextLink } from "../../components/text-link/TextLink";
 import { Textarea } from "../../components/textarea/Textarea";
 import { cn } from "../../lib/cn";
-import { NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, SERVER_MESSAGE, useFocusFirstError } from "../shared/form";
+import { isNavigationError, NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, SERVER_MESSAGE } from "../shared/form";
+import { useFocusFirstError } from "../shared/use-focus-first-error";
 import { formatDay, formatTime } from "../shared/format";
 import type { FieldErrors, OpenSlot } from "../shared/types";
 
@@ -34,6 +35,16 @@ export type MentorNavProps = {
   pendingCount?: number;
   /** Paths; the defaults are the routes from the specs. */
   hrefs?: Partial<Record<MentorSection, string>>;
+  /**
+   * Items to show, always in the fixed order „Zapytania”, „Strona”, „Dostępność”; default: all three.
+   * E01 without E02 shows no „Zapytania” and no counter (gap D2, spec #14 L10/Z11).
+   */
+  sections?: MentorSection[];
+  /**
+   * Server action that ends the session (`signOut()`, spec #14). When given, „Wyloguj” is shown as the
+   * last item (gap D3, L7). Throwing = no network; a framework redirect is a navigation, not an error.
+   */
+  signOutAction?: () => Promise<void>;
 };
 
 const NAV: { key: MentorSection; label: string; href: string }[] = [
@@ -51,13 +62,15 @@ export function pendingLabel(count: number) {
 }
 
 /** Top navigation of the mentor's three screens; no sidebar (R02.6, P22). */
-export function MentorNav({ current, pendingCount = 0, hrefs }: MentorNavProps) {
+export function MentorNav({ current, pendingCount = 0, hrefs, sections, signOutAction }: MentorNavProps) {
+  const items = sections ? NAV.filter((item) => sections.includes(item.key)) : NAV;
+  const showCounter = pendingCount > 0 && items.some((item) => item.key === "requests");
   return (
     <header className="flex flex-wrap items-center justify-between gap-in-group border-b border-divider px-page-gutter py-in-group">
       <span className="font-strong">DevMentor</span>
       <nav aria-label="Panel mentora">
         <ul className="flex flex-wrap gap-in-group">
-          {NAV.map((item) => (
+          {items.map((item) => (
             <li key={item.key}>
               <a
                 href={hrefs?.[item.key] ?? item.href}
@@ -72,9 +85,14 @@ export function MentorNav({ current, pendingCount = 0, hrefs }: MentorNavProps) 
               </a>
             </li>
           ))}
+          {signOutAction ? (
+            <li>
+              <SignOutControl action={signOutAction} />
+            </li>
+          ) : null}
         </ul>
       </nav>
-      {pendingCount > 0 ? (
+      {showCounter ? (
         <a
           href={hrefs?.requests ?? "/mentor/requests"}
           className="rounded-control text-meta text-primary underline underline-offset-4 outline-offset-2 focus-visible:outline-2 focus-visible:outline-focus-ring"
@@ -86,20 +104,54 @@ export function MentorNav({ current, pendingCount = 0, hrefs }: MentorNavProps) 
   );
 }
 
+/** „Wyloguj”: a form with one submit button (keyboard: Tab + Enter/Space); no network → inline message (C6). */
+function SignOutControl({ action }: { action: () => Promise<void> }) {
+  const [state, setState] = useState<"idle" | "pending" | "network">("idle");
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (state === "pending") return;
+    setState("pending");
+    try {
+      await action();
+      setState("idle");
+    } catch (error) {
+      // The app redirects after signing out (s03): keep the pending state while the router navigates.
+      if (!isNavigationError(error)) setState("network");
+    }
+  };
+  return (
+    <form onSubmit={submit} className="flex flex-wrap items-center gap-in-group">
+      <Button type="submit" variant="secondary" loading={state === "pending"}>
+        Wyloguj
+      </Button>
+      {state === "network" ? (
+        <p role="alert" className="text-meta text-status-danger">
+          {NETWORK_ACTION_MESSAGE}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 /* ---------------------------------------------------- invitation, sign-in */
 
 export type InvitationPanelProps = {
   kind: "invite" | "sign-in";
-  /** Founder who sent the link (#14: "Founder X invited you"). */
-  inviterName?: string;
   /** Link expiry as shown to the user, e.g. „2.11.2026, 19:00”. */
   expiresLabel: string;
-  /** Server action; resolves when the user is signed in (the app then redirects to the editor). */
+  /**
+   * Server action. `{ ok: false }` → the neutral inactive-link message. On success the app navigates to the
+   * editor — either the action calls `redirect()` (the rejected promise is treated as navigation, the button
+   * stays busy) or it resolves `{ ok: true }` and the app navigates itself. Throwing = no network (C6, Z28).
+   */
   onAccept: () => Promise<{ ok: true } | { ok: false }>;
 };
 
-/** One button, no form, no password, no bank fields (#14). A failed accept shows the neutral inactive message. */
-export function InvitationPanel({ kind, inviterName, expiresLabel, onAccept }: InvitationPanelProps) {
+/**
+ * One button, no form, no password, no bank fields (#14). The invitation never names a person: always
+ * „Zespół DevMentora zaprasza cię do DevMentora” (L2, Z2). A failed accept shows the neutral inactive message.
+ */
+export function InvitationPanel({ kind, expiresLabel, onAccept }: InvitationPanelProps) {
   const [state, setState] = useState<"idle" | "pending" | "inactive" | "network">("idle");
   if (state === "inactive") return <AccessMessage kind="inactive-link" />;
   const accept = async () => {
@@ -108,15 +160,15 @@ export function InvitationPanel({ kind, inviterName, expiresLabel, onAccept }: I
     try {
       const result = await onAccept();
       setState(result.ok ? "pending" : "inactive");
-    } catch {
-      setState("network");
+    } catch (error) {
+      if (!isNavigationError(error)) setState("network");
     }
   };
   return (
     <section aria-labelledby="invitation-title" className="flex max-w-text flex-col items-start gap-between-groups">
       <div className="flex flex-col gap-in-group">
         <h1 id="invitation-title" className="text-heading-page font-strong">
-          {kind === "invite" ? `${inviterName ?? "Zespół DevMentora"} zaprasza cię do DevMentora` : "Zaloguj się do DevMentora"}
+          {kind === "invite" ? "Zespół DevMentora zaprasza cię do DevMentora" : "Zaloguj się do DevMentora"}
         </h1>
         <p className="text-meta text-muted">Link ważny do {expiresLabel}.</p>
       </div>

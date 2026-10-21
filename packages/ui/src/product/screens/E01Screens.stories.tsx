@@ -17,7 +17,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /* S1 /invite/[token] */
-export const S1Valid: Story = { name: "S1 Invitation · valid link" };
+export const S1Valid: Story = {
+  name: "S1 Invitation · valid link (test: team text, no name)",
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("heading", { level: 1 })).toHaveTextContent(/^Zespół DevMentora zaprasza cię do DevMentora$/);
+  },
+};
 export const S1Accepting: Story = {
   name: "S1 Invitation · accepting",
   args: { state: "accepting" },
@@ -38,14 +43,32 @@ export const S1Network: Story = {
 };
 
 /* S2 /sign-in/[token] */
-export const S2Valid: Story = { name: "S2 Sign-in · valid link", render: () => <SignInScreen state="valid" /> };
+export const S2Valid: Story = {
+  name: "S2 Sign-in · valid link, 72 h (test)",
+  render: () => <SignInScreen state="valid" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // „Now” in the stories is 19.10.2026, 19:00; a sign-in link is valid 72 h (spec #14, gap D7).
+    await expect(canvas.getByText("Link ważny do 22.10.2026, 19:00.")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Zaloguj" })).toBeVisible();
+  },
+};
 export const S2Inactive: Story = { name: "S2 Sign-in · inactive link", render: () => <SignInScreen state="inactive" /> };
 
 /* S3 /mentor without a session */
 export const S3NoSession: Story = { name: "S3 /mentor · no session (invitation only)", render: () => <NoSessionScreen /> };
 
 /* S4 /mentor editor */
-export const S4FirstVisit: Story = { name: "S4 Editor · first visit", render: () => <EditorScreen state="first-visit" /> };
+export const S4FirstVisit: Story = {
+  name: "S4 Editor · first visit (test: E01 nav without „Zapytania”)",
+  render: () => <EditorScreen state="first-visit" />,
+  play: async ({ canvasElement }) => {
+    const nav = within(within(canvasElement).getByRole("navigation", { name: "Panel mentora" }));
+    await expect(nav.getByRole("link", { name: "Strona" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.queryByRole("link", { name: "Zapytania" })).toBeNull();
+    await expect(nav.getByRole("button", { name: "Wyloguj" })).toBeVisible();
+  },
+};
 export const S4Publish: Story = {
   name: "S4 Editor · publish → share link",
   render: () => <EditorScreen state="filled-draft" />,

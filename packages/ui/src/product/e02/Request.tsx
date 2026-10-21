@@ -19,7 +19,8 @@ import { TextInput } from "../../components/text-input/TextInput";
 import { Textarea } from "../../components/textarea/Textarea";
 import { LengthToggle, payLabel, SlotList, type Prices } from "../e01/SharePage";
 import { Amount } from "../shared/Amount";
-import { NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE, useFocusFirstError } from "../shared/form";
+import { NETWORK_ACTION_MESSAGE, NETWORK_MESSAGE } from "../shared/form";
+import { useFocusFirstError } from "../shared/use-focus-first-error";
 import { formatDay, formatMoney, formatSlotRange, formatTime } from "../shared/format";
 import type { FieldErrors, LoadState, OpenSlot, RefundStatus, RequestStatus, SessionLength } from "../shared/types";
 
