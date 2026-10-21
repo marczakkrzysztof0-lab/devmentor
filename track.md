@@ -37,14 +37,14 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - [x] 1.3 CI (`postgres:17` service, `DATABASE_URL`) + krok migracji w `scripts/setup.mjs` (z ponawianiem połączenia) + test w `tests/setup.test.mjs`.
 - [x] 1.4 Dokumentacja i kontrakty: README (komendy migracji, `db/`, Node ≥ 20.12, `db:rollback` tylko lokalnie/testowo), `BACKWARD_COMPATIBILITY.md` (schemat → „dziś”, nowe skrypty).
 
-### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1) — ZAKOŃCZONA 2026-10-21, czeka na test ręczny i „dalej”
+### Faza 2 — Zaproszenie i logowanie mentora (#14, Phase 1) — ZAKOŃCZONA 2026-10-21 (review Codexa: approve + 1 Minor poprawiony; test ręczny koordynatora OK)
 
 - [x] 2.1 Migracja `0002_mentor_sign_in` (`mentor_sessions`, `mentor_sign_in_links`) + pula `lib/db` (`DATABASE_URL`) + test up/down.
 - [x] 2.2 CLI założycieli `scripts/mentor-links.mjs` + `mentor:invite`, `mentor:sign-in-link` (token 32 B base64url, tylko SHA-256, 14 dni / 72 h); testy z bazą.
 - [x] 2.3 Rdzeń sesji i linków (`acceptInvitation`, `redeemSignInLink`, `startSession`, `endSession`, `getCurrentMentor`) w `.mjs` + DAL `server-only`; testy z bazą (transakcja, jednorazowość, współbieżność, ta sama neutralna odpowiedź, zamiana sesji innego mentora, własny link bez zużycia).
 - [x] 2.4 Strony `/invite/[token]`, `/sign-in/[token]`, powłoka `/mentor`, „Wyloguj”, `MentorNav` bez „Zapytania” (luki DS D2, D3) + `npm run test:e2e` (Playwright na `next start`): GET niczego nie zużywa, ścieżka odmowy, tekst zaproszenia.
 
-### Faza 3 — Edytor strony i publikacja (#14, Phase 2)
+### Faza 3 — Edytor strony i publikacja (#14, Phase 2) — W TOKU
 
 - [ ] 3.1 Migracja `0003_mentor_page_prices` (ceny w groszach, `currency` PLN, nowy CHECK publikacji, strażnik `RAISE` na opublikowanym wierszu) + testy.
 - [ ] 3.2 `lib/mentor-page/validate.mjs` + testy jednostkowe (każde brakujące pole nazwane, URL tylko http(s), ceny 20–5000 zł, slug).
@@ -81,6 +81,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (faza 2): `npm run test:e2e` (`scripts/test-e2e.mjs`) wymaga wcześniejszego `npm run build`; aplikacja pod `next start` dostaje `DATABASE_URL` z `options=-c search_path=<schemat dm_migtest_*>`.
 - 2026-10-21 (faza 2): DS — `MentorNav` (`sections`, `signOutAction`), `InvitationPanel` bez `inviterName`, `useFocusFirstError` przeniesiony do `shared/use-focus-first-error.ts` (barrel `@devmentor/ui/product` importowalny z Server Components); `testTimeout` Storybooka 30 s (wcześniej niestabilny test RequestForm).
 - 2026-10-21 (faza 2): w nawigacji tylko „Strona” + „Wyloguj”; „Dostępność” dojdzie w zadaniu 4.5 razem z `/mentor/availability` (bez martwego linku). Data ważności linku podawana z dopiskiem „(czas polski)”. Strony linków i `/mentor` mają `noindex`.
+- 2026-10-21 (po review fazy 2): strony z danymi z bazy mają `<Suspense>` OBEJMUJĄCY cały `PageLayout` (fallback z własnym `PageLayout`), żeby treść nigdy nie była poza `<main>`; props stron przez globalny `PageProps<"/trasa">`. Świeży klon: `npx tsc --noEmit` wymaga wcześniej `npx next typegen` / `next build` (tak samo dla istniejącego `LayoutProps`).
 
 ## Otwarte punkty
 

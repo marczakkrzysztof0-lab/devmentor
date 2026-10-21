@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 };
 
 export default function MentorPage() {
+  // Granica <Suspense> obejmuje cały PageLayout (jak /invite i /sign-in): fallback i treść mają każde własny
+  // <main>, więc nagłówek nigdy nie trafia poza landmark, także zanim strumień podmieni fallback.
   return (
     <Suspense
       fallback={

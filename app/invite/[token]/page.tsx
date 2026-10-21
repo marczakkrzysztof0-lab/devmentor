@@ -11,37 +11,48 @@ import { inspectInvitationLink } from "@/lib/auth/session";
 import { formatLinkExpiry, isLinkTokenShape } from "@/lib/auth/tokens.mjs";
 import { acceptInvitationAction } from "./actions";
 
-/** Parametry trasy dynamicznej — w Next 16 `params` to Promise (odczyt w czasie żądania). */
-type TokenParams = Promise<{ token: string }>;
-
 export const metadata: Metadata = {
   title: "Zaproszenie — DevMentor",
   robots: { index: false, follow: false },
 };
 
-export default function InvitePage({ params }: { params: TokenParams }) {
+export default function InvitePage({ params }: PageProps<"/invite/[token]">) {
+  // Granica <Suspense> obejmuje cały PageLayout: fallback i treść mają każde własny <main>, więc nagłówek
+  // i przycisk nigdy nie trafiają poza landmark (strumieniowany segment podmienia cały fallback, razem z <main>).
   return (
-    <PageLayout width="narrow">
-      <Suspense fallback={<Spinner label="Sprawdzanie linku" />}>
-        <Invitation params={params} />
-      </Suspense>
-    </PageLayout>
+    <Suspense
+      fallback={
+        <PageLayout width="narrow">
+          <Spinner label="Sprawdzanie linku" />
+        </PageLayout>
+      }
+    >
+      <Invitation params={params} />
+    </Suspense>
   );
 }
 
-async function Invitation({ params }: { params: TokenParams }) {
+async function Invitation({ params }: Pick<PageProps<"/invite/[token]">, "params">) {
   const { token } = await params;
   // Ważność linku zależy od bieżącej chwili — zawsze w czasie żądania, nigdy w prefetchu/prerenderze.
   await connection();
   const link = isLinkTokenShape(token) ? await inspectInvitationLink(token) : ({ status: "inactive" } as const);
   // Zaproszenie przyjęte, a ta sama osoba jest zalogowana: prosto do edytora (14-A4).
   if (link.status === "signed-in-as-owner") redirect("/mentor");
-  if (link.status === "inactive") return <AccessMessage kind="inactive-link" />;
+  if (link.status === "inactive") {
+    return (
+      <PageLayout width="narrow">
+        <AccessMessage kind="inactive-link" />
+      </PageLayout>
+    );
+  }
   return (
-    <InvitationPanel
-      kind="invite"
-      expiresLabel={`${formatLinkExpiry(link.expiresAt)} (czas polski)`}
-      onAccept={acceptInvitationAction.bind(null, token)}
-    />
+    <PageLayout width="narrow">
+      <InvitationPanel
+        kind="invite"
+        expiresLabel={`${formatLinkExpiry(link.expiresAt)} (czas polski)`}
+        onAccept={acceptInvitationAction.bind(null, token)}
+      />
+    </PageLayout>
   );
 }

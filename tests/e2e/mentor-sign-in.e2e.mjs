@@ -18,6 +18,25 @@ const INVITATION_ONLY_TEXT = "Dostęp tylko przez zaproszenie — poproś zespó
 // Formy rodzajowe 2. osoby czasu przeszłego (C12): „zrobiłeś”, „byłaś”, „mogłeś”… — „jesteś” jest neutralne.
 const GENDERED_WORD = /(?<!\p{L})\p{L}*(?:łeś|łaś|eś|aś)(?!\p{L})/giu;
 const NEUTRAL_WORDS = new Set(["jesteś"]);
+const LOADING_TEXT = /Sprawdzanie linku|Wczytywanie/;
+
+/**
+ * Każdy <h1> w surowym HTML (przed wykonaniem JS, który podmienia fallback Suspense) leży wewnątrz <main>.
+ * Strumieniowany segment trafia na koniec <body> w ukrytym <div>; jeśli nie niesie własnego <main>,
+ * nagłówek jest poza landmarkiem do czasu podmiany (i na zawsze bez JS).
+ * @param {string} html
+ */
+function headingsOutsideMain(html) {
+  const markup = html.replace(/<script\b[\s\S]*?<\/script>/gi, "");
+  const outside = [];
+  let depth = 0;
+  for (const match of markup.matchAll(/<(\/?)(main|h1)\b[^>]*>/gi)) {
+    const [, closing, tag] = match;
+    if (tag.toLowerCase() === "main") depth += closing ? -1 : 1;
+    else if (!closing && depth <= 0) outside.push(markup.slice(match.index, match.index + 120));
+  }
+  return outside;
+}
 
 describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => {
   /** @type {pg.Pool} */
@@ -46,6 +65,24 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
 
   async function remember(page) {
     visibleTexts.set(`${page.url()}#${visibleTexts.size}`, await page.locator("body").innerText());
+  }
+
+  /**
+   * Po wczytaniu: dokładnie jeden landmark `main`, w nim nagłówek strony (i przycisk), bez tekstu ładowania;
+   * w surowym HTML tej samej strony żaden <h1> nie leży poza <main>.
+   * @param {import("playwright").Page} page
+   * @param {{ heading: string, button?: string }} expected
+   */
+  async function assertMainLandmark(page, { heading, button }) {
+    const main = page.getByRole("main");
+    assert.equal(await main.count(), 1, `${page.url()}: dokładnie jeden landmark main`);
+    assert.equal((await main.getByRole("heading", { level: 1 }).innerText()).trim(), heading);
+    if (button) assert.equal(await main.getByRole("button", { name: button }).count(), 1, `przycisk „${button}” w main`);
+    assert.doesNotMatch(await main.innerText(), LOADING_TEXT);
+    // Ten sam adres jeszcze raz jako GET (ciasteczka kontekstu) — GET niczego nie zużywa.
+    const response = await page.request.get(page.url());
+    assert.equal(response.status(), 200);
+    assert.deepEqual(headingsOutsideMain(await response.text()), [], `${page.url()}: <h1> poza <main> w surowym HTML`);
   }
 
   async function sessionCookie(context) {
@@ -99,6 +136,7 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
       assert.deepEqual(buttons.map((text) => text.trim()), ["Akceptuję zaproszenie"]);
       assert.match(await page.locator("main").innerText(), /Link ważny do \d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}/);
       assert.equal(await page.locator("input, textarea, select").count(), 0);
+      await assertMainLandmark(page, { heading: INVITATION_TEXT, button: "Akceptuję zaproszenie" });
       assert.equal(await sessionCookie(context), undefined);
 
       const { rows } = await db.query("select accepted_at, mentor_id from invitations where email = $1", [address]);
@@ -117,6 +155,10 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
     const { context, page } = await acceptInBrowser(address);
     try {
       await remember(page);
+      // Po nawigacji klienta (poprzednia trasa zostaje w DOM ukryta) i po pełnym wczytaniu /mentor.
+      await assertMainLandmark(page, { heading: "Twoja strona" });
+      await open(page, `${BASE_URL}/mentor`);
+      await assertMainLandmark(page, { heading: "Twoja strona" });
       const nav = page.getByRole("navigation", { name: "Panel mentora" });
       const links = (await nav.getByRole("link").allInnerTexts()).map((text) => text.trim());
       assert.deepEqual(links, ["Strona"]);
@@ -196,6 +238,7 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
         await open(page, target);
         assert.equal((await page.getByRole("heading", { level: 1 }).innerText()).trim(), INACTIVE_TEXT, target);
         assert.equal(await page.getByRole("button").count(), 0, target);
+        await assertMainLandmark(page, { heading: INACTIVE_TEXT });
         // Ani słowa o przyczynie (wygasł / użyty / nieznany).
         assert.doesNotMatch(await page.locator("main").innerText(), /wygas|użyt|nieznan/i);
       } finally {
@@ -212,6 +255,7 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
       assert.equal(await page.locator("form, input, textarea, select").count(), 0);
       assert.equal(await page.getByRole("navigation").count(), 0);
       assert.equal(await page.getByRole("button").count(), 0);
+      await assertMainLandmark(page, { heading: INVITATION_ONLY_TEXT });
     } finally {
       await context.close();
     }
@@ -252,6 +296,7 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
       assert.equal((await page.getByRole("heading", { level: 1 }).innerText()).trim(), "Zaloguj się do DevMentora");
       assert.deepEqual((await page.getByRole("button").allInnerTexts()).map((text) => text.trim()), ["Zaloguj"]);
       assert.equal(await page.title(), "Logowanie — DevMentor");
+      await assertMainLandmark(page, { heading: "Zaloguj się do DevMentora", button: "Zaloguj" });
       let { rows } = await db.query("select used_at from mentor_sign_in_links where mentor_id = $1", [mentorId]);
       assert.equal(rows.length, 1);
       assert.equal(rows[0].used_at, null);

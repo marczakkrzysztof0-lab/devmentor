@@ -10,36 +10,47 @@ import { inspectSignInLinkForRequest } from "@/lib/auth/session";
 import { formatLinkExpiry, isLinkTokenShape } from "@/lib/auth/tokens.mjs";
 import { redeemSignInLinkAction } from "./actions";
 
-/** Parametry trasy dynamicznej — w Next 16 `params` to Promise (odczyt w czasie żądania). */
-type TokenParams = Promise<{ token: string }>;
-
 export const metadata: Metadata = {
   title: "Logowanie — DevMentor",
   robots: { index: false, follow: false },
 };
 
-export default function SignInPage({ params }: { params: TokenParams }) {
+export default function SignInPage({ params }: PageProps<"/sign-in/[token]">) {
+  // Granica <Suspense> obejmuje cały PageLayout: fallback i treść mają każde własny <main>, więc nagłówek
+  // i przycisk nigdy nie trafiają poza landmark (strumieniowany segment podmienia cały fallback, razem z <main>).
   return (
-    <PageLayout width="narrow">
-      <Suspense fallback={<Spinner label="Sprawdzanie linku" />}>
-        <SignInLink params={params} />
-      </Suspense>
-    </PageLayout>
+    <Suspense
+      fallback={
+        <PageLayout width="narrow">
+          <Spinner label="Sprawdzanie linku" />
+        </PageLayout>
+      }
+    >
+      <SignInLink params={params} />
+    </Suspense>
   );
 }
 
-async function SignInLink({ params }: { params: TokenParams }) {
+async function SignInLink({ params }: Pick<PageProps<"/sign-in/[token]">, "params">) {
   const { token } = await params;
   // Ważność linku zależy od bieżącej chwili — zawsze w czasie żądania, nigdy w prefetchu/prerenderze.
   await connection();
   const link = isLinkTokenShape(token) ? await inspectSignInLinkForRequest(token) : ({ status: "inactive" } as const);
   if (link.status === "signed-in-as-owner") redirect("/mentor");
-  if (link.status === "inactive") return <AccessMessage kind="inactive-link" />;
+  if (link.status === "inactive") {
+    return (
+      <PageLayout width="narrow">
+        <AccessMessage kind="inactive-link" />
+      </PageLayout>
+    );
+  }
   return (
-    <InvitationPanel
-      kind="sign-in"
-      expiresLabel={`${formatLinkExpiry(link.expiresAt)} (czas polski)`}
-      onAccept={redeemSignInLinkAction.bind(null, token)}
-    />
+    <PageLayout width="narrow">
+      <InvitationPanel
+        kind="sign-in"
+        expiresLabel={`${formatLinkExpiry(link.expiresAt)} (czas polski)`}
+        onAccept={redeemSignInLinkAction.bind(null, token)}
+      />
+    </PageLayout>
   );
 }
