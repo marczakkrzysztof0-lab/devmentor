@@ -46,7 +46,7 @@ You do not need the source file to apply a rule — the sentence next to the cod
 
 ## Components
 
-Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } from "@devmentor/ui/product"` (product). Styles once in the app: `@import "@devmentor/ui/styles.css";` (already in `app/globals.css`).
+Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } from "@devmentor/ui/product"` (product). Text rules shared by the browser and the server (plain ESM, also for `node --test`): `import { textLength, publicWorkUrlProblem, … } from "@devmentor/ui/text"` — lengths in Unicode code points (an emoji is 1). Styles once in the app: `@import "@devmentor/ui/styles.css";` (already in `app/globals.css`).
 
 | Component | Import | When | When not |
 |---|---|---|---|
@@ -56,7 +56,7 @@ Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } fro
 | `Spinner` | `@devmentor/ui` | Waiting for an answer, always with `label` | Known-shape content → `Skeleton` |
 | `FormField` + `Label` | `@devmentor/ui` | Every typed field (label, hint, error, „(opcjonalnie)”) | Option groups |
 | `TextInput` (`suffix`, `readOnly`) | `@devmentor/ui` | One short value; „zł” as suffix | Several lines |
-| `Textarea` (`maxLength` → counter from 80 %) | `@devmentor/ui` | Question (≤ 4000), description (≤ 2000) | Displaying sent text |
+| `Textarea` (`maxLength` in code points → counter from 80 %) | `@devmentor/ui` | Question (≤ 4000), description (≤ 2000) | Displaying sent text |
 | `Select` (`options` or `groups`) | `@devmentor/ui` | Long lists: time zone, hour | 2–5 visible options |
 | `RadioGroup` (`list`, `segmented`, `groups`) | `@devmentor/ui` | 25/50 min with prices, slots by day | Actions, long lists |
 | `Panel` | `@devmentor/ui` | One block of main content | Rows; never nested |

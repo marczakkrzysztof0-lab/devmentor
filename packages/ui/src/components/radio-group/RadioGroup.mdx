@@ -44,7 +44,7 @@ Visible legend (required) → options. `segmented`: bordered buttons side by sid
 | Loading | Not applicable — the slot list's loading is `Skeleton` (product, stage 3). | — |
 
 ## 7. Behaviour and accessibility
-- WAI-ARIA radio group (Radix): Tab enters the group at the chosen option, arrows move **and** choose, Tab leaves the group. Space chooses.
+- WAI-ARIA radio group (Radix): Tab enters the group at the chosen option, arrows move **and** choose (Right/Down next, Left/Up previous, wrapping, disabled options skipped — also on a quick press, gap D12 closed 2026-10-21), Tab leaves the group. Space chooses.
 - The legend names the group (`aria-labelledby`); the error is its description.
 - The whole list row is the click target (`<label>`); segmented options are 40 px high (WCAG 2.5.8).
 - Times include the date in the text („jutro 18:00”), not only through grouping. Source: spec #16.

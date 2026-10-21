@@ -2,8 +2,10 @@
 // @devmentor/ui and @devmentor/ui/product with spec data; the app builds the same screens
 // from its routes. Never exported from the package.
 import type { Decorator } from "@storybook/react-vite";
+import { useState } from "react";
 import { fn } from "storybook/test";
 
+import { Skeleton } from "../src/components/skeleton/Skeleton";
 import { StateMessage } from "../src/components/state-message/StateMessage";
 import {
   AccessMessage,
@@ -11,13 +13,16 @@ import {
   CancelNotPossible,
   CancelRequest,
   InvitationPanel,
+  LengthToggle,
   MentorDescription,
   MentorIdentity,
   MentorNav,
   MentorNotFound,
   MentorPageForm,
+  NETWORK_LOAD_MESSAGE,
   NoAvailabilityNotice,
   PageLayout,
+  PriceList,
   QuestionCopyBox,
   QuestionText,
   RequestDecision,
@@ -27,16 +32,19 @@ import {
   RequestStatusView,
   RequestSummary,
   SaveLinkBox,
+  SlotList,
   type AvailabilityWindow,
   type MentorPageValues,
   type MentorRequestDetail,
   type MentorRequestItem,
   type RefundStatus,
   type RequestStatus,
+  type SaveAvailabilityResult,
   type SaveMentorPageResult,
+  type SessionLength,
   type StartRequestResult,
 } from "../src/product";
-import { ANNA, ANNA_SLOTS, NOW, QUESTION, REQUEST_URL, SHARE_URL, ZONE, never, wait, warsaw } from "./fixtures";
+import { ANNA, ANNA_SLOTS, LONG_DESCRIPTION, NOW, QUESTION, REQUEST_URL, SHARE_URL, ZONE, never, wait, warsaw } from "./fixtures";
 
 /** 375 px phone frame (spec #16: first screen at 375 × 812). */
 export const phone: Decorator = (Story) => (
@@ -64,7 +72,7 @@ export function InvitationScreen({ state }: { state: "valid" | "accepting" | "in
         : fn(async () => ({ ok: true as const }));
   return (
     <PageLayout width="narrow">
-      <InvitationPanel kind="invite" inviterName="Oliwia" expiresLabel="2.11.2026, 19:00" onAccept={onAccept} />
+      <InvitationPanel kind="invite" expiresLabel="2.11.2026, 19:00" onAccept={onAccept} />
     </PageLayout>
   );
 }
@@ -73,7 +81,7 @@ export function SignInScreen({ state }: { state: "valid" | "inactive" }) {
   return (
     <PageLayout width="narrow">
       {state === "valid" ? (
-        <InvitationPanel kind="sign-in" expiresLabel="20.10.2026, 19:00" onAccept={async () => ({ ok: true })} />
+        <InvitationPanel kind="sign-in" expiresLabel="22.10.2026, 19:00" onAccept={async () => ({ ok: true })} />
       ) : (
         <AccessMessage kind="inactive-link" />
       )}
@@ -89,7 +97,8 @@ export function NoSessionScreen() {
   );
 }
 
-const EMPTY_PAGE: MentorPageValues = { displayName: "", publicWorkUrl: "", description: "", price25: "", price50: "", slug: "" };
+/** First visit: empty draft with the random placeholder slug given at acceptance (spec #14 Q6). */
+const EMPTY_PAGE: MentorPageValues = { displayName: "", publicWorkUrl: "", description: "", price25: "", price50: "", slug: "mentor-k3x7qa" };
 const ANNA_PAGE: MentorPageValues = {
   displayName: ANNA.displayName,
   publicWorkUrl: ANNA.publicWorkUrl,
@@ -102,13 +111,32 @@ const ANNA_PAGE: MentorPageValues = {
 export function EditorScreen({
   state,
 }: {
-  state: "first-visit" | "filled-draft" | "published-no-availability" | "published" | "slug-taken" | "server-error" | "network" | "publishing";
+  state:
+    | "loading"
+    | "first-visit"
+    | "filled-draft"
+    | "published-no-availability"
+    | "published"
+    | "slug-taken"
+    | "server-error"
+    | "network"
+    | "session-expired"
+    | "publishing";
 }) {
+  // The app wraps the whole page in <Suspense>; the fallback is its own PageLayout (gap D9).
+  if (state === "loading")
+    return (
+      <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} />}>
+        <Skeleton label="Wczytywanie strony" lines={6} className="max-w-text" />
+      </PageLayout>
+    );
   const action: (v: MentorPageValues, o: { publish: boolean }) => Promise<SaveMentorPageResult> =
     state === "slug-taken"
       ? async () => ({ ok: false, errors: { slug: "Ten adres jest zajęty" } })
       : state === "server-error"
         ? async () => ({ ok: false, code: "server_error" })
+        : state === "session-expired"
+          ? async () => ({ ok: false, reason: "unauthorized" })
         : state === "network"
           ? async () => {
               throw new TypeError("Failed to fetch");
@@ -121,9 +149,17 @@ export function EditorScreen({
               };
   const published = state === "published" || state === "published-no-availability";
   return (
-    <PageLayout nav={<MentorNav current="page" pendingCount={published ? 1 : 0} />}>
-      {state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : null}
-      <MentorPageForm initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE} published={published} baseUrl="http://localhost:3000" action={action} />
+    <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={async () => {}} />}>
+      <MentorPageForm
+        initial={state === "first-visit" ? EMPTY_PAGE : ANNA_PAGE}
+        slugIsPlaceholder={state === "first-visit"}
+        published={published}
+        shareUrl={published ? SHARE_URL : null}
+        baseUrl="http://localhost:3000"
+        currencyLabel="zł"
+        notice={state === "published-no-availability" || state === "first-visit" ? <NoAvailabilityNotice /> : undefined}
+        action={action}
+      />
     </PageLayout>
   );
 }
@@ -137,18 +173,114 @@ const WINDOWS: AvailabilityWindow[] = [
   { weekday: 3, start: "12:00", end: "13:00" },
 ];
 
-export function AvailabilityScreen({ state }: { state: "set" | "empty" | "zone-differs" | "server-error" }) {
+export type AvailabilityScreenState = "loading" | "first-visit" | "set" | "empty" | "zone-differs" | "server-error" | "network" | "session-expired";
+
+export function AvailabilityScreen({ state }: { state: AvailabilityScreenState }) {
+  const nav = <MentorNav current="availability" sections={["page", "availability"]} signOutAction={async () => {}} />;
+  // The app wraps the whole page in <Suspense>; the fallback is its own PageLayout (gap D9).
+  if (state === "loading")
+    return (
+      <PageLayout nav={nav}>
+        <Skeleton label="Wczytywanie dostępności" lines={8} className="max-w-text" />
+      </PageLayout>
+    );
+  const action: (input: { timeZone: string; windows: AvailabilityWindow[] }) => Promise<SaveAvailabilityResult> =
+    state === "server-error"
+      ? async () => ({ ok: false })
+      : state === "session-expired"
+        ? async () => ({ ok: false, reason: "unauthorized" })
+        : state === "network"
+          ? async () => {
+              throw new TypeError("Failed to fetch");
+            }
+          : async () => ({ ok: true, preview: ANNA_SLOTS });
+  const empty = state === "empty" || state === "first-visit";
   return (
-    <PageLayout nav={<MentorNav current="availability" pendingCount={1} />}>
+    <PageLayout nav={nav}>
       <AvailabilityEditor
-        timeZone={state === "zone-differs" ? "Europe/London" : ZONE}
+        timeZone={state === "first-visit" ? null : state === "zone-differs" ? "Europe/London" : ZONE}
+        detectTimeZone={() => ZONE}
         zones={ZONES}
-        windows={state === "empty" ? [] : WINDOWS}
-        preview={state === "empty" ? [] : ANNA_SLOTS}
+        windows={empty ? [] : WINDOWS}
+        preview={empty ? [] : ANNA_SLOTS}
         now={NOW}
-        action={state === "server-error" ? async () => ({ ok: false }) : async () => ({ ok: true, preview: ANNA_SLOTS })}
+        action={action}
       />
     </PageLayout>
+  );
+}
+
+/* S6 · #16 only (gap D1, closed in epic 01 task 5.2; slot section in task 6.1): /m/{slug} without the request form of #17. */
+
+/** A 400-character description: the first-screen check at 375 × 812 (spec #16 UI/UX, K2). */
+export const DESCRIPTION_400 = `${ANNA.description}\n${"Pracuję z zespołami, które przenoszą duże aplikacje na nowe wersje frameworków. ".repeat(4)}`.slice(0, 400);
+
+export type ShareProfileState = "ready" | "long-description" | "description-400" | "not-found";
+/** Slot section of #16 phase 2 (app/m/[slug]): slots, none, loading, load error, no network while loading. */
+export type ShareSlotsState = "slots" | "no-slots" | "loading" | "error" | "offline";
+
+/**
+ * #16 as the app renders it (app/m/[slug]/page.tsx): identity → public work → description → prices → slots, in
+ * that order, and no request form, question field or booking control (L1, Z1, F4).
+ */
+export function ShareProfileScreen({ state, slots = "slots" }: { state: ShareProfileState; slots?: ShareSlotsState }) {
+  if (state === "not-found")
+    return (
+      <PageLayout width="narrow">
+        <MentorNotFound />
+      </PageLayout>
+    );
+  const description =
+    state === "long-description" ? LONG_DESCRIPTION : state === "description-400" ? DESCRIPTION_400 : ANNA.description;
+  return (
+    <PageLayout width="narrow">
+      <section className="flex flex-col gap-between-groups">
+        <MentorIdentity displayName={ANNA.displayName} publicWorkUrl={ANNA.publicWorkUrl} />
+        <MentorDescription text={description} />
+      </section>
+      <PriceList price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} currency={ANNA.currency} />
+      <ShareSlotSection state={slots} />
+    </PageLayout>
+  );
+}
+
+/**
+ * The slot section of /m/[slug] (#16 phase 2), composed like the app: with slots → LengthToggle + SlotList
+ * selectable={false} in the viewer's zone (app/m/[slug]/slot-list.tsx); the states without times (empty, loading,
+ * load error from the section's error boundary, no network) → an h2 „Najbliższe terminy” without the zone and a
+ * Skeleton / StateMessage (app/m/[slug]/slot-section-states.tsx).
+ */
+function ShareSlotSection({ state }: { state: ShareSlotsState }) {
+  const [length, setLength] = useState<SessionLength>(25);
+  if (state === "slots")
+    return (
+      <div className="flex flex-col gap-between-groups">
+        <LengthToggle price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} currency={ANNA.currency} value={length} onValueChange={setLength} />
+        <SlotList slots={ANNA_SLOTS} length={length} timeZone={ZONE} now={NOW} selectable={false} />
+      </div>
+    );
+  return (
+    <section aria-labelledby="slots-heading" aria-busy={state === "loading" || undefined} className="flex flex-col gap-in-group">
+      <h2 id="slots-heading" className="text-heading-section font-strong">
+        Najbliższe terminy
+      </h2>
+      {state === "loading" ? (
+        <Skeleton label="Wczytywanie terminów" />
+      ) : (
+        <StateMessage
+          kind={state === "no-slots" ? "empty" : "error"}
+          titleAs="h3"
+          title={
+            state === "no-slots"
+              ? "Brak wolnych terminów w najbliższych 14 dniach"
+              : state === "error"
+                ? "Nie udało się wczytać terminów — odśwież stronę"
+                : NETWORK_LOAD_MESSAGE
+          }
+          className="py-0"
+        />
+      )}
+    </section>
   );
 }
 

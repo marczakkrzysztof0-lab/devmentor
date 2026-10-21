@@ -93,3 +93,32 @@ export const CounterNearLimit: Story = {
     await expect(canvas.getByTestId("char-counter")).toHaveTextContent("3201 / 4000 znaków");
   },
 };
+
+/** 😀 is 1 Unicode code point but 2 UTF-16 units: the limit and the counter count code points, as on the server. */
+const EMOJI = "😀";
+
+export const LimitCountsCodePoints: Story = {
+  name: "Test: limit and counter count characters, an emoji is one (shared textLength)",
+  render: () => (
+    <FormField label="Opis" hint="Do 10 znaków.">
+      <Textarea maxLength={10} defaultValue={EMOJI.repeat(8)} />
+    </FormField>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole("textbox", { name: "Opis" });
+    await expect(field).not.toHaveAttribute("maxlength");
+    await expect(canvas.getByTestId("char-counter")).toHaveTextContent("8 / 10 znaków");
+    await userEvent.click(field);
+    await userEvent.keyboard("{End}");
+    await userEvent.type(field, "ab");
+    await expect(field).toHaveValue(`${EMOJI.repeat(8)}ab`);
+    await expect(canvas.getByTestId("char-counter")).toHaveTextContent("10 / 10 znaków");
+    // The 11th character is not accepted.
+    await userEvent.type(field, "c");
+    await expect(field).toHaveValue(`${EMOJI.repeat(8)}ab`);
+    // Deleting still works.
+    await userEvent.type(field, "{Backspace}");
+    await expect(field).toHaveValue(`${EMOJI.repeat(8)}a`);
+  },
+};

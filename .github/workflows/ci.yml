@@ -6,8 +6,53 @@ on:
   pull_request:
 
 jobs:
+  # Validation gate (SDLC.md): `npm run lint`, `npm test`, `npm run build` — each its own job.
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  # No database: lib/db opens its pool lazily, at request time, never during `next build`.
+  # NEXT_PUBLIC_APP_URL is read at runtime as well; a harmless value keeps the build independent of it.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
   test:
     runs-on: ubuntu-latest
+    # PostgreSQL for the DB tests in tests/db/ (spec #23 Q7). GitHub Actions sets CI=true,
+    # so an unreachable database fails those tests instead of skipping them.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: devmentor
+          POSTGRES_PASSWORD: devmentor
+          POSTGRES_DB: devmentor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devmentor -d devmentor"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,6 +61,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+        env:
+          DATABASE_URL: postgresql://devmentor:devmentor@localhost:5432/devmentor
 
   # Design system: values outside the tokens in packages/ui and app/ (A1, P10).
   tokens:

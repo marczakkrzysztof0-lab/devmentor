@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Select as SelectPrimitive } from "radix-ui";
 
@@ -25,6 +26,11 @@ export type SelectProps = {
   disabled?: boolean;
   invalid?: boolean;
   "aria-label"?: string;
+  /**
+   * Extra description ids (e.g. the error of a repeated row, #15 W4/Z26). Added to the FormField description
+   * when the select sits in one.
+   */
+  "aria-describedby"?: string;
   className?: string;
   /** Documentation only: frozen hover/focus preview. */
   "data-preview-state"?: string;
@@ -66,11 +72,21 @@ export function Select({
 }: SelectProps) {
   const field = useFormField();
   const isInvalid = invalid ?? field?.invalid ?? false;
+  // The selected label is rendered here, not portalled by Radix from the (closed, client-only) item list: the
+  // server render and the first paint already show the value — the field is never briefly empty (#15 Z16).
+  const [uncontrolled, setUncontrolled] = useState(defaultValue);
+  const current = value ?? uncontrolled;
+  const selectedLabel = current
+    ? [...(options ?? []), ...(groups ?? []).flatMap((group) => group.options)].find((o) => o.value === current)?.label
+    : undefined;
   return (
     <SelectPrimitive.Root
       value={value}
       defaultValue={defaultValue}
-      onValueChange={onValueChange}
+      onValueChange={(next) => {
+        setUncontrolled(next);
+        onValueChange?.(next);
+      }}
       name={name}
       disabled={disabled}
       required={field?.required}
@@ -78,7 +94,7 @@ export function Select({
       <SelectPrimitive.Trigger
         id={id ?? field?.id}
         aria-label={rest["aria-label"]}
-        aria-describedby={field?.describedBy}
+        aria-describedby={[rest["aria-describedby"], field?.describedBy].filter(Boolean).join(" ") || undefined}
         aria-invalid={isInvalid || undefined}
         data-preview-state={rest["data-preview-state"]}
         className={cn(
@@ -91,7 +107,7 @@ export function Select({
           className,
         )}
       >
-        <SelectPrimitive.Value placeholder={placeholder} />
+        <SelectPrimitive.Value placeholder={placeholder}>{selectedLabel}</SelectPrimitive.Value>
         <SelectPrimitive.Icon asChild>
           <ChevronDown aria-hidden="true" className="size-icon-md shrink-0 text-muted" />
         </SelectPrimitive.Icon>

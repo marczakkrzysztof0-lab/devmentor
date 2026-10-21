@@ -81,3 +81,24 @@ export const LabelAndErrorWiring: Story = {
     await expect(input).toHaveFocus();
   },
 };
+
+export const HintUnderLabel: Story = {
+  name: "Test: hint directly under the label (hintPlacement=\"label\")",
+  args: {
+    label: "Twoje doświadczenie",
+    hint: "Deweloper zobaczy to na twojej stronie zamiast ocen.",
+    hintPlacement: "label",
+    children: <TextInput />,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByLabelText("Twoje doświadczenie");
+    const hint = canvas.getByText("Deweloper zobaczy to na twojej stronie zamiast ocen.");
+    await expect(hint).toBeVisible();
+    await expect(input).toHaveAccessibleDescription("Deweloper zobaczy to na twojej stronie zamiast ocen.");
+    // DOM order: label → hint → control.
+    const label = canvas.getByText("Twoje doświadczenie");
+    await expect(label.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(hint.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  },
+};

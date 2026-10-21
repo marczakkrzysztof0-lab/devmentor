@@ -2,6 +2,9 @@
   "name": "devmentor",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.12"
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -11,7 +14,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test \"tests/**/*.test.mjs\"",
+    "test:e2e": "node scripts/test-e2e.mjs",
     "setup": "node scripts/setup.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs up",
+    "db:rollback": "node scripts/db-migrate.mjs down",
+    "mentor:invite": "node scripts/mentor-links.mjs invite",
+    "mentor:sign-in-link": "node scripts/mentor-links.mjs sign-in-link",
     "storybook": "npm run storybook -w @devmentor/ui",
     "build-storybook": "npm run build-storybook -w @devmentor/ui",
     "test:storybook": "npm run test -w @devmentor/ui",
@@ -21,6 +29,8 @@
   },
   "dependencies": {
     "next": "16.4.0",
+    "node-pg-migrate": "9.0.0",
+    "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

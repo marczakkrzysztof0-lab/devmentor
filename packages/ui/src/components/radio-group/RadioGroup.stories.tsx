@@ -74,7 +74,7 @@ export const LongNarrow: Story = {
 };
 
 export const KeyboardAndClick: Story = {
-  name: "Test: arrows move the choice, click selects",
+  name: "Test: arrows move the choice, click selects (key held)",
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const group = canvas.getByRole("radiogroup", { name: "Długość sesji" });
@@ -92,5 +92,56 @@ export const KeyboardAndClick: Story = {
     await waitFor(() => expect(short).toBeChecked());
     await userEvent.keyboard("{/ArrowLeft}");
     await expect(args.onValueChange).toHaveBeenLastCalledWith("25");
+  },
+};
+
+/** D12 / Z41: a quick press (keydown + keyup at once, like most people and Playwright) selects, not only focuses. */
+export const ArrowsSelect: Story = {
+  name: "Test: a quick arrow press selects (WAI-ARIA radio, D12)",
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const short = canvas.getByRole("radio", { name: "25 min — 150 zł" });
+    const long = canvas.getByRole("radio", { name: "50 min — 280 zł" });
+    await userEvent.tab();
+    await expect(short).toHaveFocus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(long).toHaveFocus();
+    await expect(long).toBeChecked();
+    await expect(short).not.toBeChecked();
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("50");
+    // Wraps at the end; Down/Up work like Right/Left.
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(short).toHaveFocus();
+    await expect(short).toBeChecked();
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(long).toBeChecked();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(short).toBeChecked();
+    await expect(args.onValueChange).toHaveBeenCalledTimes(4);
+    // Tab leaves the group from the checked option (one tab stop).
+    await userEvent.tab();
+    await expect(short).not.toHaveFocus();
+  },
+};
+
+export const ArrowsSelectList: Story = {
+  name: "Test: arrows select in the list variant, skipping a disabled option",
+  args: {
+    legend: "Termin",
+    variant: "list",
+    options: [SLOTS[0], { ...SLOTS[1], disabled: true }, SLOTS[2]],
+    defaultValue: SLOTS[0].value,
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [first, , third] = canvas.getAllByRole("radio");
+    await userEvent.tab();
+    await expect(first).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(third).toHaveFocus();
+    await expect(third).toBeChecked();
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(SLOTS[2].value);
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(first).toBeChecked();
   },
 };

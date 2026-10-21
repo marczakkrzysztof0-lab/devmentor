@@ -3,8 +3,9 @@
 // E01 · #16 — what a developer sees on /m/{slug}, in the required order:
 // identity → public work → description → prices → slots (spec #16 UI/UX).
 
-import { useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 
+import { Button } from "../../components/button/Button";
 import { RadioGroup } from "../../components/radio-group/RadioGroup";
 import { Skeleton } from "../../components/skeleton/Skeleton";
 import { NETWORK_LOAD_MESSAGE } from "../shared/form";
@@ -12,7 +13,7 @@ import { StateMessage } from "../../components/state-message/StateMessage";
 import { TextLink } from "../../components/text-link/TextLink";
 import { cn } from "../../lib/cn";
 import { Amount } from "../shared/Amount";
-import { displayUrl, formatDay, formatDayFull, formatMoney, formatTime, localDayKey, resolveTimeZone } from "../shared/format";
+import { displayUrl, formatMoney, groupSlotsByDay, SLOTS_PER_DAY } from "../shared/format";
 import type { LoadState, OpenSlot, SessionLength } from "../shared/types";
 
 /* ---------------------------------------------------------------- identity */
@@ -113,7 +114,27 @@ export type SlotListProps = {
   headingId?: string;
 };
 
-/** Next open slots in the viewer's zone, by day, with the zone printed in the heading (#16). */
+/** „Pokaż więcej (4)” — the per-day disclosure of #16 F3 (k = times hidden on that day). */
+export function showMoreLabel(hidden: number) {
+  return `Pokaż więcej (${hidden})`;
+}
+
+/** Text of the empty list when only the other length has slots (#16 story 2, task 6.2). */
+export function noSlotsForLengthMessage(length: SessionLength) {
+  return `Brak terminów ${length} min w najbliższych 14 dniach — wybierz ${length === 25 ? 50 : 25} min`;
+}
+
+/**
+ * Next open slots in the viewer's zone, with the zone printed in the heading (#16).
+ *
+ * Text mode (E01, `selectable={false}`; spec #16 Q7/F3): grouped by the viewer's local day — each day once as an
+ * `h3` („jutro”, „czw. 22.10”), its times as a wrapping list with one `li` per time, each carrying the date in text
+ * (visually hidden „jutro, wtorek 20.10,” before „18:00”). At most 6 times per day; the rest behind „Pokaż więcej (k)”
+ * (`aria-expanded`, `aria-controls` = that day's list), which shows that day only. A new `length` resets every
+ * expansion. These disclosures are the only buttons in the list — no time is a control (Z1).
+ *
+ * Selectable mode (#17): the same days (shared `groupSlotsByDay`) as radio groups, every time shown.
+ */
 export function SlotList({
   slots,
   length,
@@ -126,26 +147,14 @@ export function SlotList({
   error,
   headingId = "slots-heading",
 }: SlotListProps) {
-  const zone = resolveTimeZone(timeZone);
-  const heading = zone.fallback
+  const grouped = useMemo(
+    () => groupSlotsByDay(slots, { lengthMinutes: length, timeZone, now, maxPerDay: selectable ? Infinity : SLOTS_PER_DAY }),
+    [slots, length, timeZone, now, selectable],
+  );
+  const heading = grouped.fallback
     ? "Najbliższe terminy (czas UTC)"
-    : `Najbliższe terminy (twoja strefa: ${zone.timeZone})`;
-
-  const days = useMemo(() => {
-    const map = new Map<string, { label: string; long: string; slots: OpenSlot[] }>();
-    for (const slot of slots.filter((s) => s.lengthMinutes === length)) {
-      const key = localDayKey(slot.startsAt, zone.timeZone);
-      if (!map.has(key)) {
-        map.set(key, {
-          label: formatDay(slot.startsAt, zone.timeZone, now),
-          long: formatDayFull(slot.startsAt, zone.timeZone, now),
-          slots: [],
-        });
-      }
-      map.get(key)!.slots.push(slot);
-    }
-    return [...map.values()];
-  }, [slots, length, zone.timeZone, now]);
+    : `Najbliższe terminy (twoja strefa: ${grouped.timeZone})`;
+  const days = grouped.days;
 
   let body;
   if (state === "loading") {
@@ -155,7 +164,15 @@ export function SlotList({
   } else if (state === "error") {
     body = <StateMessage kind="error" titleAs="h3" title="Nie udało się wczytać terminów — odśwież stronę" className="py-0" />;
   } else if (days.length === 0) {
-    body = <StateMessage kind="empty" titleAs="h3" title="Brak wolnych terminów w najbliższych 14 dniach" className="py-0" />;
+    const otherLengthHasSlots = slots.some((slot) => slot.lengthMinutes !== length);
+    body = (
+      <StateMessage
+        kind="empty"
+        titleAs="h3"
+        title={otherLengthHasSlots ? noSlotsForLengthMessage(length) : "Brak wolnych terminów w najbliższych 14 dniach"}
+        className="py-0"
+      />
+    );
   } else if (selectable) {
     body = (
       <RadioGroup
@@ -166,13 +183,13 @@ export function SlotList({
         onValueChange={onValueChange}
         error={error}
         groups={days.map((day) => ({
-          label: day.label,
-          options: day.slots.map((slot) => ({
-            value: slot.startsAt,
+          label: day.dayLabel,
+          options: day.times.map((time) => ({
+            value: time.startsAt,
             label: (
               <>
-                <span className="sr-only">{day.long}, </span>
-                <span className="font-mono">{formatTime(slot.startsAt, zone.timeZone)}</span>
+                <span className="sr-only">{day.dayLabelFull}, </span>
+                <span className="font-mono">{time.label}</span>
               </>
             ),
           })),
@@ -180,18 +197,8 @@ export function SlotList({
       />
     );
   } else {
-    body = (
-      <ul className="flex flex-col border-t border-divider">
-        {days.map((day) => (
-          <li key={day.long} className="flex flex-wrap gap-in-group border-b border-divider py-list-row-y">
-            <span className="min-w-0 font-strong">{day.label}</span>
-            <span className="font-mono">
-              {day.slots.map((slot) => formatTime(slot.startsAt, zone.timeZone)).join(", ")}
-            </span>
-          </li>
-        ))}
-      </ul>
-    );
+    // Keyed by length: switching 25/50 starts with every day collapsed (F3).
+    body = <SlotDays key={length} days={days} />;
   }
 
   return (
@@ -201,6 +208,58 @@ export function SlotList({
       </h2>
       {body}
     </section>
+  );
+}
+
+type SlotDay = ReturnType<typeof groupSlotsByDay>["days"][number];
+
+/** Text mode of `SlotList`: one block per day, with its own „Pokaż więcej (k)”. */
+function SlotDays({ days }: { days: SlotDay[] }) {
+  const base = useId();
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
+  const toggle = (dayKey: string) =>
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(dayKey)) next.delete(dayKey);
+      else next.add(dayKey);
+      return next;
+    });
+
+  return (
+    <div className="flex flex-col border-t border-divider">
+      {days.map((day, index) => {
+        const open = expanded.has(day.dayKey);
+        const headingId = `${base}-day-${index}`;
+        const listId = `${base}-times-${index}`;
+        const shown = open ? day.times : day.visible;
+        return (
+          <div key={day.dayKey} className="flex flex-col gap-inline border-b border-divider py-list-row-y">
+            <h3 id={headingId} className="min-w-0 font-ui text-body font-strong">
+              {day.dayLabel}
+            </h3>
+            <ul id={listId} aria-labelledby={headingId} className="flex flex-wrap gap-x-in-group gap-y-inline font-mono">
+              {shown.map((time) => (
+                <li key={time.startsAt}>
+                  <span className="sr-only">{day.dayLabelFull}, </span>
+                  {time.label}
+                </li>
+              ))}
+            </ul>
+            {day.hiddenCount > 0 ? (
+              <Button
+                variant="secondary"
+                className="self-start"
+                aria-expanded={open}
+                aria-controls={listId}
+                onClick={() => toggle(day.dayKey)}
+              >
+                {open ? "Pokaż mniej" : showMoreLabel(day.hiddenCount)}
+              </Button>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

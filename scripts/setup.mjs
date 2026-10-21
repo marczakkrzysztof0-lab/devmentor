@@ -32,6 +32,16 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 export class SetupError extends Error {}
 
+// Ponawianie połączenia w kroku migracji: świeżo uruchomiony kontener nie przyjmuje
+// połączeń od razu (ECONNREFUSED / „the database system is starting up”).
+export const MIGRATE_ATTEMPTS = 10;
+export const MIGRATE_RETRY_DELAY_MS = 1000;
+
+// Moduł migracji ładowany leniwie: importuje node-pg-migrate, którego na czystym klonie
+// nie ma, dopóki pierwszy krok (npm install) się nie wykona.
+const loadMigrator = () => import("./db-migrate.mjs");
+const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+
 // `docker compose ps -q` wypisuje identyfikatory kontenerów, po jednym w linii.
 export function hasRunningContainer(stdout) {
   return String(stdout ?? "").trim().length > 0;
@@ -48,9 +58,20 @@ export function dockerProblem(result) {
   return null;
 }
 
-// Kroki jako { name, isDone(), run() }. Zależności (fs, polecenia) są wstrzykiwane,
-// żeby logikę dało się przetestować bez Dockera i bez dotykania dysku.
-export function createSteps({ cwd, exists, exec, writeFile, copyFile }) {
+// Kroki jako { name, isDone(), run(log) }. Zależności (fs, polecenia, migracje, czekanie)
+// są wstrzykiwane, żeby logikę dało się przetestować bez Dockera, bazy i dotykania dysku.
+export function createSteps({
+  cwd,
+  exists,
+  exec,
+  writeFile,
+  copyFile,
+  readDatabaseUrl = defaultReadDatabaseUrl,
+  migrator = loadMigrator,
+  sleep = wait,
+  attempts = MIGRATE_ATTEMPTS,
+  retryDelayMs = MIGRATE_RETRY_DELAY_MS,
+}) {
   const path = (file) => resolve(cwd, file);
   const ensureDocker = () => {
     const problem = dockerProblem(exec("docker info"));
@@ -94,11 +115,43 @@ export function createSteps({ cwd, exists, exec, writeFile, copyFile }) {
       isDone: () => exists(path(".env.local")),
       run: () => copyFile(path(".env.example"), path(".env.local")),
     },
+    {
+      // Zawsze uruchamiany: narzędzie pomija wykonane już migracje, więc krok jest idempotentny.
+      name: "Migracje bazy (db:migrate)",
+      isDone: () => false,
+      run: async (log) => {
+        const { migrate, isDatabaseUnreachable, summarize, UNREACHABLE_MESSAGE } = await migrator();
+        const databaseUrl = readDatabaseUrl(path(".env.local"));
+        for (let attempt = 1; ; attempt++) {
+          try {
+            const migrations = await migrate({ databaseUrl, direction: "up", log });
+            log(summarize("up", migrations));
+            return;
+          } catch (error) {
+            if (!isDatabaseUnreachable(error)) {
+              const reason = error instanceof Error ? error.message : String(error);
+              throw new SetupError(`Migracja nie powiodła się: ${reason}`, { cause: error });
+            }
+            if (attempt >= attempts) {
+              throw new SetupError(`${UNREACHABLE_MESSAGE} i ponów \`npm run setup\`.`, { cause: error });
+            }
+            log(`  … baza jeszcze nie odpowiada, ponawiam (próba ${attempt + 1}/${attempts})`);
+            await sleep(retryDelayMs);
+          }
+        }
+      },
+    },
   ];
 }
 
+// DATABASE_URL z .env.local; zmienna już ustawiona w środowisku ma pierwszeństwo (jak w db:migrate).
+function defaultReadDatabaseUrl(envFile) {
+  if (existsSync(envFile)) process.loadEnvFile(envFile);
+  return process.env.DATABASE_URL;
+}
+
 // Zwraca kod wyjścia: 0 przy sukcesie, 1 przy znanym błędzie.
-export function runSteps(steps, log = console.log) {
+export async function runSteps(steps, log = console.log) {
   try {
     for (const step of steps) {
       if (step.isDone()) {
@@ -106,7 +159,7 @@ export function runSteps(steps, log = console.log) {
         continue;
       }
       log(`→ ${step.name}`);
-      step.run();
+      await step.run(log);
       log(`✔ ${step.name}`);
     }
   } catch (error) {
@@ -136,5 +189,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     writeFile: (file, content) => writeFileSync(file, content, { flag: "wx" }),
     copyFile: (from, to) => copyFileSync(from, to, constants.COPYFILE_EXCL),
   });
-  process.exitCode = runSteps(steps);
+  process.exitCode = await runSteps(steps);
 }

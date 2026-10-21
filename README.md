@@ -2,7 +2,7 @@
 
 Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zamiast nauczycieli języków są tu doświadczeni developerzy. Prowadzą sesje 1:1, code review, przygotowanie do rozmów rekrutacyjnych i pomagają przy wyborze ścieżki kariery.
 
-> **Status:** początkowy etap. W repozytorium jest na razie szkielet aplikacji Next.js. Baza danych, uwierzytelnianie i logika marketplace'u są dopiero planowane.
+> **Status:** początkowy etap. Działają: zaproszenia mentorów, linki logowania, sesje, edytor i publikacja strony mentora (`/mentor`) oraz tygodniowa dostępność (`/mentor/availability`). Publiczna strona mentora `/m/{slug}` pokazuje profil i ceny (wolne terminy dojdą w fazie 6), a reszta marketplace'u jest planowana.
 
 ## Spis treści
 
@@ -11,7 +11,9 @@ Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zami
 - [Wymagania](#wymagania)
 - [Szybki start (Windows)](#szybki-start-windows)
 - [Baza danych (Docker)](#baza-danych-docker)
+- [Migracje bazy](#migracje-bazy)
 - [Zmienne środowiskowe](#zmienne-środowiskowe)
+- [Mentorzy: zaproszenia i logowanie](#mentorzy-zaproszenia-i-logowanie)
 - [Skrypty npm](#skrypty-npm)
 - [Struktura projektu](#struktura-projektu)
 - [Praca z agentami AI (Claude Code i Codex)](#praca-z-agentami-ai-claude-code-i-codex)
@@ -51,7 +53,8 @@ Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zami
 | Framework | [Next.js](https://nextjs.org) 16 (App Router) |
 | UI | React 19, Tailwind CSS 4 |
 | Język | TypeScript 5 |
-| Baza danych | PostgreSQL (lokalnie w Dockerze) |
+| Baza danych | PostgreSQL 17 (lokalnie w Dockerze) |
+| Dostęp do bazy i migracje | `pg` + `node-pg-migrate` (migracje w czystym SQL, bez ORM) |
 | Linting | ESLint 9 (`eslint-config-next`) |
 
 > ⚠️ **Next.js 16 różni się od wcześniejszych wersji.** API, konwencje i struktura plików mogą wyglądać inaczej niż w starszych tutorialach. Zanim zaczniesz pisać kod, zajrzyj do dokumentacji dołączonej do pakietu w `node_modules/next/dist/docs/` (patrz [`AGENTS.md`](./AGENTS.md)).
@@ -59,7 +62,7 @@ Marketplace mentoringowy dla programistów. Działa podobnie do Preply, ale zami
 ## Wymagania
 
 - **Windows 10/11**
-- **Node.js** 20.9 lub nowszy (zalecana wersja LTS)
+- **Node.js** 20.12 lub nowszy (zalecana wersja LTS)
 - **npm** (instaluje się razem z Node.js)
 - **Docker Desktop** z backendem WSL 2
 - **Git**
@@ -76,7 +79,7 @@ npm run setup
 npm run dev
 ```
 
-`npm run setup` instaluje zależności, tworzy `docker-compose.yml` i `.env.example` (jeśli ich nie ma), uruchamia bazę i tworzy `.env.local` z szablonu. Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie działa, kończy się czytelnym komunikatem.
+`npm run setup` instaluje zależności, tworzy `docker-compose.yml` i `.env.example` (jeśli ich nie ma), uruchamia bazę, tworzy `.env.local` z szablonu i wykonuje migracje bazy (`npm run db:migrate`, z krótkim ponawianiem, gdy baza jeszcze startuje). Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie działa, kończy się czytelnym komunikatem.
 
 ### Kroki ręczne (alternatywa)
 
@@ -96,7 +99,10 @@ docker compose up -d
 # 4. Skonfiguruj zmienne środowiskowe
 Copy-Item .env.example .env.local
 
-# 5. Uruchom serwer deweloperski
+# 5. Wykonaj migracje bazy
+npm run db:migrate
+
+# 6. Uruchom serwer deweloperski
 npm run dev
 ```
 
@@ -141,6 +147,36 @@ docker exec -it devmentor-db psql -U devmentor   # konsola psql
 - *Port 5432 jest zajęty*: lokalnie działa już instalacja PostgreSQL. Zatrzymaj usługę `postgresql-x64-*` w `services.msc` albo zmień mapowanie portu na `"5433:5432"`.
 - *`docker` nie jest rozpoznawane jako polecenie*: Docker Desktop nie jest uruchomiony albo trzeba otworzyć terminal ponownie.
 
+## Migracje bazy
+
+Schemat bazy zmieniamy wyłącznie migracjami w czystym SQL, uruchamianymi przez `node-pg-migrate` (wrapper `scripts/db-migrate.mjs`). Historia wykonanych migracji jest w tabeli `pgmigrations`.
+
+- **Pliki:** `db/migrations/NNNN_<nazwa>.sql`, każdy z sekcjami `-- Up Migration` i `-- Down Migration`. Każda migracja wykonuje się w osobnej transakcji.
+- **Numeracja jest wspólna dla wszystkich specyfikacji.** Przed dodaniem pliku sprawdź, który numer jest wolny. Dziś w repozytorium:
+  - `0001_mentors_invitations_pages` – mentorzy, zaproszenia, strony mentorów;
+  - `0002_mentor_sign_in` – sesje mentorów (`mentor_sessions`) i linki logowania (`mentor_sign_in_links`);
+  - `0003_mentor_page_prices` – ceny 25 i 50 min w groszach, waluta (`currency`, dziś zawsze PLN); publikacja wymaga obu cen.
+
+  Następna planowana: 0004 – dostępność.
+- **Nie edytuj wykonanej migracji.** Narzędzie nie wykrywa zmian w już wykonanym pliku — każdą poprawkę dodaj jako nową migrację.
+- **`next build` nigdy nie uruchamia migracji.** Wykonujesz je jawnie poleceniem `npm run db:migrate` (robi to też `npm run setup`).
+
+```powershell
+npm run db:migrate     # wykonaj wszystkie oczekujące migracje
+npm run db:rollback    # cofnij jedną, ostatnią migrację (TYLKO lokalnie / w testach)
+npm run db:migrate -- --help   # pomoc
+```
+
+> ⚠️ **`npm run db:rollback` służy wyłącznie do pracy lokalnej i testów.** Gdy w bazie są prawdziwe dane, zmianę cofamy nową migracją naprawczą (forward-fix), a nie rollbackiem.
+
+Skrypty czytają `DATABASE_URL` z `.env.local` (zmienna ustawiona w środowisku ma pierwszeństwo). Gdy baza nie odpowiada, kończą się komunikatem z podpowiedzią `docker compose up -d`.
+
+**Testy z bazą:** `npm test` uruchamia testy migracji i schematu (`tests/db/`) w jednorazowym schemacie `dm_migtest_*`, który na końcu jest usuwany — schemat `public` i dane deweloperskie zostają nietknięte. Gdy baza nie działa, testy z bazą są pomijane z komunikatem; przy `CI=true` kończą się błędem.
+
+**Testy end-to-end:** `npm run test:e2e` uruchamia `tests/e2e/*.e2e.mjs` w Playwright (Chromium, ten sam co w Storybooku — nic nie trzeba doinstalowywać) na `next start`. Najpierw zrób `npm run build`. Każdy przebieg dostaje własny schemat `dm_migtest_*`, migrowany na starcie i usuwany na końcu. Bez bazy zachowuje się jak `npm test`. Pomoc: `npm run test:e2e -- --help`.
+
+**Sprawdzanie typów:** samodzielne `npx tsc --noEmit` na świeżym klonie wymaga wcześniej `npx next typegen` (albo `npm run build` / `npm run dev`), bo typy tras (`PageProps`, `LayoutProps`) generuje Next.js.
+
 ## Zmienne środowiskowe
 
 Konfiguracja lokalna trafia do pliku `.env.local`, który nie jest commitowany. Szablon `.env.example`:
@@ -157,6 +193,37 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.**
 
+## Mentorzy: zaproszenia i logowanie
+
+Mentorów zapraszają założyciele z wiersza poleceń. Nie ma haseł ani samodzielnej rejestracji.
+
+```powershell
+npm run mentor:invite -- anna@example.com         # link zaproszenia
+npm run mentor:sign-in-link -- anna@example.com   # link logowania dla istniejącego mentora
+npm run mentor:invite -- --help                   # pomoc
+```
+
+| Polecenie | Link | Ważność | Uwagi |
+|-----------|------|---------|-------|
+| `mentor:invite` | `/invite/<token>` | 14 dni, jednorazowy | odmawia, gdy mentor z tym adresem już istnieje (wtedy wyślij link logowania) |
+| `mentor:sign-in-link` | `/sign-in/<token>` | 72 h, jednorazowy | tylko dla istniejącego mentora, np. po zmianie urządzenia |
+
+- Link jest budowany z `NEXT_PUBLIC_APP_URL`, a skrypt potrzebuje też `DATABASE_URL` (czyta `.env.local`).
+- W bazie zapisujemy tylko hash SHA-256 tokenu, więc linku nie da się później odczytać. Skopiuj go od razu i **wyślij osobiście** (mail, komunikator) wyłącznie tej osobie.
+- Po przyjęciu zaproszenia albo użyciu linku logowania mentor ma sesję zapisaną w bazie (ciasteczko `dm_session`, 30 dni, bez przedłużania). „Wyloguj” w edytorze kończy sesję.
+
+> ⚠️ **Bramka wydania:** nie wysyłamy zaproszeń prawdziwym mentorom, dopóki nie zostanie scalona publiczna strona mentora z wolnymi terminami (#16, faza 2). Do tego czasu `/m/{slug}` pokazuje tylko profil i ceny.
+
+**Adresy (URL)**
+
+| Adres | Co to jest |
+|-------|------------|
+| `/invite/[token]` | Przyjęcie zaproszenia: zakłada konto mentora i loguje. Samo otwarcie linku niczego nie zużywa. |
+| `/sign-in/[token]` | Logowanie jednorazowym linkiem. Samo otwarcie linku niczego nie zużywa. |
+| `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia; baner „Nie masz dostępności”, gdy brak okien. Nawigacja: „Strona”, „Dostępność” i „Wyloguj”. |
+| `/mentor/availability` | Tygodniowe okna dostępności w strefie mentora (strefa z przeglądarki przy pierwszej wizycie), podgląd 10 najbliższych terminów. |
+| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min. Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
+
 ## Skrypty npm
 
 | Polecenie | Opis |
@@ -166,25 +233,36 @@ Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w n
 | `npm run start` | Uruchomienie buildu produkcyjnego |
 | `npm run lint` | ESLint |
 | `npm test` | Testy (`node:test`) |
-| `npm run setup` | Instalator środowiska lokalnego (idempotentny) |
+| `npm run test:e2e` | Testy end-to-end (Playwright, Chromium) na `next start` z jednorazowym schematem bazy. Wymaga wcześniejszego `npm run build` |
+| `npm run setup` | Instalator środowiska lokalnego (idempotentny, wykonuje też migracje) |
+| `npm run db:migrate` | Wykonanie oczekujących migracji bazy |
+| `npm run db:rollback` | Cofnięcie ostatniej migracji — tylko lokalnie / w testach |
+| `npm run mentor:invite -- <email>` | Link zaproszenia mentora (tylko dla założycieli) |
+| `npm run mentor:sign-in-link -- <email>` | Jednorazowy link logowania dla istniejącego mentora (tylko dla założycieli) |
 
 ## Struktura projektu
 
 ```
 devmentor/
-├── app/                 # App Router: strony, layouty, route handlers
+├── app/                 # App Router: strony (/, /invite, /sign-in, /mentor, /m), layouty, akcje serwera
 │   ├── layout.tsx
 │   ├── page.tsx
 │   └── globals.css
+├── db/migrations/       # Migracje bazy (NNNN_<nazwa>.sql)
+├── lib/                 # Logika domenowa (.mjs)
+├── packages/ui/         # Design system @devmentor/ui (Storybook)
 ├── public/              # Pliki statyczne
+├── scripts/             # Instalator (setup.mjs), migracje (db-migrate.mjs), linki mentorów (mentor-links.mjs), e2e (test-e2e.mjs)
+├── tests/               # Testy node:test (tests/db/ – z bazą, tests/e2e/ – Playwright)
 ├── .agents/skills/      # Skille dla agentów AI (patrz skills-lock.json)
 ├── AGENTS.md            # Instrukcje dla agentów AI
 ├── next.config.ts
+├── proxy.ts             # Proxy Next.js: 404 przed renderem dla /m/* bez opublikowanej strony
 ├── tsconfig.json
 └── eslint.config.mjs
 ```
 
-W miarę rozwoju projektu dojdą katalogi m.in. na schemat i migracje bazy danych, współdzielone komponenty UI oraz logikę domenową (mentorzy, rezerwacje, płatności).
+W miarę rozwoju projektu dojdzie logika domenowa (mentorzy, rezerwacje, płatności) w `lib/`.
 
 ## Praca z agentami AI (Claude Code i Codex)
 

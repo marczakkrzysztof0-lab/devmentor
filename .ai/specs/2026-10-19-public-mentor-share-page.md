@@ -44,6 +44,7 @@ Developers want "someone who has done the exact thing" quickly and want the pric
 
 - New: `app/m/[slug]/page.tsx` (+ `not-found`, slot-section Suspense/error boundary), `lib/mentor-page/public.ts` (DTO query, server-only), `app/m/[slug]/slot-list.tsx` (client).
 - Reuses: `lib/db` (#14), `listOpenSlots` and window queries (#15). No new tables.
+- 404 under `cacheComponents` (2026-10-21, L08 faza 5, review Codex approve; decided by Krzysztof Marczak): `notFound()` inside the page returns 200, because the prerendered shell streams first. `proxy.ts` (matcher `/m`, `/m/:path*`) runs before render: a light `select 1 … where slug = $1 and published_at is not null` (malformed slug never queries); anything else (draft, unknown, malformed, `/m`, `/m?search=…`) is rewritten to an unmatched path, so the root `app/not-found.tsx` answers 404 with „Nie ma takiej strony mentora”. Every `/m/*` response carries `X-Robots-Tag: noindex, nofollow`. The page still reads the page itself (two queries per view). No authorization in the proxy (see #14).
 - Future consumer: #17 adds per-slot links (`slug`, `startsAt`, `lengthMinutes`) and its request form below the slot list; it must re-validate the slot server-side with `listOpenSlots` (see #15).
 
 ## 📝 UI/UX
@@ -62,6 +63,7 @@ Slot grouping (F3, 2026-10-21, real-person feedback): slots for the selected len
 
 ## 📝 Risks & Impact Review
 
+- Accepted risk (2026-10-21, L08 faza 5, Codex Minor; decided by Krzysztof Marczak, no code change): if a mentor unpublishes between the proxy check and the render, that one response is a soft 404 (status 200 with the not-found content and `noindex`). Unpublishing exists only via SQL (#14 Q7), so the window is negligible.
 - `/m/[slug]` becomes a protected public URL (`BACKWARD_COMPATIBILITY.md` "dziś" table): mentors post these links; a later route change needs redirects.
 - The DTO allowlist is the guard against leaking `mentors.email` or draft content; a test pins its keys.
 - `noindex` is best-effort (Q2); once indexed, de-indexing is slow — the safe default is not to index.
