@@ -67,7 +67,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 
 ### Faza 6 — Publiczna strona mentora: wolne terminy (#16, Phase 2) — W TOKU
 
-- [ ] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
+- [x] 6.1 Sekcja terminów (Suspense + error boundary, `listOpenSlots`, pusty stan, brak strefy) + testy.
 - [ ] 6.2 `slot-list.tsx`: strefa widza (fallback UTC), grupowanie po dniu z „Pokaż więcej (k)” (F3), przełącznik 25/50 ze strzałkami (luka DS D12, Z41) + testy helpera i komponentu.
 
 ## Dziennik decyzji implementacyjnych
@@ -93,6 +93,7 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - 2026-10-21 (po fazie 4): DS `Select` renderuje etykietę wybranej opcji już w HTML z serwera (wcześniej puste pole „Strefa czasowa” do hydracji); `NoAvailabilityNotice href={null}` — na /mentor/availability baner bez linku do samej siebie. W bazie dev zostaje Anna z oknami wt/czw 18–20.
 - 2026-10-21 (faza 5): prawdziwy status 404 dla `/m/*` przez `proxy.ts` (lekkie `select 1 … published_at is not null` przed renderem, przepisanie na nieistniejącą ścieżkę → `app/not-found.tsx` z 404 i „Nie ma takiej strony mentora”); `notFound()` w stronie dawał 200 przez powłokę PPR (`cacheComponents`). Odstępstwo od #14 „No proxy.ts” dotyczy tylko statusu 404 stron publicznych — autoryzacja dalej wyłącznie w DAL. Każda odpowiedź `/m/*` ma `X-Robots-Tag: noindex, nofollow`. Nowy polski globalny `app/not-found.tsx` (przez `headers()` `/` i `/_not-found` są teraz ◐).
 - 2026-10-21 (decyzje K. Marczak przez delegację po review fazy 5): odstępstwo `proxy.ts` PRZYJĘTE i dopisane w specyfikacjach #14 (wyjątek od „No proxy.ts”, bez autoryzacji) i #16 (Architecture: 404 pod `cacheComponents`); Minor Codexa (wyścig cofnięcia publikacji między proxy a renderem → miękkie 404) — ryzyko zaakceptowane, wpisane w #16 Risks, bez zmiany kodu.
+- 2026-10-21 (zadanie 6.1): do klienta trafia tylko lista ISO terminów i publiczne ceny (okna, `time_zone`, `mentorId` zostają na serwerze; sprawdzane w HTML i payloadzie RSC). Sekcja terminów ma własny `<Suspense>` i granicę błędu (`catchError` z `next/error`); profil i ceny poza nimi. Czasy renderowane dopiero po hydracji (`useSyncExternalStore`, serwer pokazuje szkielet) — bez niezgodności hydracji i bez mignięcia czasów UTC. Zasada Z1: przełącznik 25/50 to grupa radio (Radix `<button role="radio">`), w liście terminów żadnych `a`/`button`. Nagłówek sekcji bez strefy w stanach pustym/błędu/ładowania (strefa tylko nad listą czasów, D3).
 
 ## Otwarte punkty
 

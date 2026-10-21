@@ -226,11 +226,11 @@ export const S5SessionExpired: Story = {
 };
 export const S5Narrow: Story = { name: "S5 Availability · 320 px", decorators: [narrow], render: () => <AvailabilityScreen state="set" /> };
 
-/* S6 /m/{slug} — #16 only (gap D1): profile and prices, no request form (L1, Z1). Phase 1 of #16 has no slot
-   section; phase 2 adds LengthToggle + SlotList selectable={false} below the prices. The S6 stories with
-   RequestForm (#16 + #17) are in „E02 Paid request/Screens”. */
+/* S6 /m/{slug} — #16 only (gap D1): profile, prices and the slot section (LengthToggle + SlotList
+   selectable={false}), no request form (L1, Z1). The S6 stories with RequestForm (#16 + #17) are in
+   „E02 Paid request/Screens”. */
 export const S6Only16: Story = {
-  name: "S6 · #16 only: identity, public work, description, prices (test: order, no form, C1)",
+  name: "S6 · #16 only: identity, public work, description, prices, slots (test: order, no form, slots as text, C1)",
   render: () => <ShareProfileScreen state="ready" />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -241,20 +241,28 @@ export const S6Only16: Story = {
     await expect(link).toHaveAttribute("rel", "nofollow noopener ugc");
     await expect(link).toHaveAttribute("target", "_blank");
     const description = main.getByText(/Migrowałam dwa duże projekty/);
-    // C1: whole amounts without „,00” — 15000 and 28000 grosze.
-    const price25 = main.getByText("150 zł");
-    const price50 = main.getByText("280 zł");
-    // Order is a requirement (spec #16 UI/UX): identity → public work → description → prices.
-    const order = [h1, link, description, price25, price50];
+    // C1: whole amounts without „,00” — 15000 and 28000 grosze (the 25/50 toggle repeats them below).
+    const prices = within(main.getByRole("region", { name: "Ceny" }));
+    const price25 = prices.getByText("150 zł");
+    const price50 = prices.getByText("280 zł");
+    const toggle = main.getByRole("radiogroup", { name: "Długość sesji" });
+    const slots = main.getByRole("heading", { level: 2, name: "Najbliższe terminy (twoja strefa: Europe/Warsaw)" });
+    // Order is a requirement (spec #16 UI/UX): identity → public work → description → prices → slots.
+    const order = [h1, link, description, price25, price50, toggle, slots];
     for (let i = 1; i < order.length; i++) {
       await expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
     // No request form, question field or booking control in E01 (L1, Z1); the only link is the public work.
+    // The 25/50 toggle is a radio group; no slot time is a control (E1, F3).
     await expect(canvas.queryAllByRole("textbox")).toHaveLength(0);
     await expect(canvas.queryAllByRole("button")).toHaveLength(0);
-    await expect(canvas.queryAllByRole("radio")).toHaveLength(0);
+    await expect(within(toggle).getAllByRole("radio")).toHaveLength(2);
+    await expect(canvas.getAllByRole("radio")).toHaveLength(2);
     await expect(canvasElement.querySelectorAll("form, input, textarea")).toHaveLength(0);
     await expect(canvas.getAllByRole("link")).toHaveLength(1);
+    const slotSection = slots.closest("section")!;
+    await expect(slotSection.querySelectorAll("a, button, input, [tabindex]")).toHaveLength(0);
+    await expect(slotSection.textContent).toMatch(/18:00/);
     // No ratings or reviews in the page's own copy (N02, A03). The mentor's description is their own text
     // (the fixture says „Pomogę ci ocenić…”), so it is left out of this check.
     const copy = (canvasElement.textContent ?? "").replace(description.textContent ?? "", "");
@@ -280,8 +288,8 @@ export const S6Only16Phone: Story = {
     for (const element of [
       canvas.getByRole("heading", { level: 1 }),
       canvas.getByRole("link", { name: /github\.com\/annak/ }),
-      canvas.getByText("150 zł"),
-      canvas.getByText("280 zł"),
+      within(canvas.getByRole("region", { name: "Ceny" })).getByText("150 zł"),
+      within(canvas.getByRole("region", { name: "Ceny" })).getByText("280 zł"),
     ]) {
       await expect(element.getBoundingClientRect().bottom - frameTop).toBeLessThanOrEqual(812);
     }
@@ -291,6 +299,51 @@ export const S6Only16Narrow: Story = {
   name: "S6 · #16 only: 320 px",
   decorators: [narrow],
   render: () => <ShareProfileScreen state="ready" />,
+};
+export const S6Only16NoSlots: Story = {
+  name: "S6 · #16 only: no slots (no windows, or windows without a zone) — „Brak wolnych terminów…”, no time, no toggle",
+  render: () => <ShareProfileScreen state="ready" slots="no-slots" />,
+  play: async ({ canvasElement }) => {
+    const main = within(within(canvasElement).getByRole("main"));
+    await expect(main.getByText("150 zł")).toBeVisible();
+    const message = main.getByRole("heading", { level: 3, name: "Brak wolnych terminów w najbliższych 14 dniach" });
+    await expect(message.closest("section")?.textContent).not.toMatch(/\d{2}:\d{2}/);
+    await expect(main.queryAllByRole("radio")).toHaveLength(0);
+  },
+};
+export const S6Only16SlotsError: Story = {
+  name: "S6 · #16 only: slot load error (section error boundary) — profile and prices stay (test)",
+  render: () => <ShareProfileScreen state="ready" slots="error" />,
+  play: async ({ canvasElement }) => {
+    const main = within(within(canvasElement).getByRole("main"));
+    const h1 = main.getByRole("heading", { level: 1, name: "Anna K." });
+    const link = main.getByRole("link", { name: /github\.com\/annak/ });
+    const price50 = main.getByText("280 zł");
+    await expect(main.getByText("150 zł")).toBeVisible();
+    await expect(price50).toBeVisible();
+    const alert = main.getByRole("alert");
+    await expect(alert).toHaveTextContent("Nie udało się wczytać terminów — odśwież stronę");
+    // Profile and prices come first and stay; the error is confined to the slot section.
+    for (const element of [h1, link, price50]) {
+      await expect(element.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    await expect(alert.closest("section")?.querySelector("h2")).toHaveTextContent("Najbliższe terminy");
+    await expect(alert.closest("section")?.textContent).not.toMatch(/\d{2}:\d{2}/);
+    await expect(main.queryAllByRole("radio")).toHaveLength(0);
+  },
+};
+export const S6Only16SlotsLoading: Story = {
+  name: "S6 · #16 only: slots loading (Suspense fallback, also before the viewer's zone is known)",
+  render: () => <ShareProfileScreen state="ready" slots="loading" />,
+};
+export const S6Only16SlotsOffline: Story = {
+  name: "S6 · #16 only: no network while slots load (Z28) — message in the slot section, profile and prices stay",
+  render: () => <ShareProfileScreen state="ready" slots="offline" />,
+  play: async ({ canvasElement }) => {
+    const main = within(within(canvasElement).getByRole("main"));
+    await expect(main.getByRole("alert")).toHaveTextContent(/Brak połączenia z internetem/);
+    await expect(main.getByText("280 zł")).toBeVisible();
+  },
 };
 export const S7NotFound: Story = {
   name: "S7 · no such mentor page (draft, unknown slug, /m): no mentor data",

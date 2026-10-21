@@ -2,6 +2,7 @@
 // @devmentor/ui and @devmentor/ui/product with spec data; the app builds the same screens
 // from its routes. Never exported from the package.
 import type { Decorator } from "@storybook/react-vite";
+import { useState } from "react";
 import { fn } from "storybook/test";
 
 import { Skeleton } from "../src/components/skeleton/Skeleton";
@@ -12,11 +13,13 @@ import {
   CancelNotPossible,
   CancelRequest,
   InvitationPanel,
+  LengthToggle,
   MentorDescription,
   MentorIdentity,
   MentorNav,
   MentorNotFound,
   MentorPageForm,
+  NETWORK_LOAD_MESSAGE,
   NoAvailabilityNotice,
   PageLayout,
   PriceList,
@@ -29,6 +32,7 @@ import {
   RequestStatusView,
   RequestSummary,
   SaveLinkBox,
+  SlotList,
   type AvailabilityWindow,
   type MentorPageValues,
   type MentorRequestDetail,
@@ -37,6 +41,7 @@ import {
   type RequestStatus,
   type SaveAvailabilityResult,
   type SaveMentorPageResult,
+  type SessionLength,
   type StartRequestResult,
 } from "../src/product";
 import { ANNA, ANNA_SLOTS, LONG_DESCRIPTION, NOW, QUESTION, REQUEST_URL, SHARE_URL, ZONE, never, wait, warsaw } from "./fixtures";
@@ -205,19 +210,20 @@ export function AvailabilityScreen({ state }: { state: AvailabilityScreenState }
   );
 }
 
-/* S6 · #16 only (gap D1, closed in epic 01 task 5.2): /m/{slug} without the request form of #17. */
+/* S6 · #16 only (gap D1, closed in epic 01 task 5.2; slot section in task 6.1): /m/{slug} without the request form of #17. */
 
 /** A 400-character description: the first-screen check at 375 × 812 (spec #16 UI/UX, K2). */
 export const DESCRIPTION_400 = `${ANNA.description}\n${"Pracuję z zespołami, które przenoszą duże aplikacje na nowe wersje frameworków. ".repeat(4)}`.slice(0, 400);
 
 export type ShareProfileState = "ready" | "long-description" | "description-400" | "not-found";
+/** Slot section of #16 phase 2 (app/m/[slug]): slots, none, loading, load error, no network while loading. */
+export type ShareSlotsState = "slots" | "no-slots" | "loading" | "error" | "offline";
 
 /**
- * Phase 1 of #16 as the app renders it (app/m/[slug]/page.tsx): identity → public work → description → prices,
- * in that order. No slots yet (they come in phase 2 as LengthToggle + SlotList selectable={false} below the
- * prices) and no request form, question field or booking control (L1, Z1, F4).
+ * #16 as the app renders it (app/m/[slug]/page.tsx): identity → public work → description → prices → slots, in
+ * that order, and no request form, question field or booking control (L1, Z1, F4).
  */
-export function ShareProfileScreen({ state }: { state: ShareProfileState }) {
+export function ShareProfileScreen({ state, slots = "slots" }: { state: ShareProfileState; slots?: ShareSlotsState }) {
   if (state === "not-found")
     return (
       <PageLayout width="narrow">
@@ -233,7 +239,48 @@ export function ShareProfileScreen({ state }: { state: ShareProfileState }) {
         <MentorDescription text={description} />
       </section>
       <PriceList price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} currency={ANNA.currency} />
+      <ShareSlotSection state={slots} />
     </PageLayout>
+  );
+}
+
+/**
+ * The slot section of /m/[slug] (#16 phase 2), composed like the app: with slots → LengthToggle + SlotList
+ * selectable={false} in the viewer's zone (app/m/[slug]/slot-list.tsx); the states without times (empty, loading,
+ * load error from the section's error boundary, no network) → an h2 „Najbliższe terminy” without the zone and a
+ * Skeleton / StateMessage (app/m/[slug]/slot-section-states.tsx).
+ */
+function ShareSlotSection({ state }: { state: ShareSlotsState }) {
+  const [length, setLength] = useState<SessionLength>(25);
+  if (state === "slots")
+    return (
+      <div className="flex flex-col gap-between-groups">
+        <LengthToggle price25Minor={ANNA.price25Minor} price50Minor={ANNA.price50Minor} currency={ANNA.currency} value={length} onValueChange={setLength} />
+        <SlotList slots={ANNA_SLOTS} length={length} timeZone={ZONE} now={NOW} selectable={false} />
+      </div>
+    );
+  return (
+    <section aria-labelledby="slots-heading" aria-busy={state === "loading" || undefined} className="flex flex-col gap-in-group">
+      <h2 id="slots-heading" className="text-heading-section font-strong">
+        Najbliższe terminy
+      </h2>
+      {state === "loading" ? (
+        <Skeleton label="Wczytywanie terminów" />
+      ) : (
+        <StateMessage
+          kind={state === "no-slots" ? "empty" : "error"}
+          titleAs="h3"
+          title={
+            state === "no-slots"
+              ? "Brak wolnych terminów w najbliższych 14 dniach"
+              : state === "error"
+                ? "Nie udało się wczytać terminów — odśwież stronę"
+                : NETWORK_LOAD_MESSAGE
+          }
+          className="py-0"
+        />
+      )}
+    </section>
   );
 }
 
