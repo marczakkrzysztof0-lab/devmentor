@@ -49,9 +49,15 @@ describeDb(
 
         const dropped = await cleanupStaleTestSchemas(client);
 
-        // Nie sprawdzamy, KTO go usunął: równolegle startujący plik testowy też sprząta pozostałości
-        // i może go usunąć wcześniej niż to wywołanie (wyścig widoczny przy pełnym npm test).
-        assert.equal(await schemaExists(abandoned), false, "porzucony schemat z markerem powinien zniknąć");
+        // Nie sprawdzamy, KTO go usunął: równolegle startujący plik testowy też sprząta pozostałości.
+        // Gdy to on trzyma advisory lock porzuconego schematu, nasze sprzątanie go pomija, a jego DROP
+        // może jeszcze nie być zatwierdzony — dlatego czekamy chwilę, zamiast sprawdzać raz.
+        let gone = !(await schemaExists(abandoned));
+        for (let attempt = 0; !gone && attempt < 50; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          gone = !(await schemaExists(abandoned)) || (await cleanupStaleTestSchemas(client)).includes(abandoned);
+        }
+        assert.equal(gone, true, "porzucony schemat z markerem powinien zniknąć");
         assert.equal(await schemaExists(foreign), true, "test_x musi przetrwać");
         assert.equal(await schemaExists(unmarked), true, "dm_migtest_ bez markera musi przetrwać");
         assert.equal(await schemaExists(live.schema), true, "schemat działającego testu musi przetrwać");
