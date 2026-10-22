@@ -54,3 +54,6 @@ node_modules/
 packages/ui/.storybook/public/prototypes/
 # lesson 07: prototype screenshots are regenerated with `npm run evidence` (raport.json stays)
 prototypes/*/evidence/*.png
+
+# lesson 09: secret references for 1Password CLI (no values)
+!.env.template
