@@ -1,0 +1,12 @@
+# Zmiana plików, które konfigurują agentów (lekcja 09), wymaga akceptacji właściciela.
+# Wymuszenie działa dopiero z ochroną gałęzi „Require review from Code Owners”
+# — w repozytorium jednoosobowym jest wyłączona, patrz lekcja-09/security-notes.md.
+
+/.claude/ @marczakkrzysztof0-lab
+/.mcp.json @marczakkrzysztof0-lab
+/.agents/ @marczakkrzysztof0-lab
+/.codex/ @marczakkrzysztof0-lab
+/CLAUDE.md @marczakkrzysztof0-lab
+/AGENTS.md @marczakkrzysztof0-lab
+/.github/workflows/ @marczakkrzysztof0-lab
+/.github/CODEOWNERS @marczakkrzysztof0-lab

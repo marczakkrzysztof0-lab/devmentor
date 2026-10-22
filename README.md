@@ -232,6 +232,7 @@ npm run mentor:invite -- --help                   # pomoc
 | `npm run build` | Build produkcyjny |
 | `npm run start` | Uruchomienie buildu produkcyjnego |
 | `npm run lint` | ESLint |
+| `npm run check:agents` | Pliki dla agentów: budżet `AGENTS.md`, istnienie ścieżek z routingu, `CLAUDE.md` tylko z `@AGENTS.md` |
 | `npm test` | Testy (`node:test`) |
 | `npm run test:e2e` | Testy end-to-end (Playwright, Chromium) na `next start` z jednorazowym schematem bazy. Wymaga wcześniejszego `npm run build` |
 | `npm run setup` | Instalator środowiska lokalnego (idempotentny, wykonuje też migracje) |

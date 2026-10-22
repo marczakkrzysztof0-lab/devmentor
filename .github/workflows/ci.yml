@@ -18,6 +18,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # Lesson 10: AGENTS.md budget, routed paths exist, CLAUDE.md only imports AGENTS.md.
+      - run: npm run check:agents
 
   # No database: lib/db opens its pool lazily, at request time, never during `next build`.
   # NEXT_PUBLIC_APP_URL is read at runtime as well; a harmless value keeps the build independent of it.
