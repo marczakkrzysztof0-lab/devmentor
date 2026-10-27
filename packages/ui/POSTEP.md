@@ -440,6 +440,10 @@ Szacunek: ok. 55 stron dokumentacji (8 przewodników, 2 epiki, 7 fundamentów, o
 | nowe linie | `@import "@devmentor/ui/styles.css"` i `@source "../packages/ui/src"` | podłączenie konfiguracji (zasada 11) |
 | `app/page.tsx` (klasy palety, `rounded-3xl`) | bez zmian w tej pracy; wpis do „What is missing” | zasada 11; strona główna poza E01–E02 |
 
+## 2026-10-27 — E02 część 1 (#17)
+
+- `SlotList selectable`: F3 (6 radiów na dzień + „Pokaż więcej (k)”), wybrana godzina zawsze widoczna; nagłówek bez strefy w stanie wczytywania. `RadioGroup`: opcjonalny `footer` grupy. Bez nowych komponentów i tokenów.
+
 ## Następny krok
 
 Specyfikacja #22 (wypłaty) – potem szkic E04 do pełnego komponentu i pozycja „Wypłaty” w nawigacji; przepisanie treści strony głównej; ewentualny drugi test agentem na innym ekranie.

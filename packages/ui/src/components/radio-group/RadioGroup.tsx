@@ -28,8 +28,10 @@ export type RadioGroupProps = {
    * …or options under visual group headings (list variant), e.g. slots by day (#16).
    * Headings are hidden from screen readers, so each option label must carry the group in text
    * (e.g. a visually hidden „wtorek 20.10,” before „18:00”) — spec #16: dates in text, not only by grouping.
+   * `footer` renders after the group's options, inside the radio group (e.g. the per-day „Pokaż więcej (k)” of
+   * #17 F3 — a plain button, not a radio; arrow keys skip it).
    */
-  groups?: { label: ReactNode; options: RadioOption[] }[];
+  groups?: { label: ReactNode; options: RadioOption[]; footer?: ReactNode }[];
   /** `list`: one option per row (slots). `segmented`: 2–3 short options side by side (25/50 min). */
   variant?: "list" | "segmented";
   value?: string;
@@ -170,6 +172,7 @@ export function RadioGroup({
             </label>
           );
         })}
+            {group.footer ?? null}
           </Fragment>
         ))}
       </RadioGroupPrimitive.Root>

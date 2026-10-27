@@ -216,6 +216,39 @@ export const SlotsSelectable: Story = {
   },
 };
 
+export const SlotsSelectableF3: Story = {
+  name: "SlotList · selectable, 6 per day + „Pokaż więcej (k)” (test, #17 F3: 10 + 2)",
+  args: { selectable: true, slots: F3_SLOTS },
+  render: function Render(args) {
+    const [value, setValue] = useState<string | undefined>();
+    return <SlotList {...args} value={value} onValueChange={setValue} />;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // First day 6 radios + „Pokaż więcej (4)”; second day 2 radios. Every time is a radio with the date in its name.
+    await expect(canvas.getAllByRole("radio")).toHaveLength(8);
+    const more = canvas.getByRole("button", { name: "Pokaż więcej (4)" });
+    await expect(more).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(more);
+    await expect(more).toHaveAttribute("aria-expanded", "true");
+    await expect(canvas.getAllByRole("radio")).toHaveLength(12);
+    // A time picked from the expanded part stays visible after collapsing.
+    const late = canvas.getByRole("radio", { name: /jutro, wtorek 20\.10, 16:30/ });
+    await userEvent.click(late);
+    await userEvent.click(canvas.getByRole("button", { name: "Pokaż mniej" }));
+    await expect(canvas.getAllByRole("radio")).toHaveLength(9);
+    await expect(canvas.getByRole("radio", { name: /16:30/ })).toBeChecked();
+  },
+};
+
+export const SlotsLoadingNoZone: Story = {
+  name: "SlotList · loading, no zone printed (#17 before hydration)",
+  args: { state: "loading", selectable: true, timeZone: undefined },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("heading", { level: 2 })).toHaveTextContent(/^Najbliższe terminy$/);
+  },
+};
+
 export const SlotsLoading: Story = { name: "SlotList · loading", args: { state: "loading" } };
 export const SlotsEmpty: Story = { name: "SlotList · empty (no availability)", args: { slots: [] } };
 export const SlotsError: Story = {
