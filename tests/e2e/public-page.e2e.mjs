@@ -140,6 +140,9 @@ describe("publiczna strona mentora /m/[slug] — profil i ceny (faza 1)", { skip
     const robots = await page.locator('meta[name="robots"]').evaluateAll((metas) => metas.map((meta) => meta.getAttribute("content")));
     assert.ok(robots.some((content) => /noindex/.test(content ?? "") && /nofollow/.test(content ?? "")), JSON.stringify(robots));
 
+    // Treść profilu przychodzi strumieniowo (Suspense) — najpierw czekamy na nagłówek, potem liczymy landmarki.
+    // Bez tego na szybkim runnerze CI `count()` trafiał w chwilę przed podmianą segmentu (0 zamiast 1).
+    await page.getByRole("heading", { level: 1, name: "Anna K." }).waitFor();
     const main = page.getByRole("main");
     assert.equal(await main.count(), 1, "dokładnie jeden landmark main");
     assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
