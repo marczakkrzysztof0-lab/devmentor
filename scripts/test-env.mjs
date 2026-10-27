@@ -84,6 +84,42 @@ function pidAlive(pid) {
   }
 }
 
+/**
+ * Linia poleceń procesu (null, gdy nie da się jej odczytać). PID z deskryptora mógł zostać ponownie przydzielony
+ * innemu procesowi — zanim go zabijemy albo uznamy środowisko za żywe, sprawdzamy, czy to nadal nasz proces.
+ * @param {number} pid
+ * @returns {string | null}
+ */
+function commandLineOf(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return null;
+  try {
+    if (process.platform === "linux") return readFileSync(`/proc/${pid}/cmdline`, "utf8").replaceAll("\0", " ");
+    const result =
+      process.platform === "win32"
+        ? spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").CommandLine`], { encoding: "utf8", windowsHide: true })
+        : spawnSync("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8" });
+    const line = result.status === 0 ? result.stdout.trim() : "";
+    return line === "" ? null : line;
+  } catch {
+    return null;
+  }
+}
+
+/** Nadzorca tego środowiska: `node scripts/test-env.mjs serve …`. */
+const isSupervisor = (pid) => pidAlive(pid) && /test-env\.mjs\b.*\bserve\b/.test(commandLineOf(pid) ?? "");
+/** Serwer tego środowiska: `next start … -p <port>`. */
+const isAppServer = (pid, port) => pidAlive(pid) && new RegExp(String.raw`\bnext\b.*\bstart\b.*-p ${Number(port)}\b`).test(commandLineOf(pid) ?? "");
+
+/** Zabija proces tylko wtedy, gdy nadal jest tym, za kogo uważa go deskryptor. */
+function killIfOurs(pid, isOurs, label) {
+  if (!pidAlive(pid)) return;
+  if (!isOurs(pid)) {
+    log(`PID ${pid} (${label}) nie należy już do tego środowiska — nie zabijam`);
+    return;
+  }
+  killTree(pid);
+}
+
 function killTree(pid) {
   if (!pidAlive(pid)) return;
   if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
@@ -191,7 +227,7 @@ async function acquireLock(source) {
 /** @returns {Promise<string | null>} null = środowisko zdrowe i świeże; inaczej powód odrzucenia */
 async function reuseProblem(descriptor) {
   if (!descriptor || descriptor.status !== "running") return "brak działającego środowiska";
-  if (!pidAlive(descriptor.app?.pid)) return "proces nadzorcy nie żyje";
+  if (!isSupervisor(descriptor.app?.pid)) return "proces nadzorcy nie żyje (albo PID należy do innego procesu)";
   if ((await httpStatus(descriptor.baseUrl)) === 0 || (await httpStatus(descriptor.baseUrl)) >= 500) return "aplikacja nie odpowiada";
   // Głębsza próba: strona z danymi z bazy (seed). 200 = aplikacja widzi swój schemat.
   if ((await httpStatus(`${descriptor.baseUrl}/m/${SEED.slug}`)) !== 200) return "aplikacja nie widzi bazy (seed)";
@@ -297,8 +333,9 @@ async function down() {
     log("środowisko nie zostało uruchomione przez ten skrypt — nie ruszam");
     return 0;
   }
-  killTree(descriptor.app?.pid);
-  killTree(descriptor.app?.serverPid);
+  killIfOurs(descriptor.app?.pid, isSupervisor, "nadzorca");
+  killIfOurs(descriptor.app?.serverPid, (pid) => isAppServer(pid, descriptor.app?.port), "next start");
+  let exitCode = 0;
   // Na Windows taskkill /F nie pozwala nadzorcy posprzątać — usuwamy jego schemat (tylko ten z deskryptora).
   const schema = descriptor.services?.[0]?.schema;
   if (schema && /^dm_migtest_[0-9a-f]{16}$/.test(schema)) {
@@ -311,7 +348,8 @@ async function down() {
       const { rows } = await client.query("select obj_description(oid, 'pg_namespace') as marker from pg_namespace where nspname = $1", [schema]);
       if (rows[0]?.marker === TEST_SCHEMA_MARKER) await client.query(`drop schema if exists ${quoteIdent(schema)} cascade`);
     } catch (error) {
-      log(`schematu ${schema} nie udało się usunąć (${error.message}) — posprząta go harness testów`);
+      exitCode = 1;
+      log(`schematu ${schema} nie udało się usunąć (${error.message}) — posprząta go harness testów; kod wyjścia 1`);
     } finally {
       await client.end().catch(() => {});
     }
@@ -321,7 +359,7 @@ async function down() {
   writeJson(DESCRIPTOR, descriptor);
   rmSync(CREDENTIALS_FILE, { force: true });
   log(`zatrzymano (runId ${descriptor.runId})`);
-  return 0;
+  return exitCode;
 }
 
 // ---------------------------------------------------------------- nadzorca (proces w tle)

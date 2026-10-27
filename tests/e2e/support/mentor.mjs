@@ -46,13 +46,20 @@ export async function newTab(browser, { timezoneId = "Europe/Warsaw" } = {}) {
 export const invitationUrl = async (db, email) => (await createInvitation({ db, email, appUrl: BASE_URL })).url;
 export const signInUrl = async (db, email) => (await createSignInLink({ db, email, appUrl: BASE_URL })).url;
 
-/** Czeka, aż React podepnie się pod formularz edytora (wpisywanie przed hydracją ginęłoby). */
+/**
+ * Czeka, aż edytor będzie gotowy do pisania: widoczny nagłówek i pole „Imię i nazwisko” (rola/etykieta),
+ * a React podpięty pod to pole. Hydracji DS nie sygnalizuje niczym widocznym w UI, a tekst wpisany przed nią
+ * ginie (regresja opisana w mentor-editor.e2e.mjs) — stąd jedyny wyjątek od „tylko obserwowalny stan”:
+ * sprawdzenie, czy element ma już podpięty handler Reacta. Element wskazuje etykieta, nie selektor CSS.
+ */
 export async function waitForEditor(page) {
   await page.getByRole("heading", { level: 1, name: TEXT.editorHeading }).waitFor();
-  await page.waitForFunction(() => {
-    const input = document.querySelector('input[name="displayName"]');
-    return input !== null && Object.keys(input).some((key) => key.startsWith("__react"));
-  });
+  await page.getByLabel("Imię i nazwisko", { exact: true }).waitFor();
+  // Pole szukane za każdym razem po etykiecie (a nie trzymanym uchwytem) — hydracja może podmienić element.
+  await page.waitForFunction((label) => {
+    const input = [...document.querySelectorAll("label")].find((el) => el.textContent?.trim() === label)?.control;
+    return Boolean(input) && Object.keys(input).some((key) => key.startsWith("__react"));
+  }, "Imię i nazwisko");
 }
 
 /** Przyjęcie zaproszenia w przeglądarce → zalogowana karta na /mentor z gotowym edytorem. */
