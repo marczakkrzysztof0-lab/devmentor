@@ -8,12 +8,13 @@ import { connection } from "next/server";
 import { getPool } from "@/lib/db";
 import { expireCheckout, syncCheckout } from "@/lib/payments/payments.mjs";
 import { tryGetPaymentsDeps } from "@/lib/payments/server";
+import { cancelByToken, type CancelResult } from "./cancel.mjs";
 import { heldRanges } from "./held.mjs";
 import { appBaseUrl } from "./links.mjs";
 import { startRequest, type StartRequestResult } from "./start.mjs";
 import { getRequestByToken } from "./view.mjs";
 
-export type { StartRequestResult };
+export type { CancelResult, StartRequestResult };
 export type RequestPageData = NonNullable<Awaited<ReturnType<typeof getRequestByToken>>>;
 
 /** `startRequest` z danymi formularza (niezaufane wejście z server action). */
@@ -46,4 +47,12 @@ export async function settleCheckoutFromReturn(paymentId: string, checkout: "ret
 /** Zajęte przedziały mentora w horyzoncie terminów (do `busy` w `listOpenSlots`, #17 Q7). */
 export async function listHeldRanges(mentorId: string, now: Date, horizonDays: number) {
   return heldRanges(getPool(), { mentorId, from: now, to: new Date(now.getTime() + (horizonDays + 1) * 86_400_000), now });
+}
+
+/**
+ * „Anuluj i odzyskaj pieniądze” z `/r/{token}` (#19): uprawnieniem jest sam token z adresu strony. Bez konfiguracji
+ * płatności zwrot zostaje tylko zlecony (dokończy zadanie `payments.retryRefunds`).
+ */
+export async function cancelFromRequestPage(token: unknown): Promise<CancelResult> {
+  return cancelByToken(token, { db: getPool(), payments: tryGetPaymentsDeps() });
 }
