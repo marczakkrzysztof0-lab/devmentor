@@ -18,7 +18,7 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 | 2 | 2.1 | Stany /r/{token}: termin minął i decyzje | dispatch | done | 15826a2 |
 | 2 | 2.2 | Ekrany mentora /mentor/requests i nawigacja | inline | done | 0f5ce76 |
 | 3 | 3.1 | Zadanie lapseOverdue | inline | done | 6e4da61 |
-| 4 | 4.1 | cancelByToken | inline | todo | — |
+| 4 | 4.1 | cancelByToken | inline | done | dcf8165 |
 | 4 | 4.2 | Testy wyścigów przejść | dispatch | todo | — |
 | 4 | 4.3 | Anulowanie na /r/{token} | inline | todo | — |
 | 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | todo | — |
