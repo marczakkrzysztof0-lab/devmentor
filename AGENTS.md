@@ -19,7 +19,8 @@ Next.js 16 app (`app/`, `lib/`, `proxy.ts`) + design system `@devmentor/ui` (`pa
 | Database (Docker) | `npm run setup` (creates `docker-compose.yml`, runs migrations) |
 | Tests | `npm test` (needs Postgres; `tests/db/*` fail on CI without it) |
 | Before handing over | `npm run lint` and `npm run build` |
-| End-to-end | `npm run build`, then `npm run test:e2e` |
+| End-to-end / integration | `npm run build`, then `npm run test:integration` (alias of `test:e2e`) |
+| QA environment (UI exploration) | `npm run test-env:up` / `npm run test-env:down` |
 | Agent files | `npm run check:agents` |
 
 ## Hard rules
@@ -40,6 +41,7 @@ Read only the rows that match the task. Nested `AGENTS.md` files apply when you 
 | UI in `app/` or `packages/ui` | `docs/design-system.md`, then `packages/ui/AGENTS.md` |
 | Database, migration, SQL | `db/AGENTS.md` |
 | Product question (who, why, price) | `.ai/specs/product-brief.md`, `.ai/specs/research/decisions/` |
+| Integration / E2E test, QA scenario | `.ai/skills/om-integration-tests/SKILL.md`, `.ai/qa/README.md` |
 | Agent config, hooks, secrets | `lekcja-09/security-notes.md`, `.claude/settings.json` |
 
 Reference examples: server action + form → `app/mentor/availability/`; DB query module + test → `lib/availability/queries.mjs` and `tests/db/availability-queries.test.mjs`.
