@@ -77,16 +77,16 @@ zadania okresowe (`/api/internal/jobs`) i wspólny adapter e-mail (`lib/email`).
 
 ### Phase 1: Płatność — opłata i webhook
 
-- [ ] 1.1 Konfiguracja i strażnik trybu testowego
-- [ ] 1.2 Migracja 0005_payments
-- [ ] 1.3 Funkcje opłaty i subskrybenci
-- [ ] 1.4 Webhook Stripe
-- [ ] 1.5 Zadania okresowe i zdrowie
+- [x] 1.1 Konfiguracja i strażnik trybu testowego — b5e7ad9
+- [x] 1.2 Migracja 0005_payments — de0c83e
+- [x] 1.3 Funkcje opłaty i subskrybenci — c313ca3
+- [x] 1.4 Webhook Stripe — 958bca0
+- [x] 1.5 Zadania okresowe i zdrowie — d7b1701
 
 ### Phase 2: Zwroty
 
-- [ ] 2.1 Outbox zwrotu i dzierżawa
-- [ ] 2.2 Webhooki zwrotów i sporów
+- [x] 2.1 Outbox zwrotu i dzierżawa — f6f35b7 (kod: 958bca0)
+- [x] 2.2 Webhooki zwrotów i sporów — 1e49d0b (kod: 958bca0)
 
 ### Phase 3: Zapytanie opłacone z góry
 
