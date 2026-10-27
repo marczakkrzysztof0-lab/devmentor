@@ -282,7 +282,8 @@ export const EditorNarrowLongAddress: Story = {
     // …and wraps inside 320 px instead of pushing the page sideways (docs/design-system.md: long text, 320 px).
     await expect(hint.scrollWidth).toBeLessThanOrEqual(hint.clientWidth);
     const frame = canvasElement.querySelector<HTMLElement>('[data-testid="narrow-frame"]');
-    await expect(frame?.scrollWidth).toBeLessThanOrEqual(frame?.clientWidth ?? 0);
+    await expect(frame).not.toBeNull();
+    await expect(frame!.scrollWidth).toBeLessThanOrEqual(frame!.clientWidth);
   },
 };
 

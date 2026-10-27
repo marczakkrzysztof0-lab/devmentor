@@ -344,10 +344,17 @@ describe("mentor: edytor strony /mentor", { skip }, () => {
         await accessibleDescription(field(c.page, "Adres strony")),
         `Pełny link: ${BASE_URL}/m/${longSlug}. Adresu nie można zmienić po publikacji.`,
       );
-      const { scrollWidth, clientWidth } = await c.page.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        clientWidth: document.documentElement.clientWidth,
-      }));
+      const { scrollWidth, clientWidth, hint } = await c.page.evaluate(() => {
+        const ids = document.querySelector('input[name="slug"]')?.getAttribute("aria-describedby")?.split(/\s+/) ?? [];
+        const node = ids.map((id) => document.getElementById(id)).find((el) => el?.textContent?.startsWith("Pełny link:"));
+        return {
+          scrollWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+          hint: node ? { scrollWidth: node.scrollWidth, clientWidth: node.clientWidth } : null,
+        };
+      });
+      assert.ok(hint, "podpowiedź „Pełny link” jest w opisie pola");
+      assert.ok(hint.scrollWidth <= hint.clientWidth, `podpowiedź się nie zawija: ${hint.scrollWidth} > ${hint.clientWidth}`);
       assert.ok(scrollWidth <= clientWidth, `przewijanie w poziomie: scrollWidth ${scrollWidth} > clientWidth ${clientWidth}`);
     } finally {
       await c.context.close();
