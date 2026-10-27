@@ -22,7 +22,7 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 | 4 | 4.2 | Testy wyścigów przejść | dispatch | done | c7d0d14 |
 | 4 | 4.3 | Anulowanie na /r/{token} | inline | done | 05426e8 |
 | 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | done | 59b1f4b |
-| 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | todo | — |
+| 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | e759e19 |
 
 ## 🎯 Cel
 
