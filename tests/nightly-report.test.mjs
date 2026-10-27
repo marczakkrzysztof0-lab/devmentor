@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildReport, decideIssueAction, parseAudit, parseOutdated } from "../scripts/nightly-report.mjs";
+import { AuditFailed, buildReport, decideIssueAction, parseAudit, parseOutdated } from "../scripts/nightly-report.mjs";
 
 const audit = JSON.stringify({
   vulnerabilities: {
@@ -18,10 +18,18 @@ test("parseAudit sortuje podatności od najpoważniejszej i mapuje fixAvailable 
   ]);
 });
 
-test("parseAudit i parseOutdated zwracają pustą listę dla pustego lub uszkodzonego wejścia", () => {
-  assert.deepEqual(parseAudit(""), []);
-  assert.deepEqual(parseAudit("{nie json"), []);
-  assert.deepEqual(parseOutdated(""), []);
+test("parseAudit rzuca AuditFailed, gdy audyt się nie udał — nie traktuje tego jak braku podatności", () => {
+  for (const bad of ["", "{nie json", JSON.stringify({ error: { code: "ENOAUDIT" } }), "{}"]) {
+    assert.throws(() => parseAudit(bad), AuditFailed, `wejście: ${bad}`);
+  }
+  assert.deepEqual(parseAudit(JSON.stringify({ vulnerabilities: {} })), []);
+});
+
+test("parseOutdated zwraca null dla nieczytelnego wyniku i pustą listę, gdy nic nie jest nieaktualne", () => {
+  assert.equal(parseOutdated(""), null);
+  assert.equal(parseOutdated(JSON.stringify({ error: { code: "E1" } })), null);
+  assert.deepEqual(parseOutdated("{}"), []);
+  assert.match(buildReport([], null, "2026-10-27").markdown, /nie udało się odczytać wyniku `npm outdated`/);
 });
 
 test("parseOutdated zwraca obecną, zgodną z zakresem i najnowszą wersję, alfabetycznie", () => {

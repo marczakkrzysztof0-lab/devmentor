@@ -12,23 +12,31 @@ export const ISSUE_TITLE = "Nocna zmiana: podatności w zależnościach";
 export const ISSUE_LABEL = "dependencies";
 const BLOCKING = new Set(["moderate", "high", "critical"]);
 
+/** Audyt, który się nie udał — nie wolno go uznać za „brak podatności” (ani zamknąć zgłoszenia). */
+export class AuditFailed extends Error {}
+
 /** @param {string} text */
 function parseJson(text) {
-  if (!text || !text.trim()) return {};
+  if (!text || !text.trim()) return null;
   try {
     return JSON.parse(text);
   } catch {
-    return {};
+    return null;
   }
 }
 
 /**
  * @param {string} auditText wynik `npm audit --json`
  * @returns {{ name: string, severity: string, fixAvailable: boolean }[]} podatne paczki, od najpoważniejszych
+ * @throws {AuditFailed} gdy wynik jest pusty, nie jest JSON-em, zawiera `error` albo nie ma `vulnerabilities`
  */
 export function parseAudit(auditText) {
   const order = ["critical", "high", "moderate", "low", "info"];
-  const vulns = parseJson(auditText).vulnerabilities ?? {};
+  const parsed = parseJson(auditText);
+  if (!parsed || parsed.error || typeof parsed.vulnerabilities !== "object" || parsed.vulnerabilities === null) {
+    throw new AuditFailed("npm audit nie zwrócił poprawnego raportu");
+  }
+  const vulns = parsed.vulnerabilities;
   return Object.values(vulns)
     .map((v) => ({ name: String(v.name), severity: String(v.severity), fixAvailable: Boolean(v.fixAvailable) }))
     .sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity) || a.name.localeCompare(b.name));
@@ -36,17 +44,19 @@ export function parseAudit(auditText) {
 
 /**
  * @param {string} outdatedText wynik `npm outdated --json`
- * @returns {{ name: string, current: string, wanted: string, latest: string }[]}
+ * @returns {{ name: string, current: string, wanted: string, latest: string }[] | null} null, gdy wynik jest nieczytelny
  */
 export function parseOutdated(outdatedText) {
-  return Object.entries(parseJson(outdatedText))
+  const parsed = parseJson(outdatedText);
+  if (!parsed || parsed.error) return null;
+  return Object.entries(parsed)
     .map(([name, v]) => ({ name, current: String(v.current ?? "—"), wanted: String(v.wanted ?? "—"), latest: String(v.latest ?? "—") }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
  * @param {ReturnType<typeof parseAudit>} vulns
- * @param {ReturnType<typeof parseOutdated>} outdated
+ * @param {ReturnType<typeof parseOutdated>} outdated null = `npm outdated` się nie udał (tylko informacja w raporcie)
  * @param {string} date YYYY-MM-DD
  */
 export function buildReport(vulns, outdated, date) {
@@ -63,8 +73,9 @@ export function buildReport(vulns, outdated, date) {
     for (const v of vulns) lines.push(`| \`${v.name}\` | ${v.severity} | ${v.fixAvailable ? "tak" : "nie"} |`);
     lines.push("");
   }
-  lines.push(`Nieaktualne paczki: ${outdated.length}.`, "");
-  if (outdated.length) {
+  if (outdated === null) lines.push("Nieaktualne paczki: nie udało się odczytać wyniku `npm outdated`.", "");
+  else lines.push(`Nieaktualne paczki: ${outdated.length}.`, "");
+  if (outdated?.length) {
     lines.push("| Paczka | Obecna | Zgodna z zakresem | Najnowsza |", "|---|---|---|---|");
     for (const o of outdated) lines.push(`| \`${o.name}\` | ${o.current} | ${o.wanted} | ${o.latest} |`);
     lines.push("");
@@ -90,7 +101,16 @@ function gh(args) {
 }
 
 function main([auditPath, outdatedPath, reportPath]) {
-  const vulns = parseAudit(readFileSync(auditPath, "utf8"));
+  let vulns;
+  try {
+    vulns = parseAudit(readFileSync(auditPath, "utf8"));
+  } catch (error) {
+    // Bez zmian w zgłoszeniu: nieudany audyt nie może zamknąć otwartego zgłoszenia ani założyć nowego.
+    writeFileSync(reportPath, `## Nocna zmiana\n\nAudyt się nie udał: ${error.message}. Zgłoszenie bez zmian.\n`);
+    console.error(`Nocna zmiana: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
   const outdated = parseOutdated(readFileSync(outdatedPath, "utf8"));
   const { markdown, hasBlocking } = buildReport(vulns, outdated, new Date().toISOString().slice(0, 10));
   writeFileSync(reportPath, markdown + "\n");
