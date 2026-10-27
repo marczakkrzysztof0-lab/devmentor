@@ -292,7 +292,7 @@ export function validateMentorPage(values: MentorPageValues, mode: "blur" | "pub
   for (const field of ["price25", "price50"] as const) {
     const price = values[field].trim();
     const n = Number(price);
-    check(field, (field === "price50" && price === "") || (/^\d+$/.test(price) && n >= 20 && n <= 5000), priceMessages[field]);
+    check(field, /^\d+$/.test(price) && n >= 20 && n <= 5000, priceMessages[field]);
   }
   // The slug is always required (a draft has the placeholder), as on the server.
   if (!SLUG_PATTERN.test(values.slug.trim())) errors.slug = "Adres: 3–40 znaków — małe litery, cyfry i myślniki";
