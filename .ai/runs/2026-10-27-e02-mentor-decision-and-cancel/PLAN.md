@@ -12,9 +12,9 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 
 | Phase | Step | Title | Exec | Status | Commit |
 |-------|------|-------|------|--------|--------|
-| 1 | 1.1 | Szablony e-maili decyzji i wygaśnięcia | dispatch:cheap | done | 9ae8eaf |
-| 1 | 1.2 | Zapytania mentora: lista, licznik, szczegóły | dispatch | done | f517bb9 |
-| 1 | 1.3 | Akceptacja i odrzucenie ze zwrotem | inline | todo | — |
+| 1 | 1.1 | Szablony e-maili decyzji i wygaśnięcia | dispatch:cheap | done | a2da224 |
+| 1 | 1.2 | Zapytania mentora: lista, licznik, szczegóły | dispatch | done | ac7ee9b |
+| 1 | 1.3 | Akceptacja i odrzucenie ze zwrotem | inline | done | e718227 |
 | 2 | 2.1 | Stany /r/{token}: termin minął i decyzje | dispatch | todo | — |
 | 2 | 2.2 | Ekrany mentora /mentor/requests i nawigacja | inline | todo | — |
 | 3 | 3.1 | Zadanie lapseOverdue | inline | todo | — |

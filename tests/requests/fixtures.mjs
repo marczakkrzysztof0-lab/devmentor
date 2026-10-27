@@ -6,7 +6,8 @@ import { listOpenSlotsForMentor } from "../../lib/availability/queries.mjs";
 import { saveAvailability } from "../../lib/availability/save.mjs";
 import { saveMentorPage } from "../../lib/mentor-page/mentor-page.mjs";
 import { requestPaymentSubscriber } from "../../lib/requests/payment-subscriber.mjs";
-import { resolveRequestCheckout } from "../../lib/requests/start.mjs";
+import { syncCheckout } from "../../lib/payments/payments.mjs";
+import { resolveRequestCheckout, startRequest } from "../../lib/requests/start.mjs";
 import { createInvitation } from "../../scripts/mentor-links.mjs";
 import { makeDeps } from "../payments/helpers.mjs";
 
@@ -47,4 +48,34 @@ export function makeRequestDeps(db) {
 /** Poprawne wejście formularza dla terminu. */
 export function formInput({ slug, slot, lengthMinutes = 25, amount = lengthMinutes === 25 ? 15000 : 28000, submissionId = randomUUID(), ...rest }) {
   return { slug, submissionId, lengthMinutes, slotStart: slot.startsAt, expectedAmountMinor: amount, menteeName: "Kuba", question: QUESTION, ...rest };
+}
+
+/** Terminy mentora, które na siebie nie nachodzą (kolejne wolne starty 25 min częściowo się pokrywają). */
+export async function apartSlots(db, mentorId, count, now = new Date()) {
+  const slots = [];
+  for (const slot of await openSlots(db, mentorId, now)) {
+    if (slots.every((taken) => Math.abs(new Date(slot.startsAt).getTime() - new Date(taken.startsAt).getTime()) >= 2 * 60 * 60 * 1000)) slots.push(slot);
+    if (slots.length === count) break;
+  }
+  if (slots.length < count) throw new Error(`apartSlots: tylko ${slots.length} z ${count}`);
+  return slots;
+}
+
+/**
+ * Opłacone zapytanie (`awaiting_mentor`) przez prawdziwy przepływ #17 z fałszywym Stripe.
+ * @returns {Promise<{ id: string, paymentId: string, token: string, sessionId: string }>}
+ */
+export async function paidRequest(db, ctx, mentor, slot, { email = "kuba-dev@example.com" } = {}) {
+  const result = await startRequest(formInput({ slug: mentor.slug, slot }), ctx.startDeps);
+  if (!result.ok) throw new Error(JSON.stringify(result));
+  const { rows } = await db.query(
+    "select r.id, r.payment_id, p.stripe_checkout_session_id as session_id from requests r join payments p on p.id = r.payment_id where r.mentor_id = $1 and r.slot_start = $2",
+    [mentor.mentorId, slot.startsAt],
+  );
+  const request = rows[0];
+  const { rows: drafts } = await db.query("select params from outbound_emails where params ->> 'requestId' = $1", [request.id]);
+  const token = drafts[0].params.requestUrl.split("/r/")[1];
+  ctx.fake.completeSession(request.session_id, { email });
+  await syncCheckout(request.payment_id, request.session_id, ctx.deps);
+  return { id: request.id, paymentId: request.payment_id, token, sessionId: request.session_id };
 }
