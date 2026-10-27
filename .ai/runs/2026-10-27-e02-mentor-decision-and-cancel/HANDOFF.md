@@ -1,17 +1,16 @@
 # Handoff — 2026-10-27-e02-mentor-decision-and-cancel
 
-**Last updated:** 2026-10-27T17:49:56Z
+**Last updated:** 2026-10-27T18:04:32Z
 **Branch:** feat/e02-mentor-decision-and-cancel (base: feat/e02-stripe-and-prepaid-request, PR #40)
 **PR:** https://github.com/marczakkrzysztof0-lab/devmentor/pull/46 (draft)
-**Current phase/step:** Phase 3 Step 3.1
-**Last commit:** 2db2ec5 — merge bazy (#40 po review Codexa)
+**Current phase/step:** Phase 5 Step 5.1
+**Last commit:** 75e4810 — „Anuluj i odzyskaj” na /r/{token} (#19)
 
 ## What just happened
-- Phase 1–2 gotowe: e-maile decyzji, lista/licznik/szczegóły, akceptacja i odrzucenie ze zwrotem, stany `/r/`, ekrany `/mentor/requests`. Checkpoint 1 zielony (test 621, e2e 72).
-- Wciągnięte poprawki z #40 (merge, bez rebase).
+- Fazy 1–4 gotowe (#18 decyzja + wygasanie, #19 anulowanie). Checkpoint 2 zielony (test 642, e2e 77).
 
 ## Next concrete action
-- Step 3.1 — `lib/requests/lapse.mjs` `lapseOverdue` + rejestr zadań.
+- Step 5.1 — zrzuty ekranu do `screenshots/`, potem 5.2 dokumentacja, bramka końcowa.
 
 ## Blockers / open questions
 - none

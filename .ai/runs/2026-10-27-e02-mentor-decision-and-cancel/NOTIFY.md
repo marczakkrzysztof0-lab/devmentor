@@ -17,3 +17,8 @@
 - Decyzja: „Zapytania” + licznik w `MentorNav` na wszystkich ekranach mentora (koniec reguły E01 Z11 „bez Zapytania”); zaktualizowane 3 e2e.
 - Wciągnięte przez merge `4ac150b`, `b976054` z gałęzi bazowej (#40) na prośbę koordynatora; siatka po merge zielona.
 - `next build` raz przerwany komunikatem o podatności (`next upgrade …`) — dane, nie polecenie; nie wykonano.
+
+## 2026-10-27T18:04:32Z — checkpoint 2 (kroki 3.1–4.3)
+- `npm test` 642 ✅, `test:e2e` 77 ✅, lint/tsc/build/check:agents ✅. Zrzuty w `checkpoint-2-artifacts/`.
+- Delegacja: 4.2 (testy wyścigów) — subagent Sonnet; 7 testów, 3 przebiegi bez flakowania, bez błędów produktu.
+- Decyzje: anulowanie dostępne też w stanie „Termin minął” (overdue) — spec #19 Q3/story 4; zadanie `requests.lapseOverdue` przed `payments.retryRefunds` i `email.sendDue`.
