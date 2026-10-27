@@ -22,3 +22,7 @@
 - `npm test` 642 ✅, `test:e2e` 77 ✅, lint/tsc/build/check:agents ✅. Zrzuty w `checkpoint-2-artifacts/`.
 - Delegacja: 4.2 (testy wyścigów) — subagent Sonnet; 7 testów, 3 przebiegi bez flakowania, bez błędów produktu.
 - Decyzje: anulowanie dostępne też w stanie „Termin minął” (overdue) — spec #19 Q3/story 4; zadanie `requests.lapseOverdue` przed `payments.retryRefunds` i `email.sendDue`.
+
+## 2026-10-27T18:10:31Z — final gate
+- Wszystkie 11 kroków `done`. lint ✅, `npm test` 642 ✅, build ✅, tsc ✅, check:tokens ✅, check:agents ✅, `test:e2e` 77 ✅. Storybook pominięty (bez zmian w `packages/ui`).
+- Delegacja: 5.2 (dokumentacja) — subagent Sonnet. SHA w tabeli Tasks skorygowane do ostatecznych commitów.

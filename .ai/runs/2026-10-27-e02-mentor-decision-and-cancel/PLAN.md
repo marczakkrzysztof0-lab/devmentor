@@ -14,15 +14,15 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 |-------|------|-------|------|--------|--------|
 | 1 | 1.1 | Szablony e-maili decyzji i wygaśnięcia | dispatch:cheap | done | a2da224 |
 | 1 | 1.2 | Zapytania mentora: lista, licznik, szczegóły | dispatch | done | ac7ee9b |
-| 1 | 1.3 | Akceptacja i odrzucenie ze zwrotem | inline | done | e718227 |
-| 2 | 2.1 | Stany /r/{token}: termin minął i decyzje | dispatch | done | 15826a2 |
-| 2 | 2.2 | Ekrany mentora /mentor/requests i nawigacja | inline | done | 0f5ce76 |
-| 3 | 3.1 | Zadanie lapseOverdue | inline | done | 6e4da61 |
-| 4 | 4.1 | cancelByToken | inline | done | dcf8165 |
-| 4 | 4.2 | Testy wyścigów przejść | dispatch | done | c7d0d14 |
-| 4 | 4.3 | Anulowanie na /r/{token} | inline | done | 05426e8 |
-| 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | done | 59b1f4b |
-| 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | e759e19 |
+| 1 | 1.3 | Akceptacja i odrzucenie ze zwrotem | inline | done | 1e268b5 |
+| 2 | 2.1 | Stany /r/{token}: termin minął i decyzje | dispatch | done | 6e1e947 |
+| 2 | 2.2 | Ekrany mentora /mentor/requests i nawigacja | inline | done | 8a0e738 |
+| 3 | 3.1 | Zadanie lapseOverdue | inline | done | 093f2fc |
+| 4 | 4.1 | cancelByToken | inline | done | ca85067 |
+| 4 | 4.2 | Testy wyścigów przejść | dispatch | done | ca88778 |
+| 4 | 4.3 | Anulowanie na /r/{token} | inline | done | 75e4810 |
+| 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | done | bfba67c |
+| 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | 79daf68 |
 
 ## 🎯 Cel
 
@@ -143,4 +143,15 @@ Brak (`--skill-url` nie podano).
 
 ## Decyzje do przeglądu przez Krzysztofa
 
-(uzupełniane w trakcie runu)
+1. **„Zapytania” + licznik w nawigacji mentora na wszystkich ekranach** (`/mentor`, `/mentor/availability`, `/mentor/requests*`) — koniec reguły E01 „bez Zapytania” (L10/Z11, luka DS D2). Zaktualizowane 3 e2e z E01.
+2. **Licznik liczy tylko zapytania, o których da się jeszcze zdecydować** (`awaiting_mentor` z terminem w przyszłości); przeterminowane („Termin minął”) są na liście, ale nie w liczniku.
+3. **Decyzja bez sesji** (sesja wygasła w trakcie) → `not_found` („Nie ma takiego zapytania albo nie masz do niego dostępu”), bez przekierowania — DS `DecisionResult` nie ma kodu „wylogowano”; odświeżenie strony pokazuje „Dostęp tylko przez zaproszenie”.
+4. **Anulowanie dostępne także w stanie „Termin minął”** (po starcie terminu, zanim zadanie wygasi zapytanie) — zgodnie z #19 Q3 / story 4; DS w Storybooku pokazywał przycisk tylko dla „Opłacone”.
+5. **Lista „Zakończone” i „Zaakceptowane” — 30 dni**: zakończone po chwili decyzji (`declined_at`/`lapsed_at`/`cancelled_at`), zaakceptowane po końcu sesji.
+6. **E-maile decyzji** (`request_accepted|declined|lapsed`): termin w strefie mentora z nazwą strefy (jak w #17), bez linku `/r/` (token jest tylko w e-mailu z potwierdzeniem) — „Link do zapytania jest w e-mailu z potwierdzeniem płatności”.
+7. **Kolejność zadań**: `requests.lapseOverdue` przed `payments.retryRefunds` i `email.sendDue` — ten sam przebieg ponawia nieudany zwrot i wysyła e-mail.
+8. **Zegar**: strażniki czasu (akceptacja/odrzucenie, wygaśnięcie, ważność tokenu przy anulowaniu) liczą na zegarze bazy (`now()`), testy wstrzykują `now`; znaczniki zwrotu/outboxu — zegar aplikacji (ten, którym `executeRefund` zajmuje zwrot).
+9. **Pusty stan listy dla nieopublikowanej strony**: link `…/m/{slug}` (także dla sluga-szkicu) — nikt nie mógł jeszcze wysłać zapytania, więc to tylko podpowiedź.
+10. **Stack PR-ów**: #46 bazuje na niescalonym #40; poprawki po review Codexa z #40 (`4ac150b`, `b976054`) wciągnięte merge'em (bez rebase). Po scaleniu #40 przestawić base #46 na `main`.
+11. **`next build`** czasem przerywa komunikat o podatności Next.js 16.4.0 z poleceniem `next upgrade …` — potraktowany jako dane (nie wykonany); ponowny build przechodzi. Aktualizacja Next.js — osobny PR.
+12. **Commit w tabeli Tasks** — po korekcie w bramce końcowej SHA wskazują ostateczne commity (wcześniej wykonawcy wpisywali SHA sprzed `--amend`).
