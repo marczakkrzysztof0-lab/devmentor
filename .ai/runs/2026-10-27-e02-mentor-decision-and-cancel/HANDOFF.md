@@ -1,16 +1,16 @@
 # Handoff — 2026-10-27-e02-mentor-decision-and-cancel
 
-**Last updated:** 2026-10-27T18:04:32Z
+**Last updated:** 2026-10-27T18:22:49Z
 **Branch:** feat/e02-mentor-decision-and-cancel (base: feat/e02-stripe-and-prepaid-request, PR #40)
-**PR:** https://github.com/marczakkrzysztof0-lab/devmentor/pull/46 (draft)
-**Current phase/step:** Phase 5 Step 5.1
-**Last commit:** 75e4810 — „Anuluj i odzyskaj” na /r/{token} (#19)
+**PR:** https://github.com/marczakkrzysztof0-lab/devmentor/pull/46
+**Current phase/step:** wszystkie kroki done (w tym 6.1/6.2 review-fix)
+**Last commit:** 886be60 — poprawki po review
 
 ## What just happened
-- Fazy 1–4 gotowe (#18 decyzja + wygasanie, #19 anulowanie). Checkpoint 2 zielony (test 642, e2e 77).
+- Wszystkie fazy gotowe, bramka końcowa i review (APPROVE, minory poprawione). Checkpoint 3 zielony (test 643, e2e 77).
 
 ## Next concrete action
-- Step 5.1 — zrzuty ekranu do `screenshots/`, potem 5.2 dokumentacja, bramka końcowa.
+- Brak kroków. Dalej ludzie: niezależne review (pieniądze), ręczne QA na Stripe w trybie testowym, decyzje w PLAN.md; po scaleniu #40 przestawić base #46 na `main`.
 
 ## Blockers / open questions
 - none

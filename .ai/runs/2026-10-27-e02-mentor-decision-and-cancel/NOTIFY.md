@@ -26,3 +26,6 @@
 ## 2026-10-27T18:10:31Z — final gate
 - Wszystkie 11 kroków `done`. lint ✅, `npm test` 642 ✅, build ✅, tsc ✅, check:tokens ✅, check:agents ✅, `test:e2e` 77 ✅. Storybook pominięty (bez zmian w `packages/ui`).
 - Delegacja: 5.2 (dokumentacja) — subagent Sonnet. SHA w tabeli Tasks skorygowane do ostatecznych commitów.
+
+## 2026-10-27T18:22:49Z — review + checkpoint 3
+- `om-auto-review-pr --autofix`: niezależny recenzent (subagent, osobny kontekst) — APPROVE; poprawione 3 minory (6.1, 6.2), reszta w decyzjach 13–15. Checkpoint 3: test 643 ✅, e2e 77 ✅, lint/tsc/build/tokens/agents ✅.
