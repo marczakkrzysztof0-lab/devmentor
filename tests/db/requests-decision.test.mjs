@@ -139,4 +139,11 @@ describeDb("decyzja mentora (#18 krok 1)", (db) => {
     assert.equal(result.ok, true);
     assert.equal((await paymentRow(db, request.paymentId)).refund_status, "requested");
   });
+  test("zegar strażnika przed zegarem płatności → zwrot i tak wykonany od razu (znaczniki z zegara płatności, review)", async () => {
+    const { mentor, requests: [request], ctx } = await setup();
+    const ahead = new Date(ctx.clock.now.getTime() + 5 * 60_000);
+    const result = await declineRequest({ mentorId: mentor.mentorId, requestId: request.id }, { db: db.pool, payments: ctx.deps, now: () => ahead });
+    assert.equal(result.ok, true);
+    assert.equal((await paymentRow(db, request.paymentId)).refund_status, "succeeded");
+  });
 });

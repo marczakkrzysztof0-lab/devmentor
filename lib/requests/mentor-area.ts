@@ -51,16 +51,17 @@ export async function loadMentorRequests() {
   const mentor = await getCurrentMentor();
   if (!mentor) return null;
   const now = new Date();
-  const context = await mentorContext(mentor.mentorId);
   try {
-    const [requests, pendingCount] = await Promise.all([
+    const [requests, pendingCount, context] = await Promise.all([
       listMentorRequests(getPool(), { mentorId: mentor.mentorId, now }),
       countAwaitingDecision(getPool(), { mentorId: mentor.mentorId, now }),
+      mentorContext(mentor.mentorId),
     ]);
     return { state: "ready" as const, requests, pendingCount, now, ...context };
   } catch (error) {
+    // Bez częściowych danych: komunikat „Nie udało się wczytać zapytań — odśwież” (spec #18).
     console.error(`[requests] lista zapytań mentora nie wczytana: ${error instanceof Error ? error.name : "Error"}`);
-    return { state: "error" as const, requests: [], pendingCount: 0, now, ...context };
+    return { state: "error" as const, requests: [], pendingCount: 0, now, timeZone: DEFAULT_ZONE, shareUrl: "" };
   }
 }
 

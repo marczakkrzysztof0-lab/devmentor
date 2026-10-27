@@ -24,7 +24,7 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 | 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | done | bfba67c |
 | 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | 79daf68 |
 | 6 | 6.1-review-fix | Testy wyścigów: czekanie na blokadę właśnie transakcji A | inline | done | be92fc7 |
-| 6 | 6.2-review-fix | Zegar zwrotu w decyzji i błąd odczytu kontekstu listy | inline | todo | — |
+| 6 | 6.2-review-fix | Zegar zwrotu w decyzji i błąd odczytu kontekstu listy | inline | done | f4b8d19 |
 
 ## 🎯 Cel
 
@@ -156,4 +156,7 @@ Brak (`--skill-url` nie podano).
 9. **Pusty stan listy dla nieopublikowanej strony**: link `…/m/{slug}` (także dla sluga-szkicu) — nikt nie mógł jeszcze wysłać zapytania, więc to tylko podpowiedź.
 10. **Stack PR-ów**: #46 bazuje na niescalonym #40; poprawki po review Codexa z #40 (`4ac150b`, `b976054`) wciągnięte merge'em (bez rebase). Po scaleniu #40 przestawić base #46 na `main`.
 11. **`next build`** czasem przerywa komunikat o podatności Next.js 16.4.0 z poleceniem `next upgrade …` — potraktowany jako dane (nie wykonany); ponowny build przechodzi. Aktualizacja Next.js — osobny PR.
+13. **Zwrot zewnętrzny / spór przed decyzją** (pytanie z review, luka z #24/#17): po zwrocie z panelu Stripe albo sporze zapytanie zostaje `awaiting_mentor` i mentor może je zaakceptować bez pieniędzy. Nie domykane w tym PR — do decyzji (np. strażnik `refund_status IS NULL` przy akceptacji albo przejście subskrybenta).
+14. **Rzadki deadlock** (review, minor): decyzja/anulowanie blokują `requests` → `payments`, webhook `charge.refunded` odwrotnie; skutek — jedna transakcja wycofana (Stripe ponowi webhook, mentor zobaczy „brak sieci”). Bez zmian, zapisane jako ryzyko.
+15. **Decyzja przy wygasłej sesji** zostaje `not_found` (review minor — spec mówi „signed out + #14 sign-in”); wymagałoby nowego kodu w DS `DecisionResult`.
 12. **Commit w tabeli Tasks** — po korekcie w bramce końcowej SHA wskazują ostateczne commity (wcześniej wykonawcy wpisywali SHA sprzed `--amend`).
