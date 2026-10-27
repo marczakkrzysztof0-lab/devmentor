@@ -39,7 +39,7 @@ describeDb("wyścigi anulowania zapytań (#19 krok 2)", (db) => {
     );
     assert.equal(held.result.ok, true);
     const cancel = cancelByToken(request.token, { db: db.pool, payments: ctx.deps });
-    await waitUntilBlocked(db.pool, cancel);
+    await waitUntilBlocked(db.pool, cancel, held);
     await held.commit();
     assert.deepEqual(await cancel, { ok: false, reason: "accepted" });
     assert.equal((await row(request.id)).status, "accepted");
@@ -55,7 +55,7 @@ describeDb("wyścigi anulowania zapytań (#19 krok 2)", (db) => {
       { mentorId: mentor.mentorId, requestId: request.id },
       { db: db.pool, payments: null, now: await beforeSlot(request.id) },
     );
-    await waitUntilBlocked(db.pool, accept);
+    await waitUntilBlocked(db.pool, accept, held);
     await held.commit();
     const result = await accept;
     assert.equal(!result.ok && result.code, "cancelled");
@@ -73,7 +73,7 @@ describeDb("wyścigi anulowania zapytań (#19 krok 2)", (db) => {
     );
     assert.equal(held.result.ok, true);
     const cancel = cancelByToken(request.token, { db: db.pool, payments: ctx.deps });
-    await waitUntilBlocked(db.pool, cancel);
+    await waitUntilBlocked(db.pool, cancel, held);
     await held.commit();
     assert.deepEqual(await cancel, { ok: false, reason: "already_refunding", status: "declined" });
     assert.equal((await row(request.id)).status, "declined");
@@ -94,7 +94,7 @@ describeDb("wyścigi anulowania zapytań (#19 krok 2)", (db) => {
       { mentorId: mentor.mentorId, requestId: request.id },
       { db: db.pool, payments: null, now: await beforeSlot(request.id) },
     );
-    await waitUntilBlocked(db.pool, decline);
+    await waitUntilBlocked(db.pool, decline, held);
     await held.commit();
     const result = await decline;
     assert.equal(!result.ok && result.code, "cancelled");
@@ -113,7 +113,7 @@ describeDb("wyścigi anulowania zapytań (#19 krok 2)", (db) => {
     const held = await holdTransaction(db.pool, (tx) => lapseOneInTx(tx, { at: now(), stamp: now() }));
     assert.equal(held.result?.requestId, request.id);
     const cancel = cancelByToken(request.token, { db: db.pool, payments: ctx.deps });
-    await waitUntilBlocked(db.pool, cancel);
+    await waitUntilBlocked(db.pool, cancel, held);
     await held.commit();
     assert.deepEqual(await cancel, { ok: false, reason: "already_refunding", status: "lapsed" });
     assert.equal((await row(request.id)).status, "lapsed");

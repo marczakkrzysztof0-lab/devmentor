@@ -23,6 +23,8 @@ Engine: om-auto-create-pr-loop (steps: 11, --loop: yes)
 | 4 | 4.3 | Anulowanie na /r/{token} | inline | done | 75e4810 |
 | 5 | 5.1 | Zrzuty ekranu nowych ekranów | inline | done | bfba67c |
 | 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | 79daf68 |
+| 6 | 6.1-review-fix | Testy wyścigów: czekanie na blokadę właśnie transakcji A | inline | done | be92fc7 |
+| 6 | 6.2-review-fix | Zegar zwrotu w decyzji i błąd odczytu kontekstu listy | inline | todo | — |
 
 ## 🎯 Cel
 

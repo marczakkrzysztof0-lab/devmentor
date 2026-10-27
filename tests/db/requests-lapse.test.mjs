@@ -112,7 +112,7 @@ describeDb("wygaśnięcie zapytań (#18 krok 4)", (db) => {
     assert.equal(held.result?.requestId, request.id);
     const slotStart = new Date((await row(request.id)).slot_start).getTime();
     const accept = acceptRequest({ mentorId: mentor.mentorId, requestId: request.id }, { db: db.pool, payments: null, now: () => new Date(slotStart - 60_000) });
-    await waitUntilBlocked(db.pool, accept);
+    await waitUntilBlocked(db.pool, accept, held);
     await held.commit();
     const result = await accept;
     assert.equal(!result.ok && result.code, "lapsed");
