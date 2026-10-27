@@ -69,9 +69,27 @@ zadania okresowe (`/api/internal/jobs`) i wspólny adapter e-mail (`lib/email`).
 
 ## Decyzje do przeglądu przez Krzysztofa
 
-(uzupełniane w trakcie)
+1. **Czas sesji Checkout 33 min zamiast 30** (`CHECKOUT_TTL_MINUTES`): Stripe wymaga `expires_at` ≥ 30 min od utworzenia sesji, a sesja powstaje po commicie i bywa ponawiana z tym samym `expires_at`. Slot zwalnia się najpóźniej po `checkout_expires_at + 10 min`.
+2. **Odtworzenie sesji przez `expireCheckout`** wymaga identycznych parametrów (klucz idempotencji) — rozszerzenie kontraktu #24 o `resolveCheckoutRequest`; #17 bierze link `/r/` ze szkicu e-maila potwierdzenia (jedyne miejsce z tokenem jawnym, jak w specyfikacji).
+3. **Webhook `checkout.session.completed` przy braku zapisanego id sesji** (awaria między Stripe a zapisem) przyjmuje sesję, gdy zgadza się `metadata.payment_id`, kwota i waluta.
+4. **Zwrot `pending` → `refund.failed`** = `failed` końcowy (tabela przejść specyfikacji), bez ponownej próby; `charge.refunded` dla nieznanego PaymentIntentu → 200 i log.
+5. **E-maile**: termin w strefie mentora z nazwą strefy (strefa dewelopera nieznana); wysyłka przez zadanie `email.sendDue` (lokalnie co 60 s, na hostingu co 5 min) — bez natychmiastowego `sendDue` po commicie. Link mentora `/mentor/requests/{id}` działa dopiero z #18.
+6. **Nowa zmienna `STRIPE_API_BASE_URL`** (tylko `http://localhost`/`127.0.0.1`) dla lokalnego fałszywego Stripe w e2e — inaczej pełnego przepływu nie da się sprawdzić bez kluczy.
+7. **DS**: F3 (6 godzin na dzień + „Pokaż więcej (k)”) w trybie wybieralnym (bez tego formularz miał ~380 radiów), `RadioGroup` z opcjonalnym `footer`, nagłówek bez „czas UTC” podczas wczytywania.
+8. **Zależności**: `stripe@22.6.2` (nie 23.x — nowy major z 1.10), `nodemailer@10.0.16` (SMTP ze specyfikacji), obie przypięte.
+9. **`.env.template`**: odnośniki `op://DevMentor-Dev/Stripe-Test/…` i `op://DevMentor-Dev/Cron/secret` — pozycje w sejfie trzeba założyć.
+10. **Strona `/r/`** wywołuje `syncCheckout`/`expireCheckout` w czasie renderu GET (powrót ze Stripe) — zgodnie ze specyfikacją; operacje idempotentne, Stripe źródłem prawdy. Bez przycisku anulowania (#19).
+11. **Worktree poza repo** (`../devmentor-wt-e02`) zamiast `.ai/tmp/…` — zagnieżdżony worktree z drugim `package-lock.json` myli Turbopack co do katalogu głównego.
+12. **Kolejność commitów**: kod zwrotów (`refunds.mjs`) wszedł w 1.4 (webhook go importuje), a 3.3 importuje `lib/requests/server.ts` dodany w 3.7 — pośrednie commity nie zawsze budują się samodzielnie; HEAD jest zielony.
+
+## Poza zakresem / nie zrobione
+
+- Ręczne QA na prawdziwym Stripe (tryb testowy): `stripe listen`, karty `4242…`, `4000 0000 0000 0002`, `4000 0025 0000 3155`, `stripe trigger charge.dispute.created`, przejście na czas ≤ 5 min (D08), e-maile przez SMTP — brak kluczy w tym runie.
+- `npm run build` zgłasza znaną podatność Next.js 16.4.0 — osobna aktualizacja.
 
 ## Progress
+
+PR: #40
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
@@ -90,16 +108,16 @@ zadania okresowe (`/api/internal/jobs`) i wspólny adapter e-mail (`lib/email`).
 
 ### Phase 3: Zapytanie opłacone z góry
 
-- [ ] 3.1 Migracja 0006_requests
-- [ ] 3.2 Walidacja zapytania
-- [ ] 3.3 Zajęte przedziały
-- [ ] 3.4 Adapter e-mail
-- [ ] 3.5 startRequest
-- [ ] 3.6 Subskrybent płatności
-- [ ] 3.7 Formularz na /m/{slug}
-- [ ] 3.8 Strona /r/{token}
+- [x] 3.1 Migracja 0006_requests — d5f5f07
+- [x] 3.2 Walidacja zapytania — 20dc2f4
+- [x] 3.3 Zajęte przedziały — d4785ad
+- [x] 3.4 Adapter e-mail — 8a57297
+- [x] 3.5 startRequest — 011ff96
+- [x] 3.6 Subskrybent płatności — 7768ec9
+- [x] 3.7 Formularz na /m/{slug} — 9256c21
+- [x] 3.8 Strona /r/{token} — bf22790
 
 ### Phase 4: Dokumentacja i weryfikacja
 
-- [ ] 4.1 Dokumentacja
-- [ ] 4.2 Zrzuty ekranu UI
+- [x] 4.1 Dokumentacja — a1e4691
+- [x] 4.2 Zrzuty ekranu UI — a021d53
