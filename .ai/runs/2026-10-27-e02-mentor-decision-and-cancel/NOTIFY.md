@@ -34,3 +34,7 @@
 - PR: https://github.com/marczakkrzysztof0-lab/devmentor/pull/46 (ready, base `feat/e02-stripe-and-prepaid-request`), Status: complete, 13 kroków.
 - CI dla `7e08131`: build, lint, test, tokens, storybook — ✅. Etykiety: review, feature, needs-qa, priority-medium, risk-high.
 - Czeka na ludzi: niezależne review, ręczne QA (Stripe test mode), decyzje 1–15 w PLAN.md, scalenie #40 i zmiana base.
+
+## 2026-10-27T18:57:31Z — poprawka po niezależnym review (Codex, request changes)
+- Major: brak dowodu ścieżki awaria Stripe → ponowienie → sukces dla odrzucenia i anulowania. Krok 6.3-review-fix: testy kontynuują po backoffie (`executeRefund`, zegar wstrzyknięty) → dokładnie jeden `refunds.create`, jeden `refund.succeeded`, jeden e-mail `refund_succeeded`, stan zapytania bez zmian; przed backoffem i po sukcesie `not_claimed`.
+- Siatka (nowy worktree `../devmentor-wt-e02c`): lint ✅, `npm test` 643 ✅, build ✅, tsc ✅, tokens ✅, agents ✅, `test:e2e` 77 ✅.

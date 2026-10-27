@@ -4,7 +4,7 @@ Source doc: .ai/specs/2026-10-19-mentor-accepts-or-declines-request.md
 Source doc: .ai/specs/2026-10-19-developer-cancels-before-acceptance.md
 Epik: #9 · Issues: #18 (E02-S02), #19 (E02-S03) · Branch: `feat/e02-mentor-decision-and-cancel`
 Base: `feat/e02-stripe-and-prepaid-request` (PR #40, stack — nie `main`)
-Engine: om-auto-create-pr-loop (steps: 13, --loop: yes)
+Engine: om-auto-create-pr-loop (steps: 14, --loop: yes)
 
 ## Tasks
 
@@ -25,6 +25,7 @@ Engine: om-auto-create-pr-loop (steps: 13, --loop: yes)
 | 5 | 5.2 | Dokumentacja i track.md | dispatch:cheap | done | 79daf68 |
 | 6 | 6.1-review-fix | Testy wyścigów: czekanie na blokadę właśnie transakcji A | inline | done | 8aa4e18 |
 | 6 | 6.2-review-fix | Zegar zwrotu w decyzji i błąd odczytu kontekstu listy | inline | done | 886be60 |
+| 6 | 6.3-review-fix | Testy ponowienia zwrotu po awarii Stripe (odrzucenie, anulowanie) | inline | done | 75845fe |
 
 ## 🎯 Cel
 

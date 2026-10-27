@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { generateToken } from "../../lib/auth/tokens.mjs";
+import { executeRefund } from "../../lib/payments/refunds.mjs";
 import { cancelByToken } from "../../lib/requests/cancel.mjs";
 import { declineRequest } from "../../lib/requests/decision.mjs";
 import { countAwaitingDecision, listMentorRequests } from "../../lib/requests/mentor.mjs";
@@ -96,11 +97,30 @@ describeDb("anulowanie przez dewelopera (#19 krok 1)", (db) => {
     assert.equal((await row(paid.id)).status, "awaiting_mentor");
   });
 
-  test("Stripe nie działa → cancelled od razu (termin wolny), zwrot requested do ponowienia", async () => {
-    const { requests: [request], deps, ctx } = await setup();
-    ctx.fake.fail("refunds.list", serverError, { times: 3 });
+  test("Stripe nie działa → cancelled od razu (termin wolny), zwrot requested; ponowienie po backoffie → jeden zwrot, refund.succeeded", async () => {
+    const { requests: [request], deps, ctx, payer } = await setup();
+    ctx.fake.fail("refunds.list", serverError, { times: 1 });
     assert.deepEqual(await cancelByToken(request.token, deps), { ok: true, refund: "requested" });
     assert.equal((await row(request.id)).status, "cancelled");
-    assert.equal((await paymentRow(db, request.paymentId)).refund_status, "requested");
+    const failed = await paymentRow(db, request.paymentId);
+    assert.equal(failed.refund_status, "requested");
+    assert.equal(failed.refund_attempts, 1);
+    assert.equal(ctx.fake.count("refunds.create"), 0);
+
+    // Przed upływem backoffu (1 min) ponowienie nie zajmuje zwrotu.
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "not_claimed" });
+    ctx.advance(1);
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "succeeded", attempt: 2 });
+    // Kolejne wywołanie (np. zadanie retryRefunds) niczego nie powtarza.
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "not_claimed" });
+
+    const payment = await paymentRow(db, request.paymentId);
+    assert.equal(payment.refund_status, "succeeded");
+    assert.equal(payment.refund_reason, "mentee_cancelled");
+    assert.equal(ctx.fake.count("refunds.create"), 1);
+    assert.equal(ctx.events.filter((e) => e.paymentId === request.paymentId && e.type === "refund.succeeded").length, 1);
+    const { rows } = await db.query("select count(*)::int as n from outbound_emails where to_address = $1 and template = 'refund_succeeded'", [payer]);
+    assert.equal(rows[0].n, 1);
+    assert.equal((await row(request.id)).status, "cancelled");
   });
 });

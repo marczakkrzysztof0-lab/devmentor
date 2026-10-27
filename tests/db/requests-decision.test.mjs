@@ -5,6 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { serverError } from "../payments/fake-stripe.mjs";
 import { paymentRow } from "../payments/helpers.mjs";
+import { executeRefund } from "../../lib/payments/refunds.mjs";
 import { acceptRequest, declineRequest } from "../../lib/requests/decision.mjs";
 import { apartSlots, makeRequestDeps, paidRequest, QUESTION, seedMentor } from "../requests/fixtures.mjs";
 import { describeDb } from "./harness.mjs";
@@ -122,15 +123,31 @@ describeDb("decyzja mentora (#18 krok 1)", (db) => {
     assert.deepEqual(await declineRequest({ mentorId: mentor.mentorId, requestId: request.id }, deps), { ok: false, code: "not_found" });
   });
 
-  test("Stripe nie działa przy odrzuceniu → decyzja zostaje (declined), zwrot requested do ponowienia", async () => {
-    const { mentor, requests: [request], deps, ctx } = await setup();
-    ctx.fake.fail("refunds.list", serverError, { times: 3 });
+  test("Stripe nie działa przy odrzuceniu → declined, zwrot requested; ponowienie po backoffie → jeden zwrot, refund.succeeded", async () => {
+    const { mentor, requests: [request], deps, ctx, payer } = await setup();
+    ctx.fake.fail("refunds.list", serverError, { times: 1 });
     const result = await declineRequest({ mentorId: mentor.mentorId, requestId: request.id }, deps);
     assert.equal(result.ok, true);
     assert.equal((await row(request.id)).status, "declined");
+    const failed = await paymentRow(db, request.paymentId);
+    assert.equal(failed.refund_status, "requested");
+    assert.ok(new Date(failed.refund_next_attempt_at) > new Date(failed.refund_requested_at));
+    assert.equal(ctx.fake.count("refunds.create"), 0);
+
+    // Ponowienie (zadanie payments.retryRefunds woła executeRefund) — dopiero po backoffie 1 min.
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "not_claimed" });
+    ctx.advance(1);
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "succeeded", attempt: 2 });
+    assert.deepEqual(await executeRefund(request.paymentId, ctx.deps), { outcome: "not_claimed" });
+
     const payment = await paymentRow(db, request.paymentId);
-    assert.equal(payment.refund_status, "requested");
-    assert.ok(new Date(payment.refund_next_attempt_at) > new Date(payment.refund_requested_at));
+    assert.equal(payment.refund_status, "succeeded");
+    assert.equal(payment.refund_reason, "mentor_declined");
+    assert.equal(ctx.fake.count("refunds.create"), 1);
+    assert.equal(ctx.events.filter((e) => e.paymentId === request.paymentId && e.type === "refund.succeeded").length, 1);
+    const { rows } = await db.query("select count(*)::int as n from outbound_emails where to_address = $1 and template = 'refund_succeeded'", [payer]);
+    assert.equal(rows[0].n, 1);
+    assert.equal((await row(request.id)).status, "declined");
   });
 
   test("bez modułu płatności (payments: null) → zwrot tylko zlecony, dokończy zadanie", async () => {
