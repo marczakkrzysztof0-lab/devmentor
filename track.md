@@ -117,3 +117,35 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - (faza 5) Dwa zapytania do bazy na wyświetlenie opublikowanej strony (proxy + strona). Wyścig „mentor cofa publikację między proxy a renderem” daje miękkie 404 (200 + noindex). Przy niedziałającej bazie `/m/*` zwraca 500.
 - (faza 6) Reguła F3 (6 + „Pokaż więcej”) dla terminów wybieralnych w formularzu zapytania należy do #17 — nie zrobione. Data w ukrytym tekście każdego terminu powtarza się w czytniku ekranu — do odsłuchu w QA.
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
+
+# Epik 02 — część 1 (lekcja 11)
+
+Tryb autonomiczny (`/om-auto-implement-spec` → `om-auto-create-pr`), gałąź `feat/e02-stripe-and-prepaid-request`, PR #40 (`Zamyka #24`, `Zamyka #17`, `Refs #9`). Start: 2026-10-27. Plan runu z postępem i decyzjami: `.ai/runs/2026-10-27-e02-stripe-and-prepaid-request.md`.
+
+Specyfikacje: `.ai/specs/2026-10-19-stripe-card-payment-refund-and-webhook.md` (#24, fundament płatności) → `.ai/specs/2026-10-19-prepaid-request-with-question.md` (#17).
+
+## Co powstało
+
+- `lib/payments` (#24): konfiguracja i strażnik trybu testowego (tylko `sk_test_`/`rk_test_`), `createPayment` / `openCheckout` / `syncCheckout` / `expireCheckout`, zwrot outbox + dzierżawa (`requestRefund` / `executeRefund`, ponowienia 1/5/15/60 min, 24 h → `failed`), webhook (`POST /api/webhooks/stripe`, podpis, `stripe_events`, zwroty, spory), rekonsyliacja, subskrybenci w transakcji. Migracja `0005_payments`.
+- `lib/jobs`: `POST/GET /api/internal/jobs` (Bearer `CRON_SECRET`, zdrowie `stale`/`failedRefunds`), `npm run jobs`.
+- `lib/requests` + `lib/email` (#17): walidacja, zajęte przedziały (busy na `/m/{slug}`), `startRequest` (blokada wiersza mentora), subskrybent płatności, outbox e-maili (log/SMTP), odczyt `/r/{token}` po hashu. Migracja `0006_requests`.
+- UI: formularz zapytania na `/m/[slug]` (DS `RequestForm`, F4 — godzina = radio), strona `/r/[token]` (stany płatności), `proxy.ts` (404 i `Referrer-Policy: no-referrer` dla `/r/*`). DS: F3 (6 + „Pokaż więcej”) także w trybie wybieralnym, `RadioGroup` z `footer`.
+- E2E z lokalnym fałszywym Stripe (`tests/e2e/fake-stripe-server.mjs`): pełny przepływ formularz → płatność → „Opłacone”, porzucenie, dwie karty, 404. Zrzuty: `.ai/runs/2026-10-27-e02-stripe-and-prepaid-request/screenshots/`.
+
+## Zasady, które doszły (dla kolejnych historii E02/E03)
+
+- Ruch pieniędzy tylko przez `lib/payments`; historie słuchają przez `lib/payments/subscribers.mjs` (w transakcji przejścia) i dopisują zadania w `lib/jobs/registry.mjs`.
+- Testy płatności: fałszywy klient (`tests/payments/fake-stripe.mjs`, migawki kluczy idempotencji, wstrzykiwanie błędów `afterEffect`), zegar sterowany w `deps.now`. Nigdy prawdziwe klucze — atrapy `sk_test_PLACEHOLDER…`.
+- Treść pytania nigdy w e-mailach, Stripe ani logach; błędy Stripe zapisywane jako kod + id żądania.
+
+## Siatka na koniec (lokalnie, 2026-10-27)
+
+`npm test` 587 ✔, `npm run test:e2e` 64 ✔, `npm run test:storybook:themes` 372 ✔; tsc (app + ui), lint, check:tokens, check:agents, build OK.
+
+## Otwarte punkty
+
+- Ręczne QA w trybie testowym Stripe (`stripe listen`, karty 4242/0002/3155, spór, przejście na czas ≤ 5 min, e-maile) — wymaga kluczy testowych; `needs-qa`, bez self-QA (risk-high).
+- Link w e-mailu do mentora `/mentor/requests/{id}` prowadzi do 404 do czasu #18.
+- Anulowanie (#19), decyzja mentora i wygasanie (#18) — kolejne części epiku.
+- `npm run build` ostrzega, że Next.js 16.4.0 ma znaną podatność — osobna aktualizacja zależności.
+- Lista terminów w formularzu jest długa przy szerokich oknach (14 dni × 6 + „Pokaż więcej”) — do obserwacji w pilocie.

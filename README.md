@@ -187,11 +187,38 @@ DATABASE_URL="postgresql://devmentor:devmentor@localhost:5432/devmentor"
 
 # Adres aplikacji
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Płatności Stripe — WYŁĄCZNIE tryb testowy (#24). Klucz musi zaczynać się od sk_test_ albo rk_test_;
+# klucz live jest odrzucany. Bez tych zmiennych formularz pokazuje „Płatności są chwilowo niedostępne”,
+# a webhook i zadania odpowiadają 503. Wartości z panelu Stripe (tryb testowy) / `stripe listen`.
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+# Dozwolone waluty (walutę płatności bierzemy ze strony mentora).
+PAYMENT_CURRENCIES="PLN"
+# Prowizja platformy w punktach bazowych (1000 = 10%), zapisywana na każdej płatności.
+PLATFORM_COMMISSION_BPS="1000"
+
+# Zadania okresowe: POST /api/internal/jobs z nagłówkiem „Authorization: Bearer <CRON_SECRET>”.
+# Co najmniej 32 losowe znaki, np. node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+CRON_SECRET=""
+
+# E-maile (#17). Bez SMTP_URL e-maile trafiają do logu serwera (lokalnie). SMTP_URL np. smtp://user:pass@host:587
+SMTP_URL=""
+EMAIL_FROM=""
 ```
 
 > `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon można commitować.
 
-Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.**
+Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.** Klucze Stripe, `CRON_SECRET` i `SMTP_URL` nigdy nie mają tego prefiksu.
+
+## Płatności i zapytania (E02)
+
+Deweloper na `/m/{slug}` wybiera długość i termin, wpisuje imię i pytanie, płaci kartą w Stripe Checkout i wraca na prywatną stronę `/r/{token}`. Zapytanie trafia do mentora dopiero po wpłacie.
+
+- **Tylko tryb testowy Stripe.** Do lokalnych prób: klucze testowe w `.env.local`, webhook przez Stripe CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe` (podaje `whsec_…` do `STRIPE_WEBHOOK_SECRET`). Karty testowe: `4242 4242 4242 4242` (sukces), `4000 0000 0000 0002` (odmowa), `4000 0025 0000 3155` (3-D Secure).
+- **Zadania okresowe** (rekonsyliacja płatności, ponawianie zwrotów, wysyłka e-maili): lokalnie `npm run jobs` (co 60 s woła `POST /api/internal/jobs`); na hostingu cron co 5 min z nagłówkiem `Authorization: Bearer $CRON_SECRET`. `GET /api/internal/jobs` (ta sama autoryzacja) zwraca zdrowie: `stale: true`, gdy któreś zadanie nie biegło od 30 min, i `failedRefunds` — cel dla monitora.
+- **E-maile** idą przez outbox w bazie; bez `SMTP_URL` lądują w logu serwera (lokalne QA).
+- **Testy** używają fałszywego klienta Stripe (`tests/payments/fake-stripe.mjs`), a e2e — lokalnego fałszywego serwera Stripe (`tests/e2e/fake-stripe-server.mjs`, `STRIPE_API_BASE_URL` przyjmowane tylko dla localhost). Prawdziwe klucze nie są potrzebne.
 
 ## Mentorzy: zaproszenia i logowanie
 
@@ -222,7 +249,10 @@ npm run mentor:invite -- --help                   # pomoc
 | `/sign-in/[token]` | Logowanie jednorazowym linkiem. Samo otwarcie linku niczego nie zużywa. |
 | `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia; baner „Nie masz dostępności”, gdy brak okien. Nawigacja: „Strona”, „Dostępność” i „Wyloguj”. |
 | `/mentor/availability` | Tygodniowe okna dostępności w strefie mentora (strefa z przeglądarki przy pierwszej wizycie), podgląd 10 najbliższych terminów. |
-| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min. Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
+| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min, formularz zapytania opłaconego z góry (każdy wolny termin to wybór w formularzu, #17). Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
+| `/r/[token]` | Prywatna strona zapytania dewelopera (powrót ze Stripe, link z e-maila): stan płatności i zapytania, termin, kwota, pytanie. Nieznany albo wygasły (30 dni po terminie) token → 404; `Referrer-Policy: no-referrer`, `noindex`. |
+| `POST /api/webhooks/stripe` | Webhook płatności Stripe (podpis `Stripe-Signature`, tylko tryb testowy). |
+| `POST/GET /api/internal/jobs` | Zadania okresowe i ich zdrowie (`Authorization: Bearer $CRON_SECRET`). |
 
 ## Skrypty npm
 
@@ -238,6 +268,7 @@ npm run mentor:invite -- --help                   # pomoc
 | `npm run setup` | Instalator środowiska lokalnego (idempotentny, wykonuje też migracje) |
 | `npm run db:migrate` | Wykonanie oczekujących migracji bazy |
 | `npm run db:rollback` | Cofnięcie ostatniej migracji — tylko lokalnie / w testach |
+| `npm run jobs` | Lokalny scheduler zadań okresowych: co 60 s `POST /api/internal/jobs` (`-- --once` jeden raz) |
 | `npm run mentor:invite -- <email>` | Link zaproszenia mentora (tylko dla założycieli) |
 | `npm run mentor:sign-in-link -- <email>` | Jednorazowy link logowania dla istniejącego mentora (tylko dla założycieli) |
 
