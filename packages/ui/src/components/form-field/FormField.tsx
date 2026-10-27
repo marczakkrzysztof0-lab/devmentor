@@ -64,8 +64,10 @@ export function FormField({ label, hint, hintPlacement = "control", error, optio
   const hintId = hint ? `${controlId}-hint` : undefined;
   const errorId = error ? `${controlId}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  // `break-words`: a hint may carry an unbroken string (the full share URL of a 40-character slug, #42) that
+  // must wrap inside 320 px instead of pushing the page sideways; ordinary text wraps as before.
   const hintNode = hint ? (
-    <p id={hintId} className="text-meta text-muted">
+    <p id={hintId} className="text-meta text-muted break-words">
       {hint}
     </p>
   ) : null;
