@@ -119,6 +119,38 @@ describeDb("płatności: zwrot z dzierżawą (#24 krok 6)", (db) => {
     assert.equal(ctx.fake.refunds.size, 1, "pieniądze zwrócone raz");
   });
 
+  test("dwa równoległe executeRefund (ta sama pula) i równoległe zadanie retryRefunds → jedno create, jeden refund.succeeded", async () => {
+    const ctx = makeDeps(db);
+    const id = await paidPayment(ctx);
+    await request(ctx, id);
+    ctx.fake.setDelay(100);
+    let results;
+    try {
+      results = await Promise.all([executeRefund(id, ctx.deps), executeRefund(id, ctx.deps), retryRefunds(ctx.deps)]);
+    } finally {
+      ctx.fake.setDelay(0);
+    }
+    const winners = results.slice(0, 2).filter((r) => r.outcome === "succeeded").length + results[2].succeeded;
+    assert.equal(winners, 1);
+    assert.equal(ctx.fake.count("refunds.create"), 1);
+    assert.equal(ctx.events.filter((e) => e.type === "refund.succeeded" && e.paymentId === id).length, 1);
+    const row = await paymentRow(db, id);
+    assert.equal(row.refund_status, "succeeded");
+    assert.equal(row.refund_attempts, 1);
+  });
+
+  test("przejęcie tylko pełnego zwrotu: częściowy zwrot z panelu Stripe → failed (obsługa ręczna), bez create", async () => {
+    const ctx = makeDeps(db);
+    const id = await paidPayment(ctx);
+    await request(ctx, id);
+    ctx.fake.dashboardRefund((await paymentRow(db, id)).stripe_payment_intent_id, 5000);
+    assert.equal((await executeRefund(id, ctx.deps)).outcome, "failed");
+    assert.equal(ctx.fake.count("refunds.create"), 0);
+    const row = await paymentRow(db, id);
+    assert.equal(row.refund_status, "failed");
+    assert.equal(row.refund_last_error, "partial_refund_exists");
+  });
+
   test("charge_already_refunded → succeeded", async () => {
     const ctx = makeDeps(db);
     const id = await paidPayment(ctx);

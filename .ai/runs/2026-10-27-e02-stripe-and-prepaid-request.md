@@ -121,3 +121,8 @@ PR: #40
 
 - [x] 4.1 Dokumentacja — a1e4691
 - [x] 4.2 Zrzuty ekranu UI — a021d53
+
+## Review Codexa (drugi recenzent, risk-high) — 2026-10-27
+
+- [x] **Major 1 — PRZYJĘTE.** `refund.updated` / `refund.failed` zmieniają stan tylko dla pełnego zwrotu tej płatności zleconego przez nas (`isOurFullRefund`: kwota = kwota płatności, waluta, id zwrotu zapisane u nas albo `metadata.payment_id`); inaczej log + 200 bez przejścia. Ta sama luka po stronie pracownika: przejęcie (`executeRefund`) tylko pełnego zwrotu w walucie płatności; istniejący zwrot częściowy → `failed` z `partial_refund_exists` (obsługa ręczna, Q05) zamiast uznania go za pełny.
+- [x] **Major 2 — PRZYJĘTE.** Testy z bazą: dwa równoległe `executeRefund` + równoległe `retryRefunds` na jednej puli (jedno `create`, jedno `refund.succeeded`; test na dwóch połączeniach już był), webhook `refund.updated(succeeded)` i `refund.updated(pending)` w trakcie dzierżawy pracownika (zapis pracownika przegrywa, jedno przejście i jedno zdarzenie), równoległe podwójne dostarczenie `refund.failed`, zwrot częściowy / obca waluta / obcy pełny zwrot.
