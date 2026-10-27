@@ -113,7 +113,7 @@ export function startFakeStripeServer({ port = 0 } = {}) {
         const session = [...sessions.values()].find((s) => s.payment_intent === pi);
         if (!session) return error(res, 400, "resource_missing");
         if ([...refunds.values()].some((r) => r.payment_intent === pi)) return error(res, 400, "charge_already_refunded");
-        const refund = { id: id("re"), object: "refund", status: "succeeded", amount: session.amount_total, payment_intent: pi };
+        const refund = { id: id("re"), object: "refund", status: "succeeded", amount: session.amount_total, currency: session.currency, payment_intent: pi, metadata: { payment_id: form.get("metadata[payment_id]") } };
         refunds.set(refund.id, refund);
         return json(res, 200, refund);
       }

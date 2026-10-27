@@ -37,6 +37,8 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
   const failures = new Map();
   /** @type {Array<{ method: string, params?: any, options?: any }>} */
   const calls = [];
+  /** @type {Map<string, (result: any) => Promise<void>>} */
+  const hooks = new Map();
   const state = { delayMs, refundStatus: "succeeded" };
 
   const wait = () => (state.delayMs > 0 ? new Promise((resolve) => setTimeout(resolve, state.delayMs)) : Promise.resolve());
@@ -60,6 +62,12 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
       if (key) idempotency.set(key, { params: JSON.stringify(params), result: snapshot });
     }
     if (failure?.afterEffect) throw failure.error;
+    // Test „wchodzi” między odpowiedź Stripe a zapis wyniku (np. webhook w trakcie dzierżawy).
+    const hook = hooks.get(method);
+    if (hook) {
+      hooks.delete(method);
+      await hook(clone(snapshot));
+    }
     return clone(snapshot);
   }
 
@@ -119,7 +127,8 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
           if (total === 0) throw invalidRequestError("resource_missing");
           if (refundedAmount(params.payment_intent) >= total) throw invalidRequestError("charge_already_refunded");
           const id = next("re");
-          refunds.set(id, { id, object: "refund", status: state.refundStatus, amount: total, payment_intent: params.payment_intent, metadata: { ...params.metadata } });
+          const currency = [...sessions.values()].find((s) => s.payment_intent === params.payment_intent)?.currency ?? "pln";
+          refunds.set(id, { id, object: "refund", status: state.refundStatus, amount: total, currency, payment_intent: params.payment_intent, metadata: { ...params.metadata } });
           return id;
         }),
       retrieve: (id) =>
@@ -171,5 +180,15 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
       return clone(refunds.get(id));
     },
     count: (method) => calls.filter((c) => c.method === method).length,
+    /** Jednorazowo: po wykonaniu `method` (przed zwróceniem odpowiedzi) wywołuje `hook(odpowiedź)`. */
+    afterNext(method, hook) {
+      hooks.set(method, hook);
+    },
+    /** Zwrot utworzony „w panelu Stripe” (bez naszych metadanych), np. częściowy. */
+    dashboardRefund(paymentIntent, amount, status = "succeeded") {
+      const id = next("re");
+      refunds.set(id, { id, object: "refund", status, amount, currency: "pln", payment_intent: paymentIntent, metadata: {} });
+      return clone(refunds.get(id));
+    },
   };
 }
