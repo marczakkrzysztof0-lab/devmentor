@@ -22,6 +22,7 @@
     "setup": "node scripts/setup.mjs",
     "db:migrate": "node scripts/db-migrate.mjs up",
     "db:rollback": "node scripts/db-migrate.mjs down",
+    "jobs": "node scripts/jobs.mjs",
     "mentor:invite": "node scripts/mentor-links.mjs invite",
     "mentor:sign-in-link": "node scripts/mentor-links.mjs sign-in-link",
     "storybook": "npm run storybook -w @devmentor/ui",
@@ -34,9 +35,11 @@
   "dependencies": {
     "next": "16.4.0",
     "node-pg-migrate": "9.0.0",
+    "nodemailer": "10.0.16",
     "pg": "8.23.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "stripe": "22.6.2"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

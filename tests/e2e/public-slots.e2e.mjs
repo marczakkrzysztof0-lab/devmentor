@@ -1,11 +1,14 @@
 // E2E: publiczna strona mentora /m/[slug], faza 2 — sekcja wolnych terminów (spec #16 Phase 2, krok 4; zadanie 6.1;
-// story 1–3; Q1/L1, Q3, Q5; Z1, Z28, Z38/P2, F3; Edge Cases „Slot loading fails”).
+// story 1–3; Q1/L1, Q3, Q5; Z1, Z28, Z38/P2, F3; Edge Cases „Slot loading fails”) wg kontraktu spec #17 (UI/UX, F4):
+// lista terminów jest częścią formularza zapytania — każda godzina to radio (nazwa dostępna: „jutro, wtorek 20.10,
+// 18:00”), pod przełącznikiem 25/50 min, nad polami imienia i pytania. F4 zastąpiło E1/Z1 z #16 („godzina nie jest
+// kontrolką”); F3 (najwyżej 6 godzin na dzień + „Pokaż więcej (k)”) obowiązuje także w trybie wybieralnym.
 // Uruchamiane przez `npm run test:e2e` (scripts/test-e2e.mjs): serwer `next start` (produkcja) i jednorazowy schemat
 // bazy; pliki e2e idą po kolei (`--test-concurrency=1`), testy w pliku też.
 //
 // Dane funkcjami domeny (zaproszenie → `acceptInvitation` → `saveMentorPage` → `saveAvailability`):
 // - „olga-sloty”: okna codziennie 18:00–20:00 Europe/Warsaw (14 dni → terminy każdego dnia, ≤ 6 na dzień),
-// - „dawid-caly-dzien”: okna codziennie 08:00–22:00 (28 terminów 25 min na dzień → F3: 6 + „Pokaż więcej (k)”),
+// - „dawid-caly-dzien”: okna codziennie 08:00–22:00 (28 terminów 25 min na dzień → F3: 6 radiów + „Pokaż więcej (k)”),
 // - „bartek-bez-okien”: opublikowany, bez dostępności (story 3),
 // - „celina-bez-strefy”: okna zapisane, potem `time_zone = null` (P2/Z38 — okna bez strefy).
 // Oczekiwane terminy liczy ta sama funkcja (`listOpenSlots`) tuż przed i tuż po żądaniu (granica 3 h wyprzedzenia
@@ -35,10 +38,8 @@ const MENTOR_ZONE = "Europe/Warsaw";
 const VIEWER_ZONE = "Europe/London";
 /** Codziennie 18:00–20:00 czasu mentora (ISO 1–7). */
 const DAILY_18_20 = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, startMinute: 18 * 60, endMinute: 20 * 60 }));
-/** Codziennie 08:00–22:00 czasu mentora — dużo terminów dziennie (F3). */
+/** Codziennie 08:00–22:00 czasu mentora — dużo terminów dziennie. */
 const DAILY_08_22 = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, startMinute: 8 * 60, endMinute: 22 * 60 }));
-/** Spec #16 F3: najwyżej 6 godzin na dzień przed „Pokaż więcej (k)”. */
-const PER_DAY = 6;
 const TIME = /\b\d{2}:\d{2}\b/;
 
 const page = (displayName, slug, price25 = "150", price50 = "280") => ({
@@ -113,36 +114,34 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     return { status: response.status, html: await response.text() };
   }
 
-  /** Sekcja terminów (DS `SlotList` i stany bez godzin mają h2 `slots-heading`). */
-  const slotSection = (tab) => tab.locator('section[aria-labelledby="slots-heading"]');
+  /** Sekcja terminów w formularzu (DS `SlotList selectable`, `headingId="request-slots-heading"`). */
+  const slotSection = (tab) => tab.locator('section[aria-labelledby="request-slots-heading"]');
+  /** Stany bez godzin (pusty, błąd) renderuje serwer z h2 `slots-heading` — bez formularza. */
+  const messageSection = (tab) => tab.locator('section[aria-labelledby="slots-heading"]');
 
   /**
-   * Dni z listy terminów (DS `SlotList`, selectable={false}, F3): nagłówek `h3` dnia, lista `ul` z jednym `li` na
-   * godzinę (tekst „jutro, wtorek 20.10, 18:00” — data w tekście) i ewentualny przycisk „Pokaż więcej (k)”.
+   * Dni z listy terminów (DS `SlotList`, selectable, F4): grupa radiowa, w niej etykieta dnia (`p`, aria-hidden)
+   * i po niej `label` z radiem na każdą widoczną godzinę (tekst „jutro, wtorek 20.10, 18:00” — data w tekście),
+   * na końcu dnia ewentualny przycisk „Pokaż więcej (k)” (F3).
    */
   async function shownDays(tab) {
     return slotSection(tab)
-      .locator("h3")
-      .evaluateAll((headings) =>
-        headings
-          .filter((h3) => h3.nextElementSibling?.tagName === "UL")
-          .map((h3) => {
-            const list = /** @type {HTMLUListElement} */ (h3.nextElementSibling);
-            const items = [...list.querySelectorAll("li")].map((li) => (li.textContent ?? "").trim());
-            const button = list.nextElementSibling?.tagName === "BUTTON" ? list.nextElementSibling : null;
-            return {
-              label: (h3.textContent ?? "").trim(),
-              items,
-              times: items.map((text) => text.slice(-5)),
-              listId: list.id,
-              listLabelledBy: list.getAttribute("aria-labelledby"),
-              headingId: h3.id,
-              button: button
-                ? { text: (button.textContent ?? "").trim(), expanded: button.getAttribute("aria-expanded"), controls: button.getAttribute("aria-controls") }
-                : null,
-            };
-          }),
-      );
+      .locator('[role="radiogroup"]')
+      .evaluate((group) => {
+        /** @type {{ label: string, items: string[], times: string[], radios: number }[]} */
+        const days = [];
+        for (const child of group.children) {
+          if (child.tagName === "P") days.push({ label: (child.textContent ?? "").trim(), items: [], times: [], radios: 0 });
+          else if (child.tagName === "LABEL" && days.length > 0) {
+            const text = (child.textContent ?? "").trim();
+            const day = days[days.length - 1];
+            day.items.push(text);
+            day.times.push(text.slice(-5));
+            if (child.querySelector('[role="radio"]')) day.radios += 1;
+          }
+        }
+        return days;
+      });
   }
 
   /** Lista na stronie = `listOpenSlots` z „teraz” sprzed albo spod żądania (strefa widza). */
@@ -157,8 +156,9 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     // Każdy dzień raz, z datą w tekście (poza „dziś”/„jutro”, które DS pokazuje słownie).
     assert.equal(new Set(shown.map((d) => d.label)).size, shown.length, "etykieta dnia tylko raz");
     shown.forEach((day, i) => {
+      assert.equal(day.radios, day.items.length, `${day.label}: każda godzina to radio`);
       const [, month, date] = expected[i].key.split("-");
-      // Każda godzina ma datę w tekście (`li`: „…20.10, 18:00”), nie tylko przez grupowanie.
+      // Każda godzina ma datę w nazwie radia („…20.10, 18:00”), nie tylko przez grupowanie (nagłówek dnia jest aria-hidden).
       for (const item of day.items) assert.ok(item.includes(`${Number(date)}.${month}, `), `godzina z datą: ${item}`);
       if (day.label !== "dziś" && day.label !== "jutro") {
         assert.ok(day.label.includes(`${Number(date)}.${month}`), `etykieta ${day.label} zawiera ${Number(date)}.${month}`);
@@ -230,23 +230,35 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     assert.match(normalize(await prices.innerText()), /150 zł[\s\S]*280 zł/);
   });
 
-  test("E1 (Z1/F3): w sekcji terminów brak linków i przycisków — godzina nie jest kontrolką; przełącznik to radio", async () => {
+  test("F4 (zastępuje E1/Z1): każda godzina to radio o nazwie z datą i godziną; brak „Zarezerwuj”/„Rezerwuj”; przełącznik i pola formularza obok", async () => {
     const { tab } = await newPage();
     await tab.goto(`${BASE_URL}/m/${OLGA.slug}`);
     await tab.getByRole("heading", { level: 2, name: /twoja strefa/ }).waitFor();
-    const list = slotSection(tab);
-    assert.equal(await list.count(), 1);
-    assert.equal(await list.locator("a, button, input, select, textarea, [role=button], [role=link], [tabindex]").count(), 0, "lista terminów: sam tekst");
-    // Cała strona: jedyny link to praca publiczna; żadnego elementu z rolą przycisku (Radix renderuje opcje
-    // przełącznika jako <button role="radio"> — to radio, nie przycisk).
+    const section = slotSection(tab);
+    assert.equal(await section.count(), 1);
+    const shown = await shownDays(tab);
+    const items = shown.flatMap((d) => d.items);
+    assert.ok(items.length > 0);
+    // Każda pokazana godzina: radio o nazwie „<dzień>, <data>, <godzina>” (nazwa dostępna z etykiety, nie z grupowania).
+    for (const item of items) {
+      const [, date, time] = item.match(/(\d{1,2}\.\d{2}),\s*(\d{2}:\d{2})$/) ?? [];
+      assert.ok(date && time, `data i godzina w nazwie: ${item}`);
+      assert.equal(await section.getByRole("radio", { name: new RegExp(`${date.replace(".", "\\.")}.*${time}`) }).count(), 1, item);
+    }
+    assert.equal(await section.getByRole("radio").count(), items.length, "w sekcji tylko radia godzin");
+    assert.equal(await tab.getByRole("link", { name: /rezerwuj/i }).count(), 0, "brak linku „Zarezerwuj”");
+    assert.equal(await tab.getByRole("button", { name: /rezerwuj/i }).count(), 0, "brak przycisku „Zarezerwuj”");
+    assert.equal(await section.locator("a").count(), 0, "w sekcji terminów brak linków");
+    // Cała strona: jedyny link to praca publiczna; formularz zapytania (#17, zastępuje L1) z jednym przyciskiem płatności.
     assert.equal(await tab.locator("main a").count(), 1);
-    assert.equal(await tab.getByRole("button").count(), 0);
-    const buttonRoles = await tab.locator("main button").evaluateAll((buttons) => buttons.map((b) => b.getAttribute("role")));
-    assert.deepEqual(buttonRoles, ["radio", "radio"]);
-    assert.equal(await tab.locator("form, textarea").count(), 0, "brak formularza i pola pytania (L1)");
+    assert.equal(await tab.locator("main form").count(), 1);
+    assert.equal(await tab.locator("main form textarea").count(), 1);
+    assert.equal(await tab.getByRole("button", { name: /^Zapłać .* i wyślij pytanie$/ }).count(), 1);
+    // Radia przełącznika 25/50 + radia godzin to wszystkie radia strony.
+    assert.equal(await tab.getByRole("radio").count(), 2 + items.length);
   });
 
-  test("kolejność: profil → ceny → przełącznik → terminy; HTML z serwera bez godzin i bez strefy widza (hydracja bez niezgodności)", async () => {
+  test("kolejność: profil → ceny → formularz (przełącznik → terminy → imię → pytanie → płatność); HTML z serwera bez godzin i bez strefy widza (hydracja bez niezgodności)", async () => {
     const { tab } = await newPage();
     await tab.goto(`${BASE_URL}/m/${OLGA.slug}`);
     await tab.getByRole("heading", { level: 2, name: /twoja strefa/ }).waitFor();
@@ -258,7 +270,10 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
         [...main.querySelectorAll("p")].find((p) => p.textContent.includes("Opis mentora")),
         main.querySelector("#prices-heading"),
         main.querySelector('[role="radiogroup"]'),
-        main.querySelector('section[aria-labelledby="slots-heading"]'),
+        main.querySelector('section[aria-labelledby="request-slots-heading"]'),
+        main.querySelector('input[name="menteeName"]'),
+        main.querySelector('textarea[name="question"]'),
+        main.querySelector('button[type="submit"]'),
       ];
       if (nodes.some((node) => !node)) return null;
       return nodes.slice(1).every((node, i) => nodes[i].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -298,12 +313,13 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
       const { tab } = await newPage();
       await tab.goto(`${BASE_URL}/m/${mentor.slug}`);
       await tab.getByRole("heading", { level: 1, name: mentor.displayName }).waitFor();
-      const section = slotSection(tab);
+      const section = messageSection(tab);
       await section.getByText(EMPTY).waitFor();
       const text = normalize(await section.innerText());
       assert.doesNotMatch(text, TIME, "bez godziny");
       assert.equal(await tab.getByRole("radiogroup").count(), 0, "bez przełącznika, gdy nie ma terminów");
       assert.equal(await section.locator("a, button").count(), 0);
+      assert.equal(await tab.locator("form").count(), 0, "bez formularza, gdy nie ma czego wybrać");
       assert.match(normalize(await tab.locator("main").innerText()), new RegExp(`${mentor.price25} zł[\\s\\S]*${mentor.price50} zł[\\s\\S]*${EMPTY}`));
       // Pusty stan nie zależy od strefy widza → jest już w HTML-u z serwera.
       const { html } = await raw(`/m/${mentor.slug}`);
@@ -317,7 +333,7 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
       const { tab } = await newPage();
       const response = await tab.goto(`${BASE_URL}/m/${OLGA.slug}`);
       assert.equal(response?.status(), 200, "profil renderuje się mimo błędu sekcji");
-      const section = slotSection(tab);
+      const section = messageSection(tab);
       await section.getByRole("alert").getByText(ERROR).waitFor();
       assert.equal(await tab.getByRole("heading", { level: 1 }).innerText(), OLGA.displayName);
       assert.equal(await tab.locator("main a").getAttribute("href"), OLGA.publicWorkUrl);
@@ -367,7 +383,8 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     await tab.context().setOffline(false);
   });
 
-  test("F3: codziennie 08:00–22:00 → każdy dzień raz (h3), najwyżej 6 godzin i „Pokaż więcej (k)”; rozwija tylko ten dzień", async () => {
+  // Spec #16 F3 zachowane w formularzu #17: najwyżej 6 godzin (radiów) na dzień, reszta za „Pokaż więcej (k)” tego dnia.
+  test("F3: codziennie 08:00–22:00 → każdy dzień raz, najwyżej 6 radiów i „Pokaż więcej (k)”; rozwija tylko ten dzień", async () => {
     const { tab } = await newPage();
     const before = new Date();
     await tab.goto(`${BASE_URL}/m/${DAWID.slug}`);
@@ -377,46 +394,27 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     const shown = await shownDays(tab);
     assert.ok(shown.length >= 13, `dni: ${shown.length}`);
     assert.equal(new Set(shown.map((d) => d.label)).size, shown.length, "etykieta dnia tylko raz");
-    assert.equal(await section.locator("h3").count(), shown.length, "jeden nagłówek h3 na dzień");
-    // Pełne listy dni (przed lub po żądaniu) — do porównania liczby ukrytych godzin i rozwinięcia.
-    const candidates = [before, after].map((now) => expectedDays(listOpenSlots({ windows: DAILY_08_22, timeZone: MENTOR_ZONE, now }), 25, VIEWER_ZONE));
-    const expected = candidates.find(
-      (days) => days.length === shown.length && days.every((d, i) => JSON.stringify(d.times.slice(0, PER_DAY)) === JSON.stringify(shown[i].times)),
+    assert.ok(shown.every((d) => d.radios === d.times.length && d.times.length <= 6), "najwyżej 6 radiów na dzień");
+    // Widoczne = pierwsze 6 godzin każdego dnia z `listOpenSlots`.
+    const candidates = [before, after].map((now) =>
+      expectedDays(listOpenSlots({ windows: DAILY_08_22, timeZone: MENTOR_ZONE, now }), 25, VIEWER_ZONE).map((d) => ({ ...d, times: d.times.slice(0, 6), hidden: d.times.length - Math.min(6, d.times.length) })),
     );
-    assert.ok(expected, `widoczne godziny = pierwsze ${PER_DAY} z listOpenSlots dla każdego dnia`);
-    shown.forEach((day, i) => {
-      const hidden = expected[i].times.length - PER_DAY;
-      assert.equal(day.listLabelledBy, day.headingId, "lista godzin nazwana nagłówkiem dnia");
-      if (hidden > 0) {
-        assert.equal(day.times.length, PER_DAY);
-        assert.deepEqual(day.button, { text: `Pokaż więcej (${hidden})`, expanded: "false", controls: day.listId });
-      } else {
-        assert.equal(day.button, null, `${day.label}: bez przycisku`);
-      }
-    });
-    // Jedyne przyciski w sekcji to „Pokaż więcej (k)”; żadnych linków ani innych kontrolek (Z1/F3).
-    const buttons = await section.locator("button").allInnerTexts();
-    assert.ok(buttons.length > 0 && buttons.every((text) => /^Pokaż więcej \(\d+\)$/.test(text.trim())), JSON.stringify(buttons));
-    assert.equal(await section.locator("a, input, select, textarea, [role=link], [role=radio], [tabindex]").count(), 0);
-    assert.equal(await section.getByRole("button").count(), buttons.length);
-
-    // Pełny dzień (drugi — pierwszy może być skrócony 3-godzinnym wyprzedzeniem): rozwinięcie tylko jego.
-    const index = shown.findIndex((day, i) => i > 0 && day.button);
-    const day = shown[index];
-    // Wiele dni ma ten sam napis (np. „Pokaż więcej (22)”) — przycisk tego dnia przez `aria-controls` jego listy.
-    const more = section.locator(`button[aria-controls="${day.listId}"]`);
-    assert.equal(await more.innerText(), day.button.text);
+    const expected = candidates.find((days) => JSON.stringify(days.map((d) => d.times)) === JSON.stringify(shown.map((d) => d.times)));
+    assert.ok(expected, `terminy ${JSON.stringify(shown.map((d) => d.times))}`);
+    const buttons = section.getByRole("button", { name: /Pokaż więcej \(\d+\)/ });
+    assert.equal(await buttons.count(), expected.filter((d) => d.hidden > 0).length);
+    // Rozwinięcie pierwszego dnia z ukrytymi godzinami pokazuje resztę TEGO dnia.
+    const index = expected.findIndex((d) => d.hidden > 0);
+    const more = buttons.first();
+    assert.equal(normalize(await more.innerText()), `Pokaż więcej (${expected[index].hidden})`);
+    assert.equal(await more.getAttribute("aria-expanded"), "false");
     await more.click();
-    assert.equal(await more.getAttribute("aria-expanded"), "true");
-    const expanded = await shownDays(tab);
-    assert.deepEqual(expanded[index].times, expected[index].times, "po rozwinięciu wszystkie godziny tego dnia");
-    expanded.forEach((other, i) => {
-      if (i !== index) assert.ok(other.times.length <= PER_DAY, `${other.label}: nadal zwinięty`);
+    const expandedDays = await shownDays(tab);
+    assert.equal(expandedDays[index].times.length, 6 + expected[index].hidden);
+    expandedDays.forEach((day, i) => {
+      if (i !== index) assert.ok(day.times.length <= 6, "inne dni zwinięte");
     });
-    // Zmiana długości zwija wszystkie dni (F3).
-    await tab.getByRole("radio", { name: /50 min/ }).click();
-    const after50 = await shownDays(tab);
-    assert.ok(after50.every((d) => d.times.length <= PER_DAY && (d.button === null || d.button.expanded === "false")));
+    assert.equal(await section.getByRole("button", { name: "Pokaż mniej" }).count(), 1);
   });
 
   test("klawiatura (Z41): Tab do przełącznika, strzałka w prawo zaznacza 50 min i od razu filtruje listę; w lewo wraca", async () => {
@@ -446,22 +444,24 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     assert.ok((await shownDays(tab)).flatMap((d) => d.times).includes("18:30"), "z powrotem 25 min");
   });
 
-  test("telefon 375 px: wiersze godzin zawijają się bez przewijania w poziomie (także po rozwinięciu dnia)", async () => {
+  test("telefon 375 px: formularz z listą terminów bez przewijania w poziomie (także po wybraniu godziny)", async () => {
     const { tab } = await newPage({ viewport: { width: 375, height: 812 } });
     await tab.goto(`${BASE_URL}/m/${DAWID.slug}`);
     await tab.getByRole("heading", { level: 2, name: /twoja strefa/ }).waitFor();
     const noHorizontalScroll = () =>
       tab.evaluate(() => {
-        const section = document.querySelector('section[aria-labelledby="slots-heading"]');
+        const section = document.querySelector('section[aria-labelledby="request-slots-heading"]');
+        const form = document.querySelector("main form");
         return {
           page: document.documentElement.scrollWidth <= window.innerWidth,
           section: section ? section.scrollWidth <= section.clientWidth : false,
-          items: [...(section?.querySelectorAll("li") ?? [])].every((li) => li.getBoundingClientRect().right <= window.innerWidth),
+          form: form ? form.scrollWidth <= form.clientWidth : false,
+          items: [...(section?.querySelectorAll("label") ?? [])].every((label) => label.getBoundingClientRect().right <= window.innerWidth),
         };
       });
-    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, items: true });
-    assert.ok((await slotSection(tab).locator("li").count()) > 0);
-    await slotSection(tab).getByRole("button", { name: /^Pokaż więcej/ }).first().click();
-    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, items: true });
+    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, form: true, items: true });
+    assert.ok((await slotSection(tab).getByRole("radio").count()) > 0);
+    await slotSection(tab).getByRole("radio").nth(3).check();
+    assert.deepEqual(await noHorizontalScroll(), { page: true, section: true, form: true, items: true });
   });
 });

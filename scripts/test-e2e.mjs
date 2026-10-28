@@ -12,6 +12,9 @@
 //   5. czeka, aż serwer odpowie, i uruchamia `node --test` na plikach tests/e2e/*.e2e.mjs ze zmiennymi
 //      E2E_BASE_URL, E2E_DATABASE_URL (z search_path), E2E_SCHEMA;
 //   6. zawsze zatrzymuje serwer i usuwa schemat (także po błędzie i Ctrl+C).
+// Płatności (#24, #17): obok aplikacji startuje lokalny fałszywy Stripe (`tests/e2e/fake-stripe-server.mjs`);
+// aplikacja dostaje atrapy `sk_test_…` i `STRIPE_API_BASE_URL` na niego (tylko localhost), testy —
+// `E2E_FAKE_STRIPE_URL`. Żadnych prawdziwych kluczy ani ruchu do Stripe.
 //
 // Przeglądarka: Chromium z cache Playwright (bez `playwright install`). Pod `next start` NODE_ENV=production,
 // więc ciasteczko sesji ma flagę Secure — Chromium przyjmuje je na http://localhost.
@@ -24,6 +27,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPool } from "../lib/db/pool.mjs";
 import { createTestSchema, databaseStatus, DATABASE_URL } from "../tests/db/harness.mjs";
+import { fakeStripeEnv, startFakeStripeServer } from "../tests/e2e/fake-stripe-server.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BUILD_ID = path.join(ROOT, ".next", "BUILD_ID");
@@ -135,8 +139,11 @@ async function main(argv) {
   let schemaHandle;
   /** @type {import("node:child_process").ChildProcess | undefined} */
   let server;
+  /** @type {Awaited<ReturnType<typeof startFakeStripeServer>> | undefined} */
+  let fakeStripe;
   const cleanup = async () => {
     killTree(server);
+    await fakeStripe?.close().catch(() => {});
     await schemaHandle?.dispose().catch((error) => {
       schemaCleanupFailed = true;
       console.error("[e2e] nie udało się usunąć schematu:", error.message);
@@ -163,12 +170,19 @@ async function main(argv) {
       await probe.end();
     }
 
+    fakeStripe = await startFakeStripeServer();
     const port = await freePort();
     const baseUrl = `http://localhost:${port}`;
     console.log(`[e2e] schemat ${schemaHandle.schema}, serwer ${baseUrl}`);
     server = spawn(process.execPath, [NEXT_BIN, "start", "-p", String(port)], {
       cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: appDatabaseUrl, NEXT_PUBLIC_APP_URL: baseUrl, NODE_ENV: "production" },
+      env: {
+        ...process.env,
+        ...fakeStripeEnv(fakeStripe.url),
+        DATABASE_URL: appDatabaseUrl,
+        NEXT_PUBLIC_APP_URL: baseUrl,
+        NODE_ENV: "production",
+      },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let serverLog = "";
@@ -192,6 +206,7 @@ async function main(argv) {
         E2E_BASE_URL: baseUrl,
         E2E_DATABASE_URL: appDatabaseUrl,
         E2E_SCHEMA: schemaHandle.schema,
+        E2E_FAKE_STRIPE_URL: fakeStripe.url,
       },
       stdio: "inherit",
     });
