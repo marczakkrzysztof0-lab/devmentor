@@ -8,16 +8,24 @@
 //   Stripe przy powrocie), potem przycisk „Odśwież” i „nic nie zostanie pobrane dwa razy”.
 // - „Opłacone — czeka na mentora”: „Zapisz ten link” jako główna treść (kopia w e-mailu), potem szczegóły i pytanie.
 // - „Płatność przerwana — nic nie pobrano”: pytanie w polu do skopiowania i „Wybierz inny termin” (/m/{slug}).
+// - Stany po decyzji (#18): „Zaakceptowane” (sesja + termin), „Odrzucone” i „Brak odpowiedzi mentora” ze zwrotem
+//   („zostanie zlecony” dopóki brak refund_status, „zlecony” po zleceniu), „Termin minął” (overdue — zwrot
+//   zostanie zlecony automatycznie, zanim zadanie wygaszania go zleci).
 // - Czasy w strefie przeglądarki (fallback UTC) — po hydracji, jak lista terminów na /m/[slug].
+// - #19: „Anuluj i odzyskaj …” (DS CancelRequest, z potwierdzeniem) w `awaiting_mentor` i `overdue`; po akceptacji
+//   `CancelNotPossible`. Po odpowiedzi serwera `router.refresh()` — strona pokazuje stan, który wygrał.
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Skeleton } from "@devmentor/ui";
 import {
+  CancelNotPossible,
+  CancelRequest,
   QuestionCopyBox,
   QuestionText,
   RequestStatusView,
   RequestSummary,
   SaveLinkBox,
+  type CancelResult,
   type RefundStatus,
   type RequestStatus,
   type SessionLength,
@@ -47,10 +55,12 @@ export type RequestViewProps = {
   question: string;
   mentorHref: string;
   requestUrl: string;
+  /** `cancelRequest(token)` (#19) z tokenem tej strony; rzucenie = brak sieci (DS). */
+  cancelAction: () => Promise<CancelResult>;
 };
 
 export function RequestView(props: RequestViewProps) {
-  const { status, refundStatus, lengthMinutes, slotStart, slotEnd, amountMinor, currency, question, mentorHref, requestUrl } = props;
+  const { status, refundStatus, lengthMinutes, slotStart, slotEnd, amountMinor, currency, question, mentorHref, requestUrl, cancelAction } = props;
   const router = useRouter();
   const zone = useSyncExternalStore(noSubscription, browserTimeZone, () => null);
   const [timedOut, setTimedOut] = useState(false);
@@ -98,6 +108,11 @@ export function RequestView(props: RequestViewProps) {
       ) : (
         <>
           {status === "awaiting_mentor" ? <SaveLinkBox url={requestUrl} /> : null}
+          {/* #19: do akceptacji — także po starcie terminu, zanim zadanie wygasi zapytanie (D05, Q3). */}
+          {status === "awaiting_mentor" || status === "overdue" ? (
+            <CancelRequest amountMinor={amountMinor} currency={currency} action={cancelAction} onDone={() => router.refresh()} />
+          ) : null}
+          {status === "accepted" ? <CancelNotPossible /> : null}
           {details}
         </>
       )}

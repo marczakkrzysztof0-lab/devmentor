@@ -145,7 +145,38 @@ Specyfikacje: `.ai/specs/2026-10-19-stripe-card-payment-refund-and-webhook.md` (
 ## Otwarte punkty
 
 - Ręczne QA w trybie testowym Stripe (`stripe listen`, karty 4242/0002/3155, spór, przejście na czas ≤ 5 min, e-maile) — wymaga kluczy testowych; `needs-qa`, bez self-QA (risk-high).
-- Link w e-mailu do mentora `/mentor/requests/{id}` prowadzi do 404 do czasu #18.
-- Anulowanie (#19), decyzja mentora i wygasanie (#18) — kolejne części epiku.
+- Link w e-mailu do mentora `/mentor/requests/{id}` prowadzi do 404 do czasu #18. (zrobione w części 2, PR #46)
+- Anulowanie (#19), decyzja mentora i wygasanie (#18) — kolejne części epiku. (zrobione w części 2, PR #46)
 - `npm run build` ostrzega, że Next.js 16.4.0 ma znaną podatność — osobna aktualizacja zależności.
 - Lista terminów w formularzu jest długa przy szerokich oknach (14 dni × 6 + „Pokaż więcej”) — do obserwacji w pilocie.
+
+# Epik 02 — część 2 (lekcja 11, zadanie domowe)
+
+Tryb autonomiczny (`om-auto-create-pr-loop`), gałąź `feat/e02-mentor-decision-and-cancel`, PR #46 (stos na #40, baza `feat/e02-stripe-and-prepaid-request`; `Zamyka #18`, `Zamyka #19`, `Refs #9`). Start: 2026-10-27. Plan runu: `.ai/runs/2026-10-27-e02-mentor-decision-and-cancel/PLAN.md`.
+
+Specyfikacje: #18 (E02-S02, decyzja mentora i wygasanie) oraz #19 (E02-S03, anulowanie) — `.ai/specs/`.
+
+## Co powstało
+
+- #18: `lib/requests/mentor.mjs` (lista, licznik i szczegóły zapytań mentora, izolacja po `mentor_id`), `lib/requests/decision.mjs` (`acceptRequest` / `declineRequest`: jeden warunkowy UPDATE; odmowa z ponownego odczytu; zwrot `mentor_declined` + e-mail w transakcji, `executeRefund` po commicie), `lib/requests/lapse.mjs` (`lapseOverdue`, zadanie `requests.lapseOverdue` w `lib/jobs/registry.mjs` przed `payments.retryRefunds` i `email.sendDue`; `SKIP LOCKED`).
+- UI mentora: `lib/requests/mentor-area.ts` (DAL), `app/mentor/requests/page.tsx`, `app/mentor/requests/[id]/page.tsx`, `app/mentor/requests/actions.ts`; „Zapytania” z licznikiem w `MentorNav` na wszystkich ekranach mentora (koniec reguły E01 „bez Zapytania”).
+- `/r/{token}`: stany accepted / declined / overdue / lapsed ze stanem zwrotu; e-maile `request_accepted`, `request_declined`, `request_lapsed` (`lib/email/templates.mjs`).
+- #19: `lib/requests/cancel.mjs` (`cancelByToken`: po hashu tokenu, bez strażnika czasu — D05, zwrot `mentee_cancelled`), `app/r/[token]/actions.ts`, przycisk „Anuluj i odzyskaj” na `/r/` (także po starcie terminu), `CancelNotPossible` po akceptacji.
+- Testy: `tests/db/requests-{mentor,decision,lapse,cancel,cancel-race,view-states}.test.mjs`, `tests/requests/race.mjs`, e2e `tests/e2e/mentor-requests.e2e.mjs` i `tests/e2e/request-cancel.e2e.mjs`. Zrzuty: `.ai/runs/2026-10-27-e02-mentor-decision-and-cancel/screenshots/`. Bez migracji i bez nowych zmiennych środowiskowych.
+
+## Zasady, które doszły
+
+- Każde przejście z `awaiting_mentor` to jeden warunkowy UPDATE ze strażnikiem statusu; przegrany wyścigu klasyfikuje wynik z ponownego odczytu.
+- Co najwyżej jeden zwrot na zapytanie — przez idempotentne `requestRefund`; `executeRefund` dopiero po commicie.
+- Wyścigi (akceptacja / odmowa / wygaśnięcie / anulowanie) testuje `tests/requests/race.mjs`.
+
+## Siatka na koniec (lokalnie, 2026-10-27)
+
+`npm test` 642 ✔, `npm run test:e2e` 77 ✔; lint, tsc, build, check:agents OK.
+
+## Otwarte punkty
+
+- Ręczne QA w trybie testowym Stripe (akceptacja, odmowa, wygaśnięcie, anulowanie, zwroty, e-maile) — wymaga kluczy testowych.
+- Najpierw trzeba zmergować bazowy PR #40, potem przestawić #46 na `main`.
+- Czat (#20) opiera się na `requests.id` zaakceptowanego zapytania.
+- Link w e-mailu do mentora (`mentor_new_request`) `/mentor/requests/{id}` już działa.

@@ -140,7 +140,7 @@ describe("mentor: edytor strony /mentor", { skip }, () => {
     await slug.fill("anna-k");
   });
 
-  test("etykiety sześciu pól (Z23), podpowiedź opisu (F1), ceny w zł (F2), bez wypłat i ocen (Z36), bez form rodzajowych (Z24), bez „Zapytania” (Z11)", async () => {
+  test("etykiety sześciu pól (Z23), podpowiedź opisu (F1), ceny w zł (F2), bez wypłat i ocen (Z36), bez form rodzajowych (Z24), „Zapytania” w nawigacji (od #18)", async () => {
     const { page } = a;
     const main = page.getByRole("main");
     assert.equal(await main.count(), 1);
@@ -181,9 +181,8 @@ describe("mentor: edytor strony /mentor", { skip }, () => {
     assert.doesNotMatch(text, RATING_WORDS);
     const found = [...text.matchAll(GENDERED_WORD)].map((m) => m[0]).filter((w) => !NEUTRAL_WORDS.has(w.toLowerCase()));
     assert.deepEqual(found, []);
-    assert.equal(await page.getByRole("link", { name: /Zapytania|zapyta/ }).count(), 0);
     const nav = page.getByRole("navigation", { name: "Panel mentora" });
-    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Strona", "Dostępność"]);
+    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Zapytania", "Strona", "Dostępność"]);
     assert.equal(await nav.getByRole("button", { name: "Wyloguj" }).count(), 1);
     // Tylko pola treści — żadnych pól wypłaty, banku, podatku, ocen.
     const names = await page.locator("main input[name], main textarea[name], main select[name]").evaluateAll((els) => els.map((el) => el.getAttribute("name")));

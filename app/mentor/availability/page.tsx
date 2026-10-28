@@ -7,7 +7,7 @@
 //   serwera; brak/nieobsługiwana → Europe/Warsaw (Q2, Z16). Lista = nazwy, które serwer przyjmuje
 //   (`timeZoneOptions()`: Intl.supportedValuesOf tego procesu + UTC).
 // - Baner „Nie masz dostępności” i podgląd 10 najbliższych startów w strefie mentora rysuje `AvailabilityEditor`.
-// - Nawigacja E01: „Strona”, „Dostępność”, „Wyloguj” — bez „Zapytania” (L7, L10, Z8, Z11).
+// - Nawigacja (od E02 #18): „Zapytania” + licznik, „Strona”, „Dostępność”, „Wyloguj” (E01 bez „Zapytania”: L7, L10, Z11).
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -15,6 +15,7 @@ import { Skeleton } from "@devmentor/ui";
 import { AccessMessage, AvailabilityEditor, MentorNav, PageLayout } from "@devmentor/ui/product";
 import { loadAvailabilityEditor } from "@/lib/availability/editor";
 import { timeZoneOptions } from "@/lib/availability/zone.mjs";
+import { pendingDecisionCount } from "@/lib/requests/mentor-area";
 import { signOutAction } from "../actions";
 import { saveAvailabilityAction } from "./actions";
 
@@ -50,7 +51,7 @@ async function AvailabilityArea() {
   }
   return (
     <PageLayout
-      nav={<MentorNav current="availability" sections={["page", "availability"]} signOutAction={signOutAction} />}
+      nav={<MentorNav current="availability" pendingCount={await pendingDecisionCount()} signOutAction={signOutAction} />}
     >
       <AvailabilityEditor
         timeZone={editor.timeZone}

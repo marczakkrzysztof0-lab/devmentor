@@ -8,6 +8,7 @@
 //   kończy się „Opłacone”). Tylko gdy płatność jest jeszcze `pending`; potem zwykły odczyt.
 // - Dynamiczna (odczyt w czasie żądania, `connection()`), za <Suspense> obejmującym cały PageLayout.
 // - Do klienta: stan, kwota, termin, pytanie, slug mentora i link tej strony — bez id zapytania i płatności.
+// - #19: anulowanie — server action z tokenem tej strony (`bind`), przycisk tylko do akceptacji.
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -15,6 +16,7 @@ import { Skeleton } from "@devmentor/ui";
 import { PageLayout } from "@devmentor/ui/product";
 import { appBaseUrl, requestPageUrl } from "@/lib/requests/links.mjs";
 import { getRequestPage, settleCheckoutFromReturn } from "@/lib/requests/server";
+import { cancelRequestAction } from "./actions";
 import { RequestView } from "./request-view";
 
 export const metadata: Metadata = {
@@ -63,6 +65,7 @@ async function RequestContent({ params, searchParams }: Pick<PageProps<"/r/[toke
         question={request.question}
         mentorHref={request.mentorSlug ? `/m/${request.mentorSlug}` : "/"}
         requestUrl={requestPageUrl(appBaseUrl(), token)}
+        cancelAction={cancelRequestAction.bind(null, token)}
       />
     </PageLayout>
   );
