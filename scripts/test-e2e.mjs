@@ -31,6 +31,8 @@ const E2E_DIR = path.join(ROOT, "tests", "e2e");
 const NEXT_BIN = path.join(ROOT, "node_modules", "next", "dist", "bin", "next");
 const READY_TIMEOUT_MS = 60_000;
 const isCi = process.env.CI === "true";
+/** Nieudane usunięcie schematu testowego = niezerowy kod wyjścia (wyciek schematu ma być widoczny, nie tylko w logu). */
+let schemaCleanupFailed = false;
 
 export const HELP_TEXT = `Testy end-to-end (Playwright, Chromium) na buildzie produkcyjnym.
 
@@ -135,7 +137,10 @@ async function main(argv) {
   let server;
   const cleanup = async () => {
     killTree(server);
-    await schemaHandle?.dispose().catch((error) => console.error("[e2e] nie udało się usunąć schematu:", error.message));
+    await schemaHandle?.dispose().catch((error) => {
+      schemaCleanupFailed = true;
+      console.error("[e2e] nie udało się usunąć schematu:", error.message);
+    });
   };
   const onSignal = () => {
     void cleanup().finally(() => process.exit(130));
@@ -204,7 +209,7 @@ async function main(argv) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).then(
-    (code) => process.exit(code),
+    (code) => process.exit(code === 0 && schemaCleanupFailed ? 1 : code),
     (error) => {
       console.error(`[e2e] ${error instanceof Error ? error.message : error}`);
       process.exit(1);

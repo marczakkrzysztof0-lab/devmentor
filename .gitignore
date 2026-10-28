@@ -57,3 +57,7 @@ prototypes/*/evidence/*.png
 
 # lesson 09: secret references for 1Password CLI (no values)
 !.env.template
+# lesson 12: test environment state (om-prepare-test-env)
+.ai/qa/test-env-build-cache.json
+.ai/qa/test-env.lock/
+.ai/qa/test-env.log
