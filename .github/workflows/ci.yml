@@ -66,6 +66,40 @@ jobs:
         env:
           DATABASE_URL: postgresql://devmentor:devmentor@localhost:5432/devmentor
 
+  # Lesson 12: integration (E2E) tests — Playwright on the production build (`next start`) with PostgreSQL.
+  # scripts/test-e2e.mjs creates a disposable dm_migtest_* schema per run; CI=true turns a missing DB into a failure.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: devmentor
+          POSTGRES_PASSWORD: devmentor
+          POSTGRES_DB: devmentor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devmentor -d devmentor"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://devmentor:devmentor@localhost:5432/devmentor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+      - run: npm run test:integration
+
   # Design system: values outside the tokens in packages/ui and app/ (A1, P10).
   tokens:
     runs-on: ubuntu-latest

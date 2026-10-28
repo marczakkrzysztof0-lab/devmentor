@@ -1,0 +1,70 @@
+name: Nocna zmiana
+
+# Lekcja 13: automatyzacja utrzymaniowa, która uruchamia się sama (w nocy) zamiast powiadamiać na bieżąco.
+# Wynik nie trafia do człowieka jako alarm, tylko do jednego zgłoszenia `dependencies`,
+# które agent może podjąć rano (`/om-auto-fix-issue <nr>`); człowiek przegląda kolejkę o stałej porze.
+on:
+  schedule:
+    - cron: "30 1 * * *" # 01:30 UTC = 02:30/03:30 czasu polskiego
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: nightly-maintenance
+  cancel-in-progress: false
+
+jobs:
+  # Instalacja zależności uruchamia ich skrypty, więc ten job ma tylko prawo odczytu i nie zapisuje tokenu w git.
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Audyt i nieaktualne paczki
+        # Oba polecenia kończą się kodem ≠ 0, gdy coś znajdą — o błędzie decyduje treść JSON (sprawdza ją job `report`).
+        run: |
+          npm audit --json > audit.json || true
+          npm outdated --json > outdated.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nightly-scan
+          path: |
+            audit.json
+            outdated.json
+          retention-days: 7
+
+  # Zapis do zgłoszeń bez instalowania zależności: skrypt raportu używa tylko modułów wbudowanych Node.
+  report:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: nightly-scan
+      - name: Raport i zgłoszenie
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/nightly-report.mjs audit.json outdated.json report.md
+      - name: Podsumowanie przebiegu
+        if: always()
+        run: if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
