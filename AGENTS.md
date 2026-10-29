@@ -16,7 +16,7 @@ Next.js 16 app (`app/`, `lib/`, `proxy.ts`) + design system `@devmentor/ui` (`pa
 
 | Need | Command |
 |---|---|
-| Database (Docker) | `npm run setup` (creates `docker-compose.yml`, runs migrations) |
+| Database (Docker) | `npm run setup` (uses the committed `docker-compose.yml`, creates `.env.local`, runs migrations) |
 | Tests | `npm test` (needs Postgres; `tests/db/*` fail on CI without it) |
 | Before handing over | `npm run lint` and `npm run build` |
 | End-to-end / integration | `npm run build`, then `npm run test:integration` (alias of `test:e2e`) |
