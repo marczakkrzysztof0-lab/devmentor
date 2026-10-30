@@ -8,6 +8,8 @@ After #20 a session can be held, but when its slot ends nothing happens: the req
 
 ## Resolved assumptions (autonomous defaults)
 
+> **2026-10-30 — owner confirmation:** Krzysztof Marczak confirmed every ⚠ item in this spec as written (chat 2026-10-30; record D13, `research/decisions/D13-lesson-11-e03-spec-defaults-confirmed.md`). Remaining ⚠ marks below are historical.
+
 > Autonomous run 2026-10-30 (lesson 11). Every ⚠ item is collected for Krzysztof Marczak in `2026-10-30-e03-decisions-for-review.md`; the spec is built on the recommendation until he overrides it.
 
 | # | Question | Chosen answer | Rationale | Flag |

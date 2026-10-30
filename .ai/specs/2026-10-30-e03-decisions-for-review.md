@@ -1,5 +1,7 @@
 # E03 — decyzje do przeglądu (⚠)
 
+> **2026-10-30 — potwierdzone:** Krzysztof Marczak potwierdził wszystkie pozycje C1–C8 i N1–N6 tak, jak są zapisane (czat 2026-10-30). Rekord: D13, `research/decisions/D13-lesson-11-e03-spec-defaults-confirmed.md`.
+
 Data: 2026-10-30 (lekcja 11, autonomiczny run). Właściciel decyzji: Krzysztof Marczak.
 
 Specyfikacje: `2026-10-30-live-text-session-chat.md` (#20, E03-S01) i `2026-10-30-no-show-settlement.md` (#21, E03-S02).
