@@ -13,7 +13,9 @@
 //   zostanie zlecony automatycznie, zanim zadanie wygaszania go zleci).
 // - Czasy w strefie przeglądarki (fallback UTC) — po hydracji, jak lista terminów na /m/[slug].
 // - #19: „Anuluj i odzyskaj …” (DS CancelRequest, z potwierdzeniem) w `awaiting_mentor` i `overdue`; po akceptacji
-//   `CancelNotPossible`. Po odpowiedzi serwera `router.refresh()` — strona pokazuje stan, który wygrał.
+//   `CancelNotPossible`. Po odpowiedzi serwera `router.refresh()` — strona pokazuje stan, który wygrał. Gdy wygrała
+//   akceptacja (wyścig), „Pytanie zostało właśnie zaakceptowane” zostaje także po odświeżeniu (`justAccepted`) —
+//   wcześniej komunikat znikał, bo odświeżenie odmontowywało `CancelRequest`.
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Skeleton } from "@devmentor/ui";
@@ -64,6 +66,7 @@ export function RequestView(props: RequestViewProps) {
   const router = useRouter();
   const zone = useSyncExternalStore(noSubscription, browserTimeZone, () => null);
   const [timedOut, setTimedOut] = useState(false);
+  const [justAccepted, setJustAccepted] = useState(false);
 
   useEffect(() => {
     if (status !== "payment_pending") return;
@@ -110,9 +113,17 @@ export function RequestView(props: RequestViewProps) {
           {status === "awaiting_mentor" ? <SaveLinkBox url={requestUrl} /> : null}
           {/* #19: do akceptacji — także po starcie terminu, zanim zadanie wygasi zapytanie (D05, Q3). */}
           {status === "awaiting_mentor" || status === "overdue" ? (
-            <CancelRequest amountMinor={amountMinor} currency={currency} action={cancelAction} onDone={() => router.refresh()} />
+            <CancelRequest
+              amountMinor={amountMinor}
+              currency={currency}
+              action={cancelAction}
+              onDone={(result) => {
+                if (!result.ok && result.reason === "accepted") setJustAccepted(true);
+                router.refresh();
+              }}
+            />
           ) : null}
-          {status === "accepted" ? <CancelNotPossible /> : null}
+          {status === "accepted" ? <CancelNotPossible justAccepted={justAccepted} /> : null}
           {details}
         </>
       )}

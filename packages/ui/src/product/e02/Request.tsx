@@ -440,9 +440,7 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
       setPending(false);
     }
   };
-  if (problem === "accepted") {
-    return <Alert tone="info" title="Pytanie zostało właśnie zaakceptowane — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
-  }
+  if (problem === "accepted") return <CancelNotPossible justAccepted />;
   return (
     <section aria-label="Anulowanie" className="flex flex-col items-start gap-in-group">
       {problem === "network" ? <Alert tone="danger" title={NETWORK_ACTION_MESSAGE} /> : null}
@@ -461,8 +459,14 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
   );
 }
 
-/** After acceptance: why there is no cancel button (#19 story 2). */
-export function CancelNotPossible() {
+/**
+ * After acceptance: why there is no cancel button (#19 story 2). `justAccepted`: the mentor accepted while this tab
+ * still showed the button (race, #19 story 3) — the page keeps saying so after it re-renders as accepted.
+ */
+export function CancelNotPossible({ justAccepted = false }: { justAccepted?: boolean }) {
+  if (justAccepted) {
+    return <Alert tone="info" title="Pytanie zostało właśnie zaakceptowane — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
+  }
   return <p className="text-muted">Pytanie zostało już przyjęte — anulowanie ze zwrotem nie jest już możliwe.</p>;
 }
 
