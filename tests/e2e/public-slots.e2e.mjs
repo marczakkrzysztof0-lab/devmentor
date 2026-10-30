@@ -243,7 +243,9 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     for (const item of items) {
       const [, date, time] = item.match(/(\d{1,2}\.\d{2}),\s*(\d{2}:\d{2})$/) ?? [];
       assert.ok(date && time, `data i godzina w nazwie: ${item}`);
-      assert.equal(await section.getByRole("radio", { name: new RegExp(`${date.replace(".", "\\.")}.*${time}`) }).count(), 1, item);
+      // Data jako całe słowo i na końcu nazwy: „1.11, 17:00” nie może trafić w „11.11, 17:00” (od 28.10 oba dni
+      // są w 14-dniowym oknie — test padał zależnie od daty).
+      assert.equal(await section.getByRole("radio", { name: new RegExp(`(?<!\\d)${date.replace(".", "\\.")},\\s*${time}$`) }).count(), 1, item);
     }
     assert.equal(await section.getByRole("radio").count(), items.length, "w sekcji tylko radia godzin");
     assert.equal(await tab.getByRole("link", { name: /rezerwuj/i }).count(), 0, "brak linku „Zarezerwuj”");

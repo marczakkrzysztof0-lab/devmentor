@@ -249,3 +249,7 @@ export const CancelLostRace: Story = {
   },
 };
 export const CancelAfterAcceptance: Story = { name: "CancelNotPossible · after acceptance", render: () => <CancelNotPossible /> };
+export const CancelJustAccepted: Story = {
+  name: "CancelNotPossible · mentor accepted a moment earlier, after refresh",
+  render: () => <CancelNotPossible justAccepted />,
+};
