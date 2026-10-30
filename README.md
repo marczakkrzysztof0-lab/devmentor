@@ -79,11 +79,11 @@ npm run setup
 npm run dev
 ```
 
-`npm run setup` instaluje zależności, tworzy `docker-compose.yml` i `.env.example` (jeśli ich nie ma), uruchamia bazę, tworzy `.env.local` z szablonu i wykonuje migracje bazy (`npm run db:migrate`, z krótkim ponawianiem, gdy baza jeszcze startuje). Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie działa, kończy się czytelnym komunikatem.
+`npm run setup` instaluje zależności, sprawdza pliki `docker-compose.yml` i `.env.example` (są w repozytorium), tworzy `.env.local` z szablonu, uruchamia bazę i wykonuje migracje bazy (`npm run db:migrate`, z krótkim ponawianiem, gdy baza jeszcze startuje). Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie jest zainstalowany albo nie działa, kończy się czytelnym komunikatem (plik `.env.local` jest już wtedy utworzony, a po ponownym uruchomieniu zostaje tylko baza i migracje).
 
 ### Kroki ręczne (alternatywa)
 
-Poniższe polecenia działają w PowerShellu. Pliki `docker-compose.yml` i `.env.example` utwórz wcześniej z treści w sekcjach [Baza danych (Docker)](#baza-danych-docker) i [Zmienne środowiskowe](#zmienne-środowiskowe).
+Poniższe polecenia działają w PowerShellu. Pliki `docker-compose.yml` i `.env.example` są w repozytorium.
 
 ```powershell
 # 1. Sklonuj repozytorium
@@ -110,26 +110,9 @@ Aplikacja będzie dostępna pod adresem [http://localhost:3000](http://localhost
 
 ## Baza danych (Docker)
 
-PostgreSQL uruchamiamy lokalnie przez Docker Compose. Plik `docker-compose.yml` nie jest w repozytorium. Tworzy go `npm run setup` z tej konfiguracji:
+PostgreSQL uruchamiamy lokalnie przez Docker Compose. Konfiguracja jest w pliku [`docker-compose.yml`](docker-compose.yml) w repozytorium: Postgres 17, kontener `devmentor-db`, użytkownik, hasło i baza `devmentor`, port `5432`, dane w wolumenie `pgdata`.
 
-```yaml
-services:
-  db:
-    image: postgres:17
-    container_name: devmentor-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: devmentor
-      POSTGRES_PASSWORD: devmentor
-      POSTGRES_DB: devmentor
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
-```
+> Drugi klon repozytorium w innym katalogu to osobny projekt Compose, ale z tą samą nazwą kontenera `devmentor-db` i tym samym portem. Jeśli `docker compose up -d` zgłasza konflikt nazwy, sprawdź `docker ps -a` i zatrzymaj albo usuń stary kontener.
 
 Przydatne polecenia:
 
@@ -179,35 +162,9 @@ Skrypty czytają `DATABASE_URL` z `.env.local` (zmienna ustawiona w środowisku 
 
 ## Zmienne środowiskowe
 
-Konfiguracja lokalna trafia do pliku `.env.local`, który nie jest commitowany. Szablon `.env.example`:
+Konfiguracja lokalna trafia do pliku `.env.local`, który nie jest commitowany. Szablon to plik [`.env.example`](.env.example) w repozytorium: opis każdej zmiennej (baza, adres aplikacji, Stripe w trybie testowym, `CRON_SECRET`, SMTP) jest w komentarzach w tym pliku. `npm run setup` kopiuje go do `.env.local`, jeśli ten jeszcze nie istnieje.
 
-```dotenv
-# Baza danych
-DATABASE_URL="postgresql://devmentor:devmentor@localhost:5432/devmentor"
-
-# Adres aplikacji
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Płatności Stripe — WYŁĄCZNIE tryb testowy (#24). Klucz musi zaczynać się od sk_test_ albo rk_test_;
-# klucz live jest odrzucany. Bez tych zmiennych formularz pokazuje „Płatności są chwilowo niedostępne”,
-# a webhook i zadania odpowiadają 503. Wartości z panelu Stripe (tryb testowy) / `stripe listen`.
-STRIPE_SECRET_KEY=""
-STRIPE_WEBHOOK_SECRET=""
-# Dozwolone waluty (walutę płatności bierzemy ze strony mentora).
-PAYMENT_CURRENCIES="PLN"
-# Prowizja platformy w punktach bazowych (1000 = 10%), zapisywana na każdej płatności.
-PLATFORM_COMMISSION_BPS="1000"
-
-# Zadania okresowe: POST /api/internal/jobs z nagłówkiem „Authorization: Bearer <CRON_SECRET>”.
-# Co najmniej 32 losowe znaki, np. node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-CRON_SECRET=""
-
-# E-maile (#17). Bez SMTP_URL e-maile trafiają do logu serwera (lokalnie). SMTP_URL np. smtp://user:pass@host:587
-SMTP_URL=""
-EMAIL_FROM=""
-```
-
-> `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon można commitować.
+> `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon jest commitowany.
 
 Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.** Klucze Stripe, `CRON_SECRET` i `SMTP_URL` nigdy nie mają tego prefiksu.
 

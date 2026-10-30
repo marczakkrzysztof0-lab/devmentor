@@ -1,34 +1,13 @@
 // Instalator DevMentora: `npm run setup`.
 // Wykonuje kroki z sekcji „Szybki start” w README i pomija te, które są już zrobione.
 import { spawnSync } from "node:child_process";
-import { constants, copyFileSync, existsSync, writeFileSync } from "node:fs";
+import { constants, copyFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const DOCKER_COMPOSE_TEMPLATE = `services:
-  db:
-    image: postgres:17
-    container_name: devmentor-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: devmentor
-      POSTGRES_PASSWORD: devmentor
-      POSTGRES_DB: devmentor
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
-`;
-
-export const ENV_EXAMPLE_TEMPLATE = `# Baza danych
-DATABASE_URL="postgresql://devmentor:devmentor@localhost:5432/devmentor"
-
-# Adres aplikacji
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-`;
+// Pliki konfiguracji są w repozytorium (jedno źródło prawdy, bez kopii w README i w skrypcie).
+// Instalator tylko sprawdza, że są na miejscu, i tworzy z szablonu lokalny `.env.local`.
+export const REQUIRED_FILES = ["docker-compose.yml", ".env.example"];
 
 export class SetupError extends Error {}
 
@@ -47,9 +26,19 @@ export function hasRunningContainer(stdout) {
   return String(stdout ?? "").trim().length > 0;
 }
 
+// Przy `shell: true` brak binarki nie ustawia `result.error`: sh zwraca kod 127, a cmd kod 1
+// (lub 9009) z komunikatem na stderr — po angielsku albo w języku systemu (np. polskim).
+const COMMAND_NOT_FOUND =
+  /is not recognized as an internal or external command|nie jest rozpoznawan[ey] jako polecenie|command not found|docker: not found/i;
+
+export function isCommandMissing(result) {
+  if (result.error || result.status === null || result.status === 127 || result.status === 9009) return true;
+  return result.status !== 0 && COMMAND_NOT_FOUND.test(String(result.stderr ?? ""));
+}
+
 // Zwraca komunikat dla użytkownika, gdy Docker jest niedostępny, albo null.
 export function dockerProblem(result) {
-  if (result.error || result.status === null) {
+  if (isCommandMissing(result)) {
     return "Nie znaleziono polecenia `docker`. Zainstaluj Docker Desktop i otwórz terminal ponownie.";
   }
   if (result.status !== 0) {
@@ -58,13 +47,13 @@ export function dockerProblem(result) {
   return null;
 }
 
-// Kroki jako { name, isDone(), run(log) }. Zależności (fs, polecenia, migracje, czekanie)
+// Kroki jako { name, isDone(), run(log) }. Kolejność: najpierw wszystko, co nie wymaga Dockera
+// (zależności, pliki), potem baza i migracje. Zależności (fs, polecenia, migracje, czekanie)
 // są wstrzykiwane, żeby logikę dało się przetestować bez Dockera, bazy i dotykania dysku.
 export function createSteps({
   cwd,
   exists,
   exec,
-  writeFile,
   copyFile,
   readDatabaseUrl = defaultReadDatabaseUrl,
   migrator = loadMigrator,
@@ -88,9 +77,17 @@ export function createSteps({
       run: () => mustSucceed("npm install", "`npm install` zakończył się błędem."),
     },
     {
-      name: "Plik docker-compose.yml",
-      isDone: () => exists(path("docker-compose.yml")),
-      run: () => writeFile(path("docker-compose.yml"), DOCKER_COMPOSE_TEMPLATE),
+      name: "Pliki konfiguracji z repozytorium (docker-compose.yml, .env.example)",
+      isDone: () => REQUIRED_FILES.every((file) => exists(path(file))),
+      run: () => {
+        const list = REQUIRED_FILES.filter((file) => !exists(path(file))).join(" ");
+        throw new SetupError(`Brak pliku z repozytorium: ${list}. Przywróć: git checkout -- ${list}`);
+      },
+    },
+    {
+      name: "Plik .env.local",
+      isDone: () => exists(path(".env.local")),
+      run: () => copyFile(path(".env.example"), path(".env.local")),
     },
     {
       name: "Baza danych (docker compose up -d db)",
@@ -102,18 +99,9 @@ export function createSteps({
       run: () =>
         mustSucceed(
           "docker compose up -d db",
-          "Nie udało się uruchomić bazy. Sprawdź `docker compose logs db` (np. zajęty port 5432).",
+          "Nie udało się uruchomić bazy. Sprawdź `docker compose logs db` (np. zajęty port 5432)" +
+            " i `docker ps -a` (kontener `devmentor-db` z innego klonu repozytorium blokuje nazwę).",
         ),
-    },
-    {
-      name: "Szablon .env.example",
-      isDone: () => exists(path(".env.example")),
-      run: () => writeFile(path(".env.example"), ENV_EXAMPLE_TEMPLATE),
-    },
-    {
-      name: "Plik .env.local",
-      isDone: () => exists(path(".env.local")),
-      run: () => copyFile(path(".env.example"), path(".env.local")),
     },
     {
       // Zawsze uruchamiany: narzędzie pomija wykonane już migracje, więc krok jest idempotentny.
@@ -186,7 +174,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     cwd: process.cwd(),
     exists: existsSync,
     exec,
-    writeFile: (file, content) => writeFileSync(file, content, { flag: "wx" }),
     copyFile: (from, to) => copyFileSync(from, to, constants.COPYFILE_EXCL),
   });
   process.exitCode = await runSteps(steps);
