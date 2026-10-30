@@ -9,6 +9,8 @@
 // - Dynamiczna (odczyt w czasie żądania, `connection()`), za <Suspense> obejmującym cały PageLayout.
 // - Do klienta: stan, kwota, termin, pytanie, slug mentora i link tej strony — bez id zapytania i płatności.
 // - #19: anulowanie — server action z tokenem tej strony (`bind`), przycisk tylko do akceptacji.
+// - #20: zaakceptowane zapytanie = sesja: pierwszy stan czatu renderowany tu, dalej odpytywanie `/api/r/session`
+//   (token tylko w nagłówku).
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -16,6 +18,7 @@ import { Skeleton } from "@devmentor/ui";
 import { PageLayout } from "@devmentor/ui/product";
 import { appBaseUrl, requestPageUrl } from "@/lib/requests/links.mjs";
 import { getRequestPage, settleCheckoutFromReturn } from "@/lib/requests/server";
+import { sessionForMentee } from "@/lib/sessions/server";
 import { cancelRequestAction } from "./actions";
 import { RequestView } from "./request-view";
 
@@ -52,6 +55,8 @@ async function RequestContent({ params, searchParams }: Pick<PageProps<"/r/[toke
     request = (await getRequestPage(token)) ?? request;
   }
 
+  const session = request.requestStatus === "accepted" ? await sessionForMentee(token) : null;
+
   return (
     <PageLayout width="narrow">
       <RequestView
@@ -66,6 +71,8 @@ async function RequestContent({ params, searchParams }: Pick<PageProps<"/r/[toke
         mentorHref={request.mentorSlug ? `/m/${request.mentorSlug}` : "/"}
         requestUrl={requestPageUrl(appBaseUrl(), token)}
         cancelAction={cancelRequestAction.bind(null, token)}
+        session={session}
+        token={token}
       />
     </PageLayout>
   );

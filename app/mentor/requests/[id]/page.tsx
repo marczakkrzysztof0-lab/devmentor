@@ -12,8 +12,10 @@ import { connection } from "next/server";
 import { Skeleton } from "@devmentor/ui";
 import { AccessMessage, MentorNav, PageLayout, RequestDecision, RequestNotFound } from "@devmentor/ui/product";
 import { loadMentorRequest } from "@/lib/requests/mentor-area";
+import { sessionForCurrentMentor } from "@/lib/sessions/server";
 import { signOutAction } from "../../actions";
 import { acceptRequestAction, declineRequestAction } from "../actions";
+import { MentorSessionPanel } from "./session-panel";
 
 export const metadata: Metadata = {
   title: "Zapytanie — DevMentor",
@@ -45,16 +47,21 @@ async function RequestArea({ params }: Pick<PageProps<"/mentor/requests/[id]">, 
       </PageLayout>
     );
   }
+  // #20: zaakceptowane zapytanie to sesja — czat pod szczegółami (odczyt po terminie).
+  const session = data.request?.status === "accepted" ? await sessionForCurrentMentor(id) : null;
   return (
     <PageLayout nav={<MentorNav current="requests" pendingCount={data.pendingCount} signOutAction={signOutAction} />}>
       {data.request ? (
-        <RequestDecision
-          request={data.request}
-          timeZone={data.timeZone}
-          now={data.now}
-          onAccept={acceptRequestAction}
-          onDecline={declineRequestAction}
-        />
+        <div className="flex flex-col gap-between-sections">
+          <RequestDecision
+            request={data.request}
+            timeZone={data.timeZone}
+            now={data.now}
+            onAccept={acceptRequestAction}
+            onDecline={declineRequestAction}
+          />
+          {session ? <MentorSessionPanel requestId={id} initial={session} timeZone={data.timeZone} /> : null}
+        </div>
       ) : (
         <RequestNotFound />
       )}

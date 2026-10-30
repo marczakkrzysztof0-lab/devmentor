@@ -12,6 +12,7 @@
 //   („zostanie zlecony” dopóki brak refund_status, „zlecony” po zleceniu), „Termin minął” (overdue — zwrot
 //   zostanie zlecony automatycznie, zanim zadanie wygaszania go zleci).
 // - Czasy w strefie przeglądarki (fallback UTC) — po hydracji, jak lista terminów na /m/[slug].
+// - #20: zaakceptowane → czat sesji (DS `SessionChat`) przed szczegółami.
 // - #19: „Anuluj i odzyskaj …” (DS CancelRequest, z potwierdzeniem) w `awaiting_mentor` i `overdue`; po akceptacji
 //   `CancelNotPossible`. Po odpowiedzi serwera `router.refresh()` — strona pokazuje stan, który wygrał. Gdy wygrała
 //   akceptacja (wyścig), „Pytanie zostało właśnie zaakceptowane” zostaje także po odświeżeniu (`justAccepted`) —
@@ -31,7 +32,9 @@ import {
   type RefundStatus,
   type RequestStatus,
   type SessionLength,
+  type SessionSnapshot,
 } from "@devmentor/ui/product";
+import { MenteeSessionPanel } from "./session-panel";
 
 const POLL_INTERVAL_MS = 3_000;
 const POLL_FOR_MS = 60_000;
@@ -59,10 +62,13 @@ export type RequestViewProps = {
   requestUrl: string;
   /** `cancelRequest(token)` (#19) z tokenem tej strony; rzucenie = brak sieci (DS). */
   cancelAction: () => Promise<CancelResult>;
+  /** #20: pierwszy stan czatu sesji (tylko zaakceptowane zapytanie), token tej strony do odpytywania. */
+  session?: SessionSnapshot | null;
+  token?: string;
 };
 
 export function RequestView(props: RequestViewProps) {
-  const { status, refundStatus, lengthMinutes, slotStart, slotEnd, amountMinor, currency, question, mentorHref, requestUrl, cancelAction } = props;
+  const { status, refundStatus, lengthMinutes, slotStart, slotEnd, amountMinor, currency, question, mentorHref, requestUrl, cancelAction, session = null, token = "" } = props;
   const router = useRouter();
   const zone = useSyncExternalStore(noSubscription, browserTimeZone, () => null);
   const [timedOut, setTimedOut] = useState(false);
@@ -124,6 +130,7 @@ export function RequestView(props: RequestViewProps) {
             />
           ) : null}
           {status === "accepted" ? <CancelNotPossible justAccepted={justAccepted} /> : null}
+          {session ? <MenteeSessionPanel token={token} initial={session} timeZone={zone} /> : null}
           {details}
         </>
       )}
