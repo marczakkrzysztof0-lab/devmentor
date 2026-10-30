@@ -73,6 +73,7 @@ Imports: `import { … } from "@devmentor/ui"` (primitives), `import { … } fro
 | `MentorNav`, `InvitationPanel`, `AccessMessage`, `MentorPageForm`, `ShareLinkPanel`, `NoAvailabilityNotice`, `AvailabilityEditor`, `SlotPreview` | `@devmentor/ui/product` | Mentor screens (#14, #15) | Developer screens |
 | `RequestForm`, `RequestStatusView`, `RequestSummary`, `QuestionText`, `SaveLinkBox`, `QuestionCopyBox`, `CancelRequest`, `CancelNotPossible` | `@devmentor/ui/product` | Request form, `/r/[token]` (#17, #19) | Mentor screens |
 | `RequestList`, `RequestDecision`, `RequestNotFound` | `@devmentor/ui/product` | `/mentor/requests`, detail (#18) | Developer screens |
+| `SessionChat` (`initial`, `load`, `send`, `outcome`) | `@devmentor/ui/product` | Live text chat of an accepted session on `/r/[token]` and `/mentor/requests/[id]` (#20): text-only notice, phases before / open / ended | Anything that is not a booked session |
 | `HostedRedirectAction`, `HostedReturnNotice` | `@devmentor/ui/product` | Leaving for Stripe Checkout / Connect (Button + „Otworzy się strona Stripe…”) and the notice after return | Links inside DevMentor |
 | `Amount`, `PageLayout`, `formatMoney`, `formatTime`, `formatDay`, `formatDayFull`, `displayUrl` | `@devmentor/ui/product` | Every amount (Geist Mono), page frame, times in the viewer's zone | — |
 
