@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
 import pg from "pg";
 import { chromium } from "playwright";
+import { saveMentorPage } from "../../lib/mentor-page/mentor-page.mjs";
 import { createInvitation } from "../../scripts/mentor-links.mjs";
 
 const BASE_URL = process.env.E2E_BASE_URL;
@@ -315,5 +316,47 @@ describe("mentor: edytor strony /mentor", { skip }, () => {
     assert.deepEqual(await pageRow(b.id), b.rowBefore);
     assert.equal(b.rowBefore.published_at, null);
     assert.notEqual(b.rowBefore.slug, "anna-k");
+  });
+
+  test("320 px, opublikowany slug 40 znaków bez myślników: pełny link się zawija, strona bez przewijania w poziomie (#42)", async () => {
+    const longSlug = "katarzynawisniewskakowalczykmentoring123";
+    const c = await acceptInBrowser(email("c"));
+    try {
+      const saved = await saveMentorPage({
+        db,
+        mentorId: c.id,
+        publish: true,
+        appUrl: BASE_URL,
+        input: {
+          displayName: "Katarzyna Wiśniewska-Kowalczyk",
+          publicWorkUrl: "https://github.com/kwk",
+          description: "Migracje do App Routera.",
+          price25: "150",
+          price50: "280",
+          slug: longSlug,
+        },
+      });
+      assert.equal(saved.ok, true, JSON.stringify(saved));
+      await c.page.setViewportSize({ width: 320, height: 812 });
+      await reload(c.page);
+      assert.equal(
+        await accessibleDescription(field(c.page, "Adres strony")),
+        `Pełny link: ${BASE_URL}/m/${longSlug}. Adresu nie można zmienić po publikacji.`,
+      );
+      const { scrollWidth, clientWidth, hint } = await c.page.evaluate(() => {
+        const ids = document.querySelector('input[name="slug"]')?.getAttribute("aria-describedby")?.split(/\s+/) ?? [];
+        const node = ids.map((id) => document.getElementById(id)).find((el) => el?.textContent?.startsWith("Pełny link:"));
+        return {
+          scrollWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+          hint: node ? { scrollWidth: node.scrollWidth, clientWidth: node.clientWidth } : null,
+        };
+      });
+      assert.ok(hint, "podpowiedź „Pełny link” jest w opisie pola");
+      assert.ok(hint.scrollWidth <= hint.clientWidth, `podpowiedź się nie zawija: ${hint.scrollWidth} > ${hint.clientWidth}`);
+      assert.ok(scrollWidth <= clientWidth, `przewijanie w poziomie: scrollWidth ${scrollWidth} > clientWidth ${clientWidth}`);
+    } finally {
+      await c.context.close();
+    }
   });
 });

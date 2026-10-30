@@ -258,6 +258,34 @@ export const EditorNarrow: Story = {
   decorators: [narrow],
   render: () => <MentorPageForm initial={FILLED} baseUrl="http://localhost:3000" action={ok} />,
 };
+/** Longest valid slug (#23: 40 characters) without a hyphen — the full link has no place to break (#42). */
+const LONG_SLUG = "katarzynawisniewskakowalczykmentoring123";
+export const EditorNarrowLongAddress: Story = {
+  name: "MentorPageForm · published, 40-character address at 320 px, the full link wraps (test)",
+  decorators: [narrow],
+  render: () => (
+    <MentorPageForm
+      initial={{ ...FILLED, slug: LONG_SLUG }}
+      published
+      shareUrl={`http://localhost:3000/m/${LONG_SLUG}`}
+      baseUrl="http://localhost:3000"
+      action={ok}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const slug = canvas.getByRole("textbox", { name: "Adres strony" });
+    const fullLink = `Pełny link: http://localhost:3000/m/${LONG_SLUG}. Adresu nie można zmienić po publikacji.`;
+    // The full link stays readable (#14: the slug field shows the full share URL)…
+    await expect(slug).toHaveAccessibleDescription(fullLink);
+    const hint = canvas.getByText(fullLink);
+    // …and wraps inside 320 px instead of pushing the page sideways (docs/design-system.md: long text, 320 px).
+    await expect(hint.scrollWidth).toBeLessThanOrEqual(hint.clientWidth);
+    const frame = canvasElement.querySelector<HTMLElement>('[data-testid="narrow-frame"]');
+    await expect(frame).not.toBeNull();
+    await expect(frame!.scrollWidth).toBeLessThanOrEqual(frame!.clientWidth);
+  },
+};
 
 /* ------------------------------------------ editor: task 3.4 (D4, D5, D6, F1, F2) */
 const PLACEHOLDER: MentorPageValues = { ...EMPTY, slug: "mentor-k3x7qa" };

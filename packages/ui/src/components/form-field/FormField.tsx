@@ -64,8 +64,12 @@ export function FormField({ label, hint, hintPlacement = "control", error, optio
   const hintId = hint ? `${controlId}-hint` : undefined;
   const errorId = error ? `${controlId}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  // `wrap-anywhere` (overflow-wrap: anywhere) on the hint and the error text: they may carry an unbroken string
+  // (the full share URL of a 40-character slug, #42) that must wrap inside 320 px instead of pushing the page
+  // sideways. Unlike `break-words` it also lowers the min-content width, so the field still fits in a flex row
+  // without `min-w-0`. Text with spaces breaks at spaces as before; a long token breaks only where it must.
   const hintNode = hint ? (
-    <p id={hintId} className="text-meta text-muted">
+    <p id={hintId} className="text-meta text-muted wrap-anywhere">
       {hint}
     </p>
   ) : null;
@@ -92,7 +96,7 @@ export function FormField({ label, hint, hintPlacement = "control", error, optio
           {error ? (
             <p id={errorId} className="flex items-start gap-inline text-meta text-status-danger">
               <CircleAlert aria-hidden="true" className="size-icon-sm shrink-0" />
-              <span>{error}</span>
+              <span className="min-w-0 wrap-anywhere">{error}</span>
             </p>
           ) : null}
         </div>
