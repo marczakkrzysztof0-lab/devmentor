@@ -294,6 +294,16 @@ export function RequestStatusView({
       tone: "neutral",
     },
     cancelled: { title: refundRequested ? `Anulowane — zwrot ${amount} zlecony` : `Anulowane — zwrot ${amount} zostanie zlecony automatycznie`, tone: "neutral" },
+    // #21: the outcome follows the data — no money wording before the session is settled.
+    session_ended: { title: "Sesja zakończona — rozliczamy (zwykle do kilku minut)", tone: "waiting" },
+    held: { title: "Sesja odbyta", tone: "success" },
+    mentee_no_show: { title: "Brak Twojej wiadomości w czasie sesji — zgodnie z zasadami płatność zostaje u mentora", tone: "neutral" },
+    mentor_no_show: {
+      title: refundRequested
+        ? `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zlecony automatycznie`
+        : `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zostanie zlecony automatycznie`,
+      tone: "neutral",
+    },
   };
   const { title, tone } = map[status];
   const refund = refundText(refundStatus);

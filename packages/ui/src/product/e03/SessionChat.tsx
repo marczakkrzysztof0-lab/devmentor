@@ -22,6 +22,11 @@ import { formatDay, formatTime } from "../shared/format";
 
 export const SESSION_MESSAGE_MAX = 4000;
 export const TEXT_ONLY_NOTICE = "Sesja odbywa się wyłącznie na czacie tekstowym — bez wideo i rozmowy głosowej.";
+/** The no-show rule (#21, R15 + D11), told to each party before and during the session. */
+export const NO_SHOW_RULE = {
+  mentee: "Jeśli mentor nic nie napisze w czasie sesji, dostajesz pełny zwrot automatycznie. Jeśli napisze tylko mentor, płatność zostaje u mentora.",
+  mentor: "Jeśli nic nie napiszesz w czasie sesji, deweloper dostaje pełny zwrot automatycznie. Jeśli napiszesz tylko Ty, płatność zostaje u Ciebie.",
+} as const;
 /** Failed polls in a row before the „no connection” notice (#20 story 4). */
 const OFFLINE_AFTER_FAILURES = 3;
 
@@ -216,6 +221,7 @@ export function SessionChat({ initial, timeZone, load, send, pollMs = 3_000, out
         </h2>
         <p className="text-muted">{`${range} · ${length} min`}</p>
         <p>{TEXT_ONLY_NOTICE}</p>
+        {snapshot.phase !== "ended" ? <p className="text-meta text-muted">{NO_SHOW_RULE[snapshot.viewer]}</p> : null}
         {outcome}
         {phaseLine}
       </div>
