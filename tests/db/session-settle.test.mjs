@@ -176,6 +176,20 @@ describeDb("rozliczenie sesji (#21)", (db) => {
     await assert.rejects(db.query("update requests set status = 'no_show' where id = $1", [s.id]), /requests_status_known/);
   });
 
+  test("0008 down odmawia, gdy są rozliczone sesje: wyniki, settled_at i historia migracji nietknięte (review PR #52)", async () => {
+    const { ctx, list } = await sessions(1);
+    const [s] = list;
+    await job(ctx, afterAll(ctx, list));
+    const before = await row(s.id);
+    assert.equal(before.status, "mentor_no_show");
+    await assert.rejects(db.migrate("down", 1), /istnieją rozliczone sesje/);
+    const after = await row(s.id);
+    assert.equal(after.status, "mentor_no_show");
+    assert.equal(new Date(after.settled_at).getTime(), new Date(before.settled_at).getTime());
+    const { rows } = await db.query("select name from pgmigrations order by run_on desc, id desc limit 1");
+    assert.equal(rows[0].name, "0008_session_outcomes");
+  });
+
   test("widoki: przed rozliczeniem „session_ended” (mentor i /r/), po — wynik; lista mentora pokazuje rozliczone", async () => {
     const { ctx, mentor, list } = await sessions(1);
     const [s] = list;

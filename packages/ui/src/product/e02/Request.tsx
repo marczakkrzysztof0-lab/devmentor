@@ -299,7 +299,10 @@ export function RequestStatusView({
     held: { title: "Sesja odbyta", tone: "success" },
     mentee_no_show: { title: "Brak Twojej wiadomości w czasie sesji — zgodnie z zasadami płatność zostaje u mentora", tone: "neutral" },
     mentor_no_show: {
-      title: refundRequested
+      // A refund that finally failed (#24, 24 h or a dispute) is not „zlecony” any more: the line below says what to do.
+      title: refundStatus === "failed"
+        ? `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} nie powiódł się automatycznie`
+        : refundRequested
         ? `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zlecony automatycznie`
         : `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zostanie zlecony automatycznie`,
       tone: "neutral",

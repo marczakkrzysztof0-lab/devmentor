@@ -205,6 +205,7 @@ export const StatusSessionOutcomes: Story = {
       <RequestStatusView status="mentor_no_show" refundStatus="succeeded" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
       <RequestStatusView status="mentee_no_show" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
       <RequestStatusView status="held" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+      <RequestStatusView status="mentor_no_show" refundStatus="failed" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
     </div>
   ),
   play: async ({ canvasElement }) => {
@@ -214,6 +215,9 @@ export const StatusSessionOutcomes: Story = {
     await expect(canvas.getByText("Zwrot wykonany")).toBeVisible();
     await expect(canvas.getByText(/płatność zostaje u mentora/)).toBeVisible();
     await expect(canvas.getByText("Sesja odbyta")).toBeVisible();
+    // A failed refund never reads as „zlecony” (review PR #52).
+    await expect(canvas.getByText("Brak wiadomości od mentora w czasie sesji — zwrot 150 zł nie powiódł się automatycznie")).toBeVisible();
+    await expect(canvas.getByText("Zwrot nie powiódł się — napisz do nas")).toBeVisible();
   },
 };
 

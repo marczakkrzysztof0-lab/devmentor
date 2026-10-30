@@ -23,7 +23,7 @@ Engine: om-auto-create-pr-loop (dwa PR-y stackowane, lekcja 11)
 | 2 | 2.2 | Zadanie `sessions.settleEnded` (zwrot `mentor_no_show`, e-maile) + testy wyścigów i idempotencji | inline | done | 21c6909 |
 | 2 | 2.3 | Stany wyniku na `/r/{token}`, liście i szczegółach mentora; DS | inline | done | 21c6909 |
 | 2 | 2.4 | E2E rozliczenia z fałszywym Stripe + zrzuty; PR 2 (`Fixes #21`) | inline | done | 21c6909 |
-| 3 | 3.1 | Review kodu Codexem, poprawki Major, zielone CI (6 jobów) w obu PR | inline | todo | |
+| 3 | 3.1 | Review kodu Codexem, poprawki Major, zielone CI (6 jobów) w obu PR | inline | done | (ten commit) |
 
 ## 🎯 Cel
 
@@ -49,3 +49,4 @@ scala KM.
 - PR 1 [#51](https://github.com/marczakkrzysztof0-lab/devmentor/pull/51): CI 6/6 zielone; review Codexa: approve (1 Minor odrzucony z uzasadnieniem — `code-review-pr51.md`).
 - PR 2: `npm test` 683+3, Storybook 387 (1 flake E01 z timeoutem 30 s, zielony przy powtórce), e2e 91 (pełny zestaw; jedyny błąd — twarda spacja w „150 zł” w nowym teście — poprawiony, plik zielony).
 - Build Next.js raz zatrzymał się na komunikacie o podatności tej wersji Next.js; aktualizacja zależności jest poza zakresem (osobna sesja, #47), build przy ponowieniu przeszedł.
+- PR 2 [#52](https://github.com/marczakkrzysztof0-lab/devmentor/pull/52): review Codexa — request changes (1 Major, 1 Minor), oba poprawione (`code-review-pr52.md`).
