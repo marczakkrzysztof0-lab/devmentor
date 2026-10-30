@@ -168,7 +168,7 @@ export const FormNoSlots: Story = { name: "RequestForm · no slots", args: { slo
 export const FormNarrow: Story = { name: "RequestForm · 320 px", decorators: [narrow] };
 
 /* --------------------------------------------------------- request page */
-const STATUSES: RequestStatus[] = ["payment_pending", "awaiting_mentor", "payment_failed", "late_payment", "accepted", "declined", "overdue", "lapsed", "cancelled"];
+const STATUSES: RequestStatus[] = ["payment_pending", "awaiting_mentor", "payment_failed", "late_payment", "accepted", "declined", "overdue", "lapsed", "cancelled", "session_ended", "held", "mentee_no_show", "mentor_no_show"];
 
 export const StatusAll: Story = {
   name: "RequestStatusView · every state",
@@ -193,6 +193,30 @@ export const StatusRefunds: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Mentor nie przyjmie tego pytania — zwrot 150 zł zlecony automatycznie")).toBeVisible();
+    await expect(canvas.getByText("Zwrot nie powiódł się — napisz do nas")).toBeVisible();
+  },
+};
+
+export const StatusSessionOutcomes: Story = {
+  name: "RequestStatusView · session outcomes (#21)",
+  render: () => (
+    <div className="flex flex-col gap-between-groups">
+      <RequestStatusView status="session_ended" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+      <RequestStatusView status="mentor_no_show" refundStatus="succeeded" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+      <RequestStatusView status="mentee_no_show" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+      <RequestStatusView status="held" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+      <RequestStatusView status="mentor_no_show" refundStatus="failed" amountMinor={15000} slotStart={SLOT.slotStart} timeZone={ZONE} now={NOW} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("Sesja zakończona — rozliczamy (zwykle do kilku minut)")).toBeVisible();
+    await expect(canvas.getByText("Brak wiadomości od mentora w czasie sesji — zwrot 150 zł zlecony automatycznie")).toBeVisible();
+    await expect(canvas.getByText("Zwrot wykonany")).toBeVisible();
+    await expect(canvas.getByText(/płatność zostaje u mentora/)).toBeVisible();
+    await expect(canvas.getByText("Sesja odbyta")).toBeVisible();
+    // A failed refund never reads as „zlecony” (review PR #52).
+    await expect(canvas.getByText("Brak wiadomości od mentora w czasie sesji — zwrot 150 zł nie powiódł się automatycznie")).toBeVisible();
     await expect(canvas.getByText("Zwrot nie powiódł się — napisz do nas")).toBeVisible();
   },
 };

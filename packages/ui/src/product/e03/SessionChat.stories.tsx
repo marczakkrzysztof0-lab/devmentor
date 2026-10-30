@@ -3,7 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { ZONE, warsaw } from "../../../.storybook/fixtures";
 import { narrow } from "../../../.storybook/helpers";
-import { SessionChat, TEXT_ONLY_NOTICE, type SessionChatProps, type SessionMessage, type SessionSnapshot } from "./SessionChat";
+import { NO_SHOW_RULE, SessionChat, TEXT_ONLY_NOTICE, type SessionChatProps, type SessionMessage, type SessionSnapshot } from "./SessionChat";
 
 type Load = SessionChatProps["load"];
 type Send = SessionChatProps["send"];
@@ -63,6 +63,7 @@ export const Before: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText(/Czat otworzy się .*12:30/)).toBeVisible();
     await expect(canvas.getByText(TEXT_ONLY_NOTICE)).toBeVisible();
+    await expect(canvas.getByText(NO_SHOW_RULE.mentee)).toBeVisible();
     await expect(canvas.queryByRole("textbox")).toBeNull();
   },
 };
@@ -105,6 +106,7 @@ export const OpenMentor: Story = {
   },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getAllByRole("listitem")[0]).toHaveTextContent(/^Kuba/);
+    await expect(within(canvasElement).getByText(NO_SHOW_RULE.mentor)).toBeVisible();
   },
 };
 

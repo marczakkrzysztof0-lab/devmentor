@@ -30,7 +30,13 @@ export type RequestStatus =
   | "declined"
   | "overdue"
   | "lapsed"
-  | "cancelled";
+  | "cancelled"
+  /** #21: accepted, slot over, not settled yet (derived, never stored). */
+  | "session_ended"
+  /** #21 outcomes (R15 + D11). */
+  | "held"
+  | "mentee_no_show"
+  | "mentor_no_show";
 
 /** Refund state on `payments` (#24); null when no refund was requested. */
 export type RefundStatus = "requested" | "succeeded" | "failed" | null;

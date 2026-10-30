@@ -15,12 +15,15 @@
 // Płatności (#24, #17): obok aplikacji startuje lokalny fałszywy Stripe (`tests/e2e/fake-stripe-server.mjs`);
 // aplikacja dostaje atrapy `sk_test_…` i `STRIPE_API_BASE_URL` na niego (tylko localhost), testy —
 // `E2E_FAKE_STRIPE_URL`. Żadnych prawdziwych kluczy ani ruchu do Stripe.
+// Zadania okresowe (#21): losowy `CRON_SECRET` na jeden przebieg (aplikacja i testy jako `E2E_CRON_SECRET`), żeby
+// e2e mogły wołać `POST /api/internal/jobs` jak cron hostingu; nigdzie niezapisywany.
 //
 // Przeglądarka: Chromium z cache Playwright (bez `playwright install`). Pod `next start` NODE_ENV=production,
 // więc ciasteczko sesji ma flagę Secure — Chromium przyjmuje je na http://localhost.
 //
 // Użycie: npm run test:e2e [-- <ścieżki plików .e2e.mjs>]    pomoc: npm run test:e2e -- --help
 import { spawn, spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, readdirSync } from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
@@ -171,6 +174,7 @@ async function main(argv) {
     }
 
     fakeStripe = await startFakeStripeServer();
+    const cronSecret = randomBytes(24).toString("hex");
     const port = await freePort();
     const baseUrl = `http://localhost:${port}`;
     console.log(`[e2e] schemat ${schemaHandle.schema}, serwer ${baseUrl}`);
@@ -179,6 +183,7 @@ async function main(argv) {
       env: {
         ...process.env,
         ...fakeStripeEnv(fakeStripe.url),
+        CRON_SECRET: cronSecret,
         DATABASE_URL: appDatabaseUrl,
         NEXT_PUBLIC_APP_URL: baseUrl,
         NODE_ENV: "production",
@@ -207,6 +212,7 @@ async function main(argv) {
         E2E_DATABASE_URL: appDatabaseUrl,
         E2E_SCHEMA: schemaHandle.schema,
         E2E_FAKE_STRIPE_URL: fakeStripe.url,
+        E2E_CRON_SECRET: cronSecret,
       },
       stdio: "inherit",
     });

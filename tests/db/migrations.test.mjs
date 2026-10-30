@@ -20,7 +20,18 @@ const ALL_MIGRATIONS = [
   "0005_payments",
   "0006_requests",
   "0007_session_messages",
+  "0008_session_outcomes",
 ];
+
+// Kolumna requests.settled_at z 0008 (true, gdy istnieje).
+async function hasSettledAtColumn(db) {
+  const { rows } = await db.query(
+    `select 1 from information_schema.columns
+      where table_schema = $1 and table_name = 'requests' and column_name = 'settled_at'`,
+    [db.schema],
+  );
+  return rows.length === 1;
+}
 
 const withHistory = (...tables) => [...tables, "pgmigrations"].sort();
 const UP_TO_0004 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0004);
@@ -67,7 +78,7 @@ describeDb(
       assert.deepEqual(await tablesIn(db, db.schema), []);
     });
 
-    test("up wykonuje 0001–0007: wszystkie tabele (i historia pgmigrations), kolumny cen i strefa mentora", async () => {
+    test("up wykonuje 0001–0008: wszystkie tabele (i historia pgmigrations), kolumny cen i strefa mentora", async () => {
       const applied = await db.migrate("up");
       assert.deepEqual(
         applied.map((m) => m.name),
@@ -86,7 +97,18 @@ describeDb(
       assert.deepEqual(await db.migrate("up"), []);
     });
 
-    test("down o jeden krok cofa tylko 0007: znika session_messages, zapytania zostają", async () => {
+    test("down o jeden krok cofa tylko 0008: znika requests.settled_at, tabele zostają", async () => {
+      assert.equal(await hasSettledAtColumn(db), true);
+      const reverted = await db.migrate("down", 1);
+      assert.deepEqual(
+        reverted.map((m) => m.name),
+        ["0008_session_outcomes"],
+      );
+      assert.equal(await hasSettledAtColumn(db), false);
+      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
+    });
+
+    test("kolejny krok w dół cofa tylko 0007: znika session_messages, zapytania zostają", async () => {
       const reverted = await db.migrate("down", 1);
       assert.deepEqual(
         reverted.map((m) => m.name),
@@ -192,7 +214,7 @@ describeDb(
       assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0006());
     });
 
-    test("down o dwa kroki cofa 0006 i 0005, a ponowne up odtwarza je i wykonuje 0007", async () => {
+    test("down o dwa kroki cofa 0006 i 0005, a ponowne up odtwarza je i wykonuje 0007–0008", async () => {
       const reverted = await db.migrate("down", 2);
       assert.deepEqual(
         reverted.map((m) => m.name),
@@ -202,7 +224,7 @@ describeDb(
       const applied = await db.migrate("up");
       assert.deepEqual(
         applied.map((m) => m.name),
-        ["0005_payments", "0006_requests", "0007_session_messages"],
+        ["0005_payments", "0006_requests", "0007_session_messages", "0008_session_outcomes"],
       );
       assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
     });

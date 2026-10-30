@@ -13,6 +13,7 @@ import { Skeleton } from "@devmentor/ui";
 import { AccessMessage, MentorNav, PageLayout, RequestDecision, RequestNotFound } from "@devmentor/ui/product";
 import { loadMentorRequest } from "@/lib/requests/mentor-area";
 import { sessionForCurrentMentor } from "@/lib/sessions/server";
+import { SESSION_STATUSES } from "@/lib/sessions/messages.mjs";
 import { signOutAction } from "../../actions";
 import { acceptRequestAction, declineRequestAction } from "../actions";
 import { MentorSessionPanel } from "./session-panel";
@@ -47,8 +48,9 @@ async function RequestArea({ params }: Pick<PageProps<"/mentor/requests/[id]">, 
       </PageLayout>
     );
   }
-  // #20: zaakceptowane zapytanie to sesja — czat pod szczegółami (odczyt po terminie).
-  const session = data.request?.status === "accepted" ? await sessionForCurrentMentor(id) : null;
+  // #20: zaakceptowane zapytanie to sesja — czat pod szczegółami (odczyt po terminie i po rozliczeniu, #21).
+  const status = data.request?.status;
+  const session = status === "session_ended" || (status && SESSION_STATUSES.includes(status)) ? await sessionForCurrentMentor(id) : null;
   return (
     <PageLayout nav={<MentorNav current="requests" pendingCount={data.pendingCount} signOutAction={signOutAction} />}>
       {data.request ? (

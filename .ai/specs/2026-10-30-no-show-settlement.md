@@ -29,8 +29,8 @@ Two of three senior engineers interviewed would take paid text sessions only „
 
 ## 👤 User stories
 
-1. **Mentor did not come.** Kuba writes at 12:31 and 12:40; Anna writes nothing. At 12:55 the slot ends; Kuba's page: *Sesja zakończona — rozliczamy*. At the next job run (≤ 5 min) the **system** sets `mentor_no_show`, records refund `mentor_no_show` and the email in one transaction, then asks Stripe. Kuba **sees** *Brak wiadomości od mentora w czasie sesji — zwrot 150 zł zlecony automatycznie*, later *Zwrot wykonany*; same in the email. Anna's list: *Zakończone — nieobecność mentora (zwrot dla dewelopera)*.
-2. **Developer did not come.** Anna writes at 12:30 and 12:35, Kuba nothing. Settled `mentee_no_show`; no refund. Kuba **sees** *Nie było Twojej wiadomości w czasie sesji — zgodnie z zasadami płatność zostaje u mentora* and the email says the same with the rule; Anna: *Zakończone — deweloper się nie pojawił (płatność zostaje)*.
+1. **Mentor did not come.** Kuba writes at 12:31 and 12:40; Anna writes nothing. At 12:55 the slot ends; Kuba's page: *Sesja zakończona — rozliczamy*. At the next job run (≤ 5 min) the **system** sets `mentor_no_show`, records refund `mentor_no_show` and the email in one transaction, then asks Stripe. Kuba **sees** *Brak wiadomości od mentora w czasie sesji — zwrot 150 zł zlecony automatycznie*, later *Zwrot wykonany*; same in the email. Anna's list: *Zakończone — brak Twojej wiadomości (zwrot dla dewelopera)*.
+2. **Developer did not come.** Anna writes at 12:30 and 12:35, Kuba nothing. Settled `mentee_no_show`; no refund. Kuba **sees** *Brak Twojej wiadomości w czasie sesji — zgodnie z zasadami płatność zostaje u mentora* and the email says the same with the rule; Anna: *Zakończone — brak wiadomości od dewelopera (płatność zostaje)*.
 3. **Nobody wrote.** Neither posts. Settled `mentor_no_show` (D11) → full refund, as story 1.
 4. **Held.** Both wrote. Settled `held`; *Sesja odbyta*; no refund, no email.
 
@@ -45,7 +45,7 @@ Two of three senior engineers interviewed would take paid text sessions only „
   5. after commit `executeRefund` (failure → retried by `payments.retryRefunds`; 24 h → `failed`, health counter, manual per Q05).
 - **Errors in a run:** a database or outbox error inside one session's transaction rolls back that session only (nothing half-settled) and ends the run with the error recorded in `job_runs.last_error` (#24); the next run retries from the oldest unsettled session. Sessions already committed in the run stay settled and their refunds are already requested. (Skipping the failing row and continuing would loop on the same oldest row; this matches `lapseOverdue`.)
 - **Only through the existing jobs endpoint:** the job is added to `lib/jobs/registry.mjs` and runs only through `POST /api/internal/jobs` (`Bearer CRON_SECRET`, #24) or `npm run jobs`; no new route.
-- **Refund that finally fails (R09 not met automatically):** after #24 gives up (24 h, or a dispute) the payment is `refund_status = 'failed'`; the developer's page says *Automatyczny zwrot się nie powiódł — zajmiemy się nim ręcznie, nie musisz nic robić*; the failure is counted in the jobs health (`failedRefunds`) for the founders, who refund by hand in Stripe (D12). Owner of that queue: open (Q05). The page never shows *zwrot wykonany* unless `refund_status = 'succeeded'`.
+- **Refund that finally fails (R09 not met automatically):** after #24 gives up (24 h, or a dispute) the payment is `refund_status = 'failed'`; the developer's page says *Zwrot nie powiódł się — napisz do nas* (the existing #24/E02 wording and `refund_failed` email: „Odpowiedz na tę wiadomość — zwrot dokończymy ręcznie”); the failure is counted in the jobs health (`failedRefunds`) for the founders, who refund by hand in Stripe (D12). Owner of that queue: open (Q05). The page never shows *zwrot wykonany* unless `refund_status = 'succeeded'`.
 - **Database clock** for "ended" (as #18's lapse); tests inject `now`.
 - **Read paths:** `/r/{token}` shows the outcome above the read-only chat (#20) with refund status from `payments.refund_status` (*zlecony*, *w toku*, *wykonany*, *nie powiódł się — skontaktujemy się*); the mentor list moves settled sessions to *Zakończone* with the outcome label; `accepted` past `slot_end` shows *Sesja zakończona — rozliczamy*.
 
@@ -75,7 +75,7 @@ Migration `0008_session_outcomes`:
 | `settlementOutcome({ mentorPosted, menteePosted })` | → `held` \| `mentee_no_show` \| `mentor_no_show` | pure |
 | `settleOneInTx(tx, { at, stamp })` | settles the oldest ended `accepted` session; returns `{ requestId, paymentId, outcome }` or `null` | refund + email in the same tx |
 | Job `settleEnded(deps, { limit, deadline })` | loops `settleOneInTx`, `executeRefund` after each commit | returns `{ settled, held, menteeNoShow, mentorNoShow }` |
-| Emails | `session_mentor_no_show` (amount, mentor name, when, request link), `session_mentee_no_show` (mentor name, when, the rule) | no message content, no question (R04) |
+| Emails | `session_mentor_no_show` (amount, mentor name, when; the `/r/` link is not stored — only its hash — so the email points to the confirmation email, as #18 does), `session_mentee_no_show` (mentor name, when, the rule) | no message content, no question (R04) |
 
 `/r/{token}` statuses: `session_ended`, `held`, `mentee_no_show`, `mentor_no_show` (+ refund status). Mentor list labels for the same.
 
@@ -86,7 +86,7 @@ Migration `0008_session_outcomes`:
 | Two job runs at once | `SKIP LOCKED` + guarded update → each session settled once; `requestRefund` idempotent → one refund. |
 | Post in flight at `slot_end` | Row locked → skipped this run, settled next run with the message counted (or the post got `closed`). |
 | Stripe down | Status set, refund `requested`, retried by #24; page *Zwrot w toku*. |
-| Refund failing 24 h / disputed payment | #24 → `failed`, health `failedRefunds`, manual in Stripe (Q05); page *Automatyczny zwrot się nie powiódł — zajmiemy się nim ręcznie, nie musisz nic robić*. |
+| Refund failing 24 h / disputed payment | #24 → `failed`, health `failedRefunds`, manual in Stripe (Q05); page *Zwrot nie powiódł się — napisz do nas* (the existing #24/E02 wording and `refund_failed` email: „Odpowiedz na tę wiadomość — zwrot dokończymy ręcznie”). |
 | DB error while settling one session | That session rolled back; run ends with `last_error`; next run retries; earlier sessions of the run stay settled. |
 | Scheduler stopped | Pages show *Sesja zakończona — rozliczamy*; health `stale` after 30 min; nothing settles until it runs (correctness kept, timing lost). |
 | Email provider down | Outcome stands; outbox retries (#17). |

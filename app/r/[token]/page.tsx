@@ -18,6 +18,7 @@ import { Skeleton } from "@devmentor/ui";
 import { PageLayout } from "@devmentor/ui/product";
 import { appBaseUrl, requestPageUrl } from "@/lib/requests/links.mjs";
 import { getRequestPage, settleCheckoutFromReturn } from "@/lib/requests/server";
+import { SESSION_STATUSES } from "@/lib/sessions/messages.mjs";
 import { sessionForMentee } from "@/lib/sessions/server";
 import { cancelRequestAction } from "./actions";
 import { RequestView } from "./request-view";
@@ -55,7 +56,8 @@ async function RequestContent({ params, searchParams }: Pick<PageProps<"/r/[toke
     request = (await getRequestPage(token)) ?? request;
   }
 
-  const session = request.requestStatus === "accepted" ? await sessionForMentee(token) : null;
+  // #21: po rozliczeniu czat zostaje do odczytu pod wynikiem sesji.
+  const session = SESSION_STATUSES.includes(request.requestStatus) ? await sessionForMentee(token) : null;
 
   return (
     <PageLayout width="narrow">
