@@ -19,10 +19,10 @@ Engine: om-auto-create-pr-loop (dwa PR-y stackowane, lekcja 11)
 | 1 | 1.3 | DS `SessionChat` (e03) + stories (axe, play) | inline | done | b5313fa |
 | 1 | 1.4 | Czat na `/r/{token}` i `/mentor/requests/{id}`; e2e w dwóch przeglądarkach; zrzuty | inline | done | b5313fa |
 | 1 | 1.5 | README, `BACKWARD_COMPATIBILITY.md`, PR 1 #51 (`Fixes #20`) — CI 6/6 zielone | inline | done | b5313fa |
-| 2 | 2.1 | Migracja 0008 (statusy `held` / `mentee_no_show` / `mentor_no_show`, `settled_at`) + reguła R15 | inline | todo | |
-| 2 | 2.2 | Zadanie `sessions.settleEnded` (zwrot `mentor_no_show`, e-maile) + testy wyścigów i idempotencji | inline | todo | |
-| 2 | 2.3 | Stany wyniku na `/r/{token}`, liście i szczegółach mentora; DS | inline | todo | |
-| 2 | 2.4 | E2E rozliczenia z fałszywym Stripe + zrzuty; PR 2 (`Fixes #21`) | inline | done | (PR 2) |
+| 2 | 2.1 | Migracja 0008 (statusy `held` / `mentee_no_show` / `mentor_no_show`, `settled_at`) + reguła R15 | inline | done | 21c6909 |
+| 2 | 2.2 | Zadanie `sessions.settleEnded` (zwrot `mentor_no_show`, e-maile) + testy wyścigów i idempotencji | inline | done | 21c6909 |
+| 2 | 2.3 | Stany wyniku na `/r/{token}`, liście i szczegółach mentora; DS | inline | done | 21c6909 |
+| 2 | 2.4 | E2E rozliczenia z fałszywym Stripe + zrzuty; PR 2 (`Fixes #21`) | inline | done | 21c6909 |
 | 3 | 3.1 | Review kodu Codexem, poprawki Major, zielone CI (6 jobów) w obu PR | inline | todo | |
 
 ## 🎯 Cel
