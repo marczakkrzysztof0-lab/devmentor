@@ -27,6 +27,7 @@ import { saveAvailability } from "../../lib/availability/save.mjs";
 import { listOpenSlots } from "../../lib/availability/slots.mjs";
 import { saveMentorPage } from "../../lib/mentor-page/mentor-page.mjs";
 import { createInvitation } from "../../scripts/mentor-links.mjs";
+import { slotDateTime, slotRadioNamePattern } from "./slot-names.mjs";
 
 const BASE_URL = process.env.E2E_BASE_URL;
 const DATABASE_URL = process.env.E2E_DATABASE_URL;
@@ -241,11 +242,11 @@ describe("publiczna strona mentora /m/[slug] — wolne terminy (faza 2)", { skip
     assert.ok(items.length > 0);
     // Każda pokazana godzina: radio o nazwie „<dzień>, <data>, <godzina>” (nazwa dostępna z etykiety, nie z grupowania).
     for (const item of items) {
-      const [, date, time] = item.match(/(\d{1,2}\.\d{2}),\s*(\d{2}:\d{2})$/) ?? [];
-      assert.ok(date && time, `data i godzina w nazwie: ${item}`);
-      // Data jako całe słowo i na końcu nazwy: „1.11, 17:00” nie może trafić w „11.11, 17:00” (od 28.10 oba dni
-      // są w 14-dniowym oknie — test padał zależnie od daty).
-      assert.equal(await section.getByRole("radio", { name: new RegExp(`(?<!\\d)${date.replace(".", "\\.")},\\s*${time}$`) }).count(), 1, item);
+      const parsed = slotDateTime(item);
+      assert.ok(parsed, `data i godzina w nazwie: ${item}`);
+      // Data jako całe słowo i na końcu nazwy: „1.11, 17:00” nie może trafić w „11.11, 17:00” (#49; wyrażenie
+      // sprawdzane z zamrożonym zegarem w tests/availability/slot-radio-names.test.mjs).
+      assert.equal(await section.getByRole("radio", { name: slotRadioNamePattern(parsed.date, parsed.time) }).count(), 1, item);
     }
     assert.equal(await section.getByRole("radio").count(), items.length, "w sekcji tylko radia godzin");
     assert.equal(await tab.getByRole("link", { name: /rezerwuj/i }).count(), 0, "brak linku „Zarezerwuj”");
