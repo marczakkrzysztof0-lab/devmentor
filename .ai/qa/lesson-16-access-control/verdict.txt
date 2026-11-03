@@ -1,0 +1,5 @@
+started=2026-11-03T15:04:32Z finished=2026-11-03T15:04:57Z commit=a4812a3 base_url=http://localhost:64748
+booking_id=b9ba5480-ab35-4384-adae-ffe688b23e9b booking_b_id=1ac05b65-d201-4f56-b778-885b8954426e pending_id=973c2a87-11ff-4b26-ae67-5bc3a512a379
+G1=PASS
+G2=PASS
+G3=PASS

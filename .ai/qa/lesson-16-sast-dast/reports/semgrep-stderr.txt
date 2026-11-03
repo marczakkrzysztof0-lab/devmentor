@@ -1,0 +1,29 @@
+               
+               
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 206 files tracked by git with 1157 Code rules:
+                                                                                                                        
+  Language      Rules   Files          Origin      Rules                                                                
+ ─────────────────────────────        ───────────────────                                                               
+  <multilang>      67     206          Community    1157                                                                
+  ts              165      90                                                                                           
+  js              155      54                                                                                           
+  json              4       2                                                                                           
+  html              1       1                                                                                           
+                                                                                                                        
+                
+                
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 4 (4 blocking)
+ • Rules run: 236
+ • Targets scanned: 206
+ • Parsed lines: ~99.9%
+ • Scan skipped: 
+   ◦ Matching --exclude patterns: 38
+ • For a detailed list of skipped files and lines, run semgrep with the --verbose flag
+Ran 236 rules on 206 files: 4 findings.

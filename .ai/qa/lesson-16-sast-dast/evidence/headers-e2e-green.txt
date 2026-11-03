@@ -1,0 +1,9 @@
+# 2026-11-03T15:27:35Z e2e na buildzie z poprawką (test-env http://localhost:58227)
+  ✔ /: CSP z frame-ancestors 'none', X-Frame-Options, nosniff, bez X-Powered-By (181.0146ms)
+  ✔ /mentor: CSP z frame-ancestors 'none', X-Frame-Options, nosniff, bez X-Powered-By (117.9875ms)
+  ✔ /r/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: CSP z frame-ancestors 'none', X-Frame-Options, nosniff, bez X-Powered-By (30054.4008ms)
+  ✔ /api/r/session: CSP z frame-ancestors 'none', X-Frame-Options, nosniff, bez X-Powered-By (49.8055ms)
+✔ nagłówki bezpieczeństwa (T-07) (30406.4483ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0

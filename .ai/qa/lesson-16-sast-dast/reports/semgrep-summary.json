@@ -1,0 +1,62 @@
+{
+  "version": "1.182.1",
+  "filesScanned": 206,
+  "ran": {
+    "rulesRun": 236,
+    "rulesLoaded": 1157,
+    "files": 206
+  },
+  "filesByDir": {
+    "app": 32,
+    "lib": 54,
+    "packages": 111,
+    "proxy.ts": 1,
+    "scripts": 8
+  },
+  "findings": 4,
+  "bySeverity": {
+    "ERROR": 3,
+    "WARNING": 1
+  },
+  "findingsList": [
+    {
+      "rule": "javascript.lang.security.audit.spawn-shell-true.spawn-shell-true",
+      "file": "packages/ui/scripts/test-themes.mjs",
+      "line": 8,
+      "severity": "ERROR"
+    },
+    {
+      "rule": "javascript.lang.security.audit.spawn-shell-true.spawn-shell-true",
+      "file": "scripts/setup.mjs",
+      "line": 165,
+      "severity": "ERROR"
+    },
+    {
+      "rule": "javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp",
+      "file": "scripts/test-env.mjs",
+      "line": 111,
+      "severity": "WARNING"
+    },
+    {
+      "rule": "javascript.lang.security.audit.spawn-shell-true.spawn-shell-true",
+      "file": "scripts/test-env.mjs",
+      "line": 196,
+      "severity": "ERROR"
+    }
+  ],
+  "errors": 2,
+  "errorKinds": [
+    "PartialParsing,[object Object] packages/ui/src/product/index.ts",
+    "PartialParsing,[object Object] scripts/check-agents.mjs"
+  ],
+  "skipped": 0,
+  "nextjsOnly": {
+    "ran": {
+      "rulesRun": 0,
+      "note": "brak linii Ran N rules: pakiet bez reguł dla tych plików"
+    },
+    "findings": 0,
+    "filesScanned": 0,
+    "errors": 0
+  }
+}

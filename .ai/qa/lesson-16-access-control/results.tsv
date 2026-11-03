@@ -1,0 +1,21 @@
+granica	krok	metoda	ścieżka	konto	oczekiwane	HTTP	wynik
+G1	1 pozytywna: właściciel czyta swoją sesję	GET	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	mentor A	200 + wiadomości	200	OK
+G1	1 pozytywna: drugie konto czyta SWOJĄ sesję	GET	/api/mentor/requests/1ac05b65-d201-4f56-b778-885b8954426e/session	mentor B	200	200	OK
+G1	2 odmowa odczytu cudzej sesji	GET	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	mentor B	403/404, bez treści	404	OK
+G1	3 odmowa zapisu w cudzej sesji	POST	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	mentor B	403/404	404	OK
+G1	4 ponowny odczyt właściciela: id, autor, treść bez zmian (API i baza)	GET	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	mentor A	200, identyczne	200	OK
+G1	5 kontrola narzędzia: ten sam POST od właściciela	POST	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	mentor A	201	201	OK
+G2	1 pozytywna: deweloper A czyta swoją sesję (token)	GET	/api/r/session	deweloper A	200 viewer=mentee	200	OK
+G2	1 pozytywna: deweloper B czyta SWOJĄ sesję (bez treści A)	GET	/api/r/session	deweloper B	200, bez danych A	200	OK
+G2	2 odmowa odczytu: token dewelopera na trasie mentora	GET	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	deweloper A	401	401	OK
+G2	2 odmowa odczytu: ciasteczko mentora na trasie dewelopera	GET	/api/r/session	mentor A	404	404	OK
+G2	3 odmowa zapisu: mentor pisze jako deweloper	POST	/api/r/session	mentor A	404	404	OK
+G2	3 odmowa zapisu: deweloper pisze jako mentor	POST	/api/mentor/requests/b9ba5480-ab35-4384-adae-ffe688b23e9b/session	deweloper A	401	401	OK
+G2	4 ponowny odczyt dewelopera A: id, autor, treść bez zmian (API i baza)	GET	/api/r/session	deweloper A	200, identyczne	200	OK
+G3	1 pozytywna: właściciel widzi szczegóły (pytanie)	GET	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor A	200 + pytanie	200	OK
+G3	1 pozytywna: drugie konto widzi SWOJE zapytanie	GET	/mentor/requests/1ac05b65-d201-4f56-b778-885b8954426e	mentor B	200 + pytanie	200	OK
+G3	2 odmowa odczytu cudzych szczegółów (strona PPR: 200 z komunikatem, bez danych)	GET	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor B	brak pytania i imienia, komunikat	200	OK
+G3	3 odmowa zapisu: akceptacja cudzego zapytania (server action)	POST	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor B	wynik not_found	200	OK
+G3	3 odmowa zapisu: odrzucenie cudzego zapytania (server action)	POST	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor B	wynik not_found	200	OK
+G3	4 ponowny odczyt właściciela: status awaiting_mentor, baza bez zmian	GET	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor A	200, identyczne	200	OK
+G3	5 kontrola narzędzia: ta sama akcja od właściciela akceptuje	POST	/mentor/requests/973c2a87-11ff-4b26-ae67-5bc3a512a379	mentor A	ok:true, status accepted	200	OK

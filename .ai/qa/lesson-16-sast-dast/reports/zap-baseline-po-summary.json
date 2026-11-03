@@ -1,0 +1,32 @@
+[
+  {
+    "id": "10055",
+    "risk": "Medium (High)",
+    "name": "CSP: script-src unsafe-inline",
+    "count": 13
+  },
+  {
+    "id": "90004",
+    "risk": "Low (Medium)",
+    "name": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
+    "count": 15
+  },
+  {
+    "id": "10049",
+    "risk": "Informational (Medium)",
+    "name": "Non-Storable Content",
+    "count": 19
+  },
+  {
+    "id": "10109",
+    "risk": "Informational (Medium)",
+    "name": "Modern Web Application",
+    "count": 6
+  },
+  {
+    "id": "10031",
+    "risk": "Informational (Low)",
+    "name": "User Controllable HTML Element Attribute (Potential XSS)",
+    "count": 1
+  }
+]

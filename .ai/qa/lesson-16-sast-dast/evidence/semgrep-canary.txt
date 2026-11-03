@@ -1,0 +1,3 @@
+kanarek: 3 celowo złe wzorce w canary.tsx (dangerouslySetInnerHTML z propsa, exec z parametru URL, eval z parametru URL)
+trafienia: 1
+javascript.browser.security.eval-detected.eval-detected linia 9
