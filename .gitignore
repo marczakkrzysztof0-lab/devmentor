@@ -61,3 +61,7 @@ prototypes/*/evidence/*.png
 .ai/qa/test-env-build-cache.json
 .ai/qa/test-env.lock/
 .ai/qa/test-env.log
+
+# Lekcja 17: Stryker (test mutacyjny) i jego raporty
+.stryker-tmp/
+reports/
