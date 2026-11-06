@@ -1,7 +1,7 @@
 // Walidacja wejścia startRequest po stronie serwera (spec #17 Q5, Q6; lib/requests/validate.mjs).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateStartRequest, MESSAGES } from "../../lib/requests/validate.mjs";
+import { validateStartRequest, MESSAGES, SESSION_LENGTHS } from "../../lib/requests/validate.mjs";
 
 const UUID = "3F2504E0-4F89-41D3-9A0C-0305E82C3301";
 
@@ -131,4 +131,28 @@ test("nieznane dodatkowe pola są ignorowane i nie trafiają do wyniku", () => {
     "slug",
     "submissionId",
   ]);
+});
+
+// Lekcja 17 — testy dopisane po teście mutacyjnym (Stryker, lekcja-17/bramki-deterministyczne.md).
+test("submissionId: UUID z doklejonym prefiksem albo sufiksem → błąd przy terminie (kotwice ^ i $)", () => {
+  for (const submissionId of [`x${UUID}`, `${UUID}x`, ` ${UUID}`, `${UUID}-0000`]) {
+    assert.equal(errorsOf(valid({ submissionId })).slotStart, MESSAGES.slotStart, submissionId);
+  }
+});
+
+test("slotStart: obiekt Date zamiast napisu → błąd przy terminie (z formularza przychodzi tylko napis)", () => {
+  assert.equal(errorsOf(valid({ slotStart: new Date("2030-01-15T09:00:00Z") })).slotStart, MESSAGES.slotStart);
+});
+
+test("komunikaty serwera przypięte dosłownie (trzy pierwsze jak w DS validateRequest, Request.tsx; questionLong tylko serwer)", () => {
+  assert.deepEqual(MESSAGES, {
+    slotStart: "Wybierz termin",
+    menteeName: "Wpisz imię (od 2 do 80 znaków)",
+    questionShort: "Opisz problem w co najmniej 20 znakach — mentor zdecyduje na podstawie pytania",
+    questionLong: "Pytanie może mieć najwyżej 4000 znaków — skróć je albo zostaw sam kluczowy fragment kodu",
+  });
+});
+
+test("SESSION_LENGTHS to długości z R01: 25 i 50 minut", () => {
+  assert.deepEqual([...SESSION_LENGTHS], [25, 50]);
 });
