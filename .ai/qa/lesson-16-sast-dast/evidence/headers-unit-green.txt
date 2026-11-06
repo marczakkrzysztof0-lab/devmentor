@@ -1,0 +1,8 @@
+# 2026-11-03T15:10:09Z po poprawce next.config.ts
+✔ X-Powered-By wyłączony (poweredByHeader: false) (4.0438ms)
+✔ każda strona: anty-clickjacking, nosniff, Referrer-Policy (1.9886ms)
+✔ CSP: domyślnie tylko własny origin, frame-ancestors 'none', bez obiektów i obcego base/form (5.4388ms)
+✔ /r/{token}: Referrer-Policy no-referrer (token w adresie nie wycieka), pozostałe nagłówki też (0.8083ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0

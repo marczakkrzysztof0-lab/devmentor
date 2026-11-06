@@ -1,0 +1,7 @@
+               
+               
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 87 files tracked by git:
+  Nothing to scan.

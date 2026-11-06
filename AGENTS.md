@@ -27,6 +27,7 @@ Next.js 16 app (`app/`, `lib/`, `proxy.ts`) + design system `@devmentor/ui` (`pa
 
 - Never read or print `.env`, `.env.local` or credentials; `.env.example` and `.env.template` are safe.
 - UI copy: Polish, gender-neutral.
+- Access control (route, page or server action with a mentor's or developer's data) is proven with two accounts and three checks: positive path for BOTH accounts, denied read, denied write + owner's data unchanged afterwards. Errors or a failed positive path = inconclusive, never PASS. Details: `.ai/skills/om-integration-tests/SKILL.md`.
 
 ## Task routing
 
@@ -43,5 +44,6 @@ Read only the rows that match the task. Nested `AGENTS.md` files apply when you 
 | Product question (who, why, price) | `.ai/specs/product-brief.md`, `.ai/specs/research/decisions/` |
 | Integration / E2E test, QA scenario | `.ai/skills/om-integration-tests/SKILL.md`, `.ai/qa/README.md` |
 | Agent config, hooks, secrets | `lekcja-09/security-notes.md`, `.claude/settings.json` |
+| Security: auth, roles, new entry point, scans | `docs/security/threat-model.md`, `docs/security/kontrola-dostepu.md`, `.ai/qa/lesson-16-sast-dast/README.md` |
 
 Reference examples: server action + form → `app/mentor/availability/`; DB query module + test → `lib/availability/queries.mjs` and `tests/db/availability-queries.test.mjs`.

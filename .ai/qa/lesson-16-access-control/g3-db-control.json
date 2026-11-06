@@ -1,0 +1,35 @@
+{
+  "messages": [
+    {
+      "id": "45f937b7-df67-4a82-95b2-5a3c960a9511",
+      "author": "mentee",
+      "body": "L16 wiadomość dewelopera A (syntetyczna)"
+    },
+    {
+      "id": "b94a1562-8520-484c-89c3-2dcc661d13a1",
+      "author": "mentor",
+      "body": "L16 odpowiedź mentora A (syntetyczna)"
+    },
+    {
+      "id": "f7a312e4-4262-4424-9784-9299af73f1e4",
+      "author": "mentor",
+      "body": "L16 kontrola: zapis w�a�ciciela"
+    }
+  ],
+  "requests": [
+    {
+      "id": "973c2a87-11ff-4b26-ae67-5bc3a512a379",
+      "status": "accepted",
+      "mentor_id": "66b86a10-746c-47b0-8022-3f28189c20e1",
+      "accepted_at": "2026-11-03T15:04:55.424Z",
+      "declined_at": null
+    },
+    {
+      "id": "b9ba5480-ab35-4384-adae-ffe688b23e9b",
+      "status": "accepted",
+      "mentor_id": "66b86a10-746c-47b0-8022-3f28189c20e1",
+      "accepted_at": "2026-11-03T15:04:24.980Z",
+      "declined_at": null
+    }
+  ]
+}

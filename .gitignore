@@ -62,6 +62,11 @@ prototypes/*/evidence/*.png
 .ai/qa/test-env.lock/
 .ai/qa/test-env.log
 
+# lesson 16: scena prób kontroli dostępu (cookie-jary, tokeny syntetyczne) i duże raporty skanów
+.ai/tmp/
+.ai/qa/lesson-16-sast-dast/reports/*.html
+.ai/qa/lesson-16-sast-dast/reports/zap.yaml
+
 # Lekcja 17: Stryker (test mutacyjny) i jego raporty
 .stryker-tmp/
 reports/

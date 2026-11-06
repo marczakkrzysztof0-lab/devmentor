@@ -1,0 +1,13 @@
+# 2026-11-03T14:59:32Z commit a4812a3 (przed poprawką)
+✖ X-Powered-By wyłączony (poweredByHeader: false) (12.7411ms)
+✖ każda strona: anty-clickjacking, nosniff, Referrer-Policy (3.7942ms)
+✖ CSP: domyślnie tylko własny origin, frame-ancestors 'none', bez obiektów i obcego base/form (1.8033ms)
+✖ /r/{token}: Referrer-Policy no-referrer (token w adresie nie wycieka), pozostałe nagłówki też (1.927ms)
+ℹ tests 4
+ℹ pass 0
+ℹ fail 4
+✖ failing tests:
+✖ X-Powered-By wyłączony (poweredByHeader: false) (12.7411ms)
+✖ każda strona: anty-clickjacking, nosniff, Referrer-Policy (3.7942ms)
+✖ CSP: domyślnie tylko własny origin, frame-ancestors 'none', bez obiektów i obcego base/form (1.8033ms)
+✖ /r/{token}: Referrer-Policy no-referrer (token w adresie nie wycieka), pozostałe nagłówki też (1.927ms)
