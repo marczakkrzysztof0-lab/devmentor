@@ -66,3 +66,7 @@ prototypes/*/evidence/*.png
 .ai/tmp/
 .ai/qa/lesson-16-sast-dast/reports/*.html
 .ai/qa/lesson-16-sast-dast/reports/zap.yaml
+
+# Lekcja 17: Stryker (test mutacyjny) i jego raporty
+.stryker-tmp/
+reports/
