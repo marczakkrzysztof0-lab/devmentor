@@ -102,3 +102,29 @@ export const HintUnderLabel: Story = {
     await expect(hint.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   },
 };
+
+/** An unbroken string (a share URL with a 40-character slug, #42) — no space or hyphen to break at. */
+const UNBROKEN = "http://localhost:3000/m/katarzynawisniewskakowalczykmentoring123";
+export const UnbrokenHintAndErrorNarrow: Story = {
+  name: "Test: unbroken hint and error wrap at 320 px, also as a flex item without min-w-0 (#42)",
+  decorators: [narrow],
+  render: () => (
+    // A flex item keeps `min-width: auto` (its min-content width): only `overflow-wrap: anywhere` lets the long
+    // token shrink it, `break-words` would still push the row past 320 px.
+    <div className="flex">
+      <FormField label="Adres strony" hint={`Pełny link: ${UNBROKEN}`} error={`Zajęty: ${UNBROKEN}`} className="flex-1">
+        <TextInput defaultValue="katarzynawisniewskakowalczykmentoring123" />
+      </FormField>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvasElement.querySelector<HTMLElement>('[data-testid="narrow-frame"]');
+    await expect(frame).not.toBeNull();
+    for (const text of [`Pełny link: ${UNBROKEN}`, `Zajęty: ${UNBROKEN}`]) {
+      const node = canvas.getByText(text);
+      await expect(node.scrollWidth).toBeLessThanOrEqual(node.clientWidth);
+    }
+    await expect(frame!.scrollWidth).toBeLessThanOrEqual(frame!.clientWidth);
+  },
+};
