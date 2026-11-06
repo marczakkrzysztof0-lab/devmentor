@@ -16,16 +16,18 @@ Next.js 16 app (`app/`, `lib/`, `proxy.ts`) + design system `@devmentor/ui` (`pa
 
 | Need | Command |
 |---|---|
-| Database (Docker) | `npm run setup` (creates `docker-compose.yml`, runs migrations) |
+| Database (Docker) | `npm run setup` (uses the committed `docker-compose.yml`, creates `.env.local`, runs migrations) |
 | Tests | `npm test` (needs Postgres; `tests/db/*` fail on CI without it) |
 | Before handing over | `npm run lint` and `npm run build` |
-| End-to-end | `npm run build`, then `npm run test:e2e` |
+| End-to-end / integration | `npm run build`, then `npm run test:integration` (alias of `test:e2e`) |
+| QA environment (UI exploration) | `npm run test-env:up` / `npm run test-env:down` |
 | Agent files | `npm run check:agents` |
 
 ## Hard rules
 
 - Never read or print `.env`, `.env.local` or credentials; `.env.example` and `.env.template` are safe.
 - UI copy: Polish, gender-neutral.
+- Access control (route, page or server action with a mentor's or developer's data) is proven with two accounts and three checks: positive path for BOTH accounts, denied read, denied write + owner's data unchanged afterwards. Errors or a failed positive path = inconclusive, never PASS. Details: `.ai/skills/om-integration-tests/SKILL.md`.
 
 ## Task routing
 
@@ -40,6 +42,8 @@ Read only the rows that match the task. Nested `AGENTS.md` files apply when you 
 | UI in `app/` or `packages/ui` | `docs/design-system.md`, then `packages/ui/AGENTS.md` |
 | Database, migration, SQL | `db/AGENTS.md` |
 | Product question (who, why, price) | `.ai/specs/product-brief.md`, `.ai/specs/research/decisions/` |
+| Integration / E2E test, QA scenario | `.ai/skills/om-integration-tests/SKILL.md`, `.ai/qa/README.md` |
 | Agent config, hooks, secrets | `lekcja-09/security-notes.md`, `.claude/settings.json` |
+| Security: auth, roles, new entry point, scans | `docs/security/threat-model.md`, `docs/security/kontrola-dostepu.md`, `.ai/qa/lesson-16-sast-dast/README.md` |
 
 Reference examples: server action + form → `app/mentor/availability/`; DB query module + test → `lib/availability/queries.mjs` and `tests/db/availability-queries.test.mjs`.

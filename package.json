@@ -14,11 +14,18 @@
     "start": "next start",
     "lint": "eslint",
     "check:agents": "node scripts/check-agents.mjs",
+    "check:date-selectors": "node scripts/check-date-selectors.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "test:e2e": "node scripts/test-e2e.mjs",
+    "test:mutation": "stryker run",
+    "size": "size-limit",
+    "test:integration": "node scripts/test-e2e.mjs",
+    "test-env:up": "node scripts/test-env.mjs up",
+    "test-env:down": "node scripts/test-env.mjs down",
     "setup": "node scripts/setup.mjs",
     "db:migrate": "node scripts/db-migrate.mjs up",
     "db:rollback": "node scripts/db-migrate.mjs down",
+    "jobs": "node scripts/jobs.mjs",
     "mentor:invite": "node scripts/mentor-links.mjs invite",
     "mentor:sign-in-link": "node scripts/mentor-links.mjs sign-in-link",
     "storybook": "npm run storybook -w @devmentor/ui",
@@ -29,19 +36,24 @@
     "typecheck:ui": "npm run typecheck -w @devmentor/ui"
   },
   "dependencies": {
-    "next": "16.4.0",
+    "next": "16.4.3",
     "node-pg-migrate": "9.0.0",
+    "nodemailer": "10.3.1",
     "pg": "8.23.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "stripe": "22.6.2"
   },
   "devDependencies": {
+    "@size-limit/file": "14.2.0",
+    "@stryker-mutator/core": "10.0.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.3",
+    "size-limit": "14.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

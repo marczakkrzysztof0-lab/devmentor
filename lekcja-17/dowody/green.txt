@@ -1,0 +1,62 @@
+# green: worktree devmentor-l17-green, HEAD 826e0bc1b8e1f24b58fddaf5016289265acf43a2, node v24.21.0, 2026-11-03T14:55:38Z (zegar maszyny nie wpływa na wynik — 'teraz' zamrożone w teście)
+# wyrażenie przeniesione z tests/e2e/public-slots.e2e.mjs tego commitu:
+  return new RegExp(`(?<!\\d)${date.replace(".", "\\.")},\\s*${time}$`); // PRZENIESIONE z tego commitu
+
+$ node --test tests/availability/slot-radio-names.test.mjs
+▶ nazwy radiów godzin z zamrożonym zegarem — daty graniczne
+  ✔ 2026-10-28T09:00:00Z (28.10 rano: 11.11 jeszcze poza oknem 14 × 24 h), widz Europe/London
+  ✔ 2026-10-28T09:00:00Z (28.10 rano: 11.11 jeszcze poza oknem 14 × 24 h), widz Europe/Warsaw
+  ✔ 2026-10-28T09:00:00Z (28.10 rano: 11.11 jeszcze poza oknem 14 × 24 h), widz America/New_York
+  ✔ 2026-10-28T18:00:00Z (28.10 wieczorem: 1.11 i 11.11 w jednym oknie (błąd z PR #49)), widz Europe/London
+  ✔ 2026-10-28T18:00:00Z (28.10 wieczorem: 1.11 i 11.11 w jednym oknie (błąd z PR #49)), widz Europe/Warsaw
+  ✔ 2026-10-28T18:00:00Z (28.10 wieczorem: 1.11 i 11.11 w jednym oknie (błąd z PR #49)), widz America/New_York
+  ✔ 2026-10-24T21:30:00Z (PL: noc przed zmianą czasu 25.10 (dzień 25 h)), widz Europe/London
+  ✔ 2026-10-24T21:30:00Z (PL: noc przed zmianą czasu 25.10 (dzień 25 h)), widz Europe/Warsaw
+  ✔ 2026-10-24T21:30:00Z (PL: noc przed zmianą czasu 25.10 (dzień 25 h)), widz America/New_York
+  ✔ 2026-10-24T22:30:00Z (PL: 00:30 CEST w dniu zmiany czasu), widz Europe/London
+  ✔ 2026-10-24T22:30:00Z (PL: 00:30 CEST w dniu zmiany czasu), widz Europe/Warsaw
+  ✔ 2026-10-24T22:30:00Z (PL: 00:30 CEST w dniu zmiany czasu), widz America/New_York
+  ✔ 2026-10-31T12:00:00Z (USA: zmiana czasu 1.11 (różnica PL–NY 5 h ↔ 6 h)), widz Europe/London
+  ✔ 2026-10-31T12:00:00Z (USA: zmiana czasu 1.11 (różnica PL–NY 5 h ↔ 6 h)), widz Europe/Warsaw
+  ✔ 2026-10-31T12:00:00Z (USA: zmiana czasu 1.11 (różnica PL–NY 5 h ↔ 6 h)), widz America/New_York
+  ✔ 2026-10-31T22:30:00Z (koniec miesiąca: 31.10 → „jutro” 1.11), widz Europe/London
+  ✔ 2026-10-31T22:30:00Z (koniec miesiąca: 31.10 → „jutro” 1.11), widz Europe/Warsaw
+  ✔ 2026-10-31T22:30:00Z (koniec miesiąca: 31.10 → „jutro” 1.11), widz America/New_York
+  ✔ 2026-11-30T22:30:00Z (koniec miesiąca: 30.11 23:30 PL → 1.12), widz Europe/London
+  ✔ 2026-11-30T22:30:00Z (koniec miesiąca: 30.11 23:30 PL → 1.12), widz Europe/Warsaw
+  ✔ 2026-11-30T22:30:00Z (koniec miesiąca: 30.11 23:30 PL → 1.12), widz America/New_York
+  ✔ 2026-12-28T18:00:00Z (koniec roku: 1.01 i 11.01 w jednym oknie), widz Europe/London
+  ✔ 2026-12-28T18:00:00Z (koniec roku: 1.01 i 11.01 w jednym oknie), widz Europe/Warsaw
+  ✔ 2026-12-28T18:00:00Z (koniec roku: 1.01 i 11.01 w jednym oknie), widz America/New_York
+  ✔ 2026-12-31T22:59:00Z (sylwester 23:59 PL → „jutro” 1.01), widz Europe/London
+  ✔ 2026-12-31T22:59:00Z (sylwester 23:59 PL → „jutro” 1.01), widz Europe/Warsaw
+  ✔ 2026-12-31T22:59:00Z (sylwester 23:59 PL → „jutro” 1.01), widz America/New_York
+  ✔ 2027-02-26T10:00:00Z (koniec lutego: 28.02 → 1.03, 1.03 i 11.03 w oknie), widz Europe/London
+  ✔ 2027-02-26T10:00:00Z (koniec lutego: 28.02 → 1.03, 1.03 i 11.03 w oknie), widz Europe/Warsaw
+  ✔ 2027-02-26T10:00:00Z (koniec lutego: 28.02 → 1.03, 1.03 i 11.03 w oknie), widz America/New_York
+  ✔ 2027-03-08T10:00:00Z (USA: zmiana czasu 14.03 (PL–NY 6 h → 5 h)), widz Europe/London
+  ✔ 2027-03-08T10:00:00Z (USA: zmiana czasu 14.03 (PL–NY 6 h → 5 h)), widz Europe/Warsaw
+  ✔ 2027-03-08T10:00:00Z (USA: zmiana czasu 14.03 (PL–NY 6 h → 5 h)), widz America/New_York
+  ✔ 2027-03-27T22:30:00Z (PL: noc przed zmianą czasu 28.03 (dzień 23 h)), widz Europe/London
+  ✔ 2027-03-27T22:30:00Z (PL: noc przed zmianą czasu 28.03 (dzień 23 h)), widz Europe/Warsaw
+  ✔ 2027-03-27T22:30:00Z (PL: noc przed zmianą czasu 28.03 (dzień 23 h)), widz America/New_York
+  ✔ 2027-03-28T00:30:00Z (PL: 01:30 CET tuż przed przestawieniem zegara), widz Europe/London
+  ✔ 2027-03-28T00:30:00Z (PL: 01:30 CET tuż przed przestawieniem zegara), widz Europe/Warsaw
+  ✔ 2027-03-28T00:30:00Z (PL: 01:30 CET tuż przed przestawieniem zegara), widz America/New_York
+✔ nazwy radiów godzin z zamrożonym zegarem — daty graniczne
+▶ nazwy radiów godzin z zamrożonym zegarem — każdy dzień od 1.10.2026 do 30.04.2027 (widz jak w e2e)
+  ✔ widz Europe/London
+✔ nazwy radiów godzin z zamrożonym zegarem — każdy dzień od 1.10.2026 do 30.04.2027 (widz jak w e2e)
+ℹ tests 40
+ℹ suites 2
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19671.6316
+
+$ node scripts/check-date-selectors.mjs
+tests\e2e\public-slots.e2e.mjs:248 D1 assert.equal(await section.getByRole("radio", { name: new RegExp(`(?<!\\d)${date.replace(".", "\\.")},\\s*${time}$`) }).count(), 1, item);
+
+1 niejednoznacznych selektorów dat w e2e. Użyj slotRadioNamePattern() z tests/e2e/slot-names.mjs (D1: data wklejona w RegExp, D2: data bez granicy przed nią) albo oznacz wyjątek „date-selector-ok: <powód>”.

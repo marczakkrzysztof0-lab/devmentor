@@ -133,7 +133,12 @@ export function noSlotsForLengthMessage(length: SessionLength) {
  * (`aria-expanded`, `aria-controls` = that day's list), which shows that day only. A new `length` resets every
  * expansion. These disclosures are the only buttons in the list — no time is a control (Z1).
  *
- * Selectable mode (#17): the same days (shared `groupSlotsByDay`) as radio groups, every time shown.
+ * Selectable mode (#17 F4 + F3): the same days (shared `groupSlotsByDay`) as radio groups — every time is a radio
+ * of the request form, at most 6 per day and the rest behind that day's „Pokaż więcej (k)” (also a reset on a new
+ * `length`). A chosen time hidden by the limit stays visible, so the selection is never out of sight.
+ *
+ * While loading (`state="loading"`, e.g. before the viewer's zone is known) the heading names no zone — the zone is
+ * printed only above real times (D3), never a provisional „czas UTC”.
  */
 export function SlotList({
   slots,
@@ -148,12 +153,15 @@ export function SlotList({
   headingId = "slots-heading",
 }: SlotListProps) {
   const grouped = useMemo(
-    () => groupSlotsByDay(slots, { lengthMinutes: length, timeZone, now, maxPerDay: selectable ? Infinity : SLOTS_PER_DAY }),
-    [slots, length, timeZone, now, selectable],
+    () => groupSlotsByDay(slots, { lengthMinutes: length, timeZone, now, maxPerDay: SLOTS_PER_DAY }),
+    [slots, length, timeZone, now],
   );
-  const heading = grouped.fallback
-    ? "Najbliższe terminy (czas UTC)"
-    : `Najbliższe terminy (twoja strefa: ${grouped.timeZone})`;
+  const heading =
+    state === "loading"
+      ? "Najbliższe terminy"
+      : grouped.fallback
+        ? "Najbliższe terminy (czas UTC)"
+        : `Najbliższe terminy (twoja strefa: ${grouped.timeZone})`;
   const days = grouped.days;
 
   let body;
@@ -174,28 +182,8 @@ export function SlotList({
       />
     );
   } else if (selectable) {
-    body = (
-      <RadioGroup
-        legend={heading}
-        legendHidden
-        name="slotStart"
-        value={value}
-        onValueChange={onValueChange}
-        error={error}
-        groups={days.map((day) => ({
-          label: day.dayLabel,
-          options: day.times.map((time) => ({
-            value: time.startsAt,
-            label: (
-              <>
-                <span className="sr-only">{day.dayLabelFull}, </span>
-                <span className="font-mono">{time.label}</span>
-              </>
-            ),
-          })),
-        }))}
-      />
-    );
+    // Keyed by length: switching 25/50 starts with every day collapsed (F3).
+    body = <SelectableSlotDays key={length} days={days} heading={heading} value={value} onValueChange={onValueChange} error={error} />;
   } else {
     // Keyed by length: switching 25/50 starts with every day collapsed (F3).
     body = <SlotDays key={length} days={days} />;
@@ -212,6 +200,62 @@ export function SlotList({
 }
 
 type SlotDay = ReturnType<typeof groupSlotsByDay>["days"][number];
+
+/** Selectable mode of `SlotList` (#17): one radio group, days as visual groups, 6 per day + „Pokaż więcej (k)”. */
+function SelectableSlotDays({
+  days,
+  heading,
+  value,
+  onValueChange,
+  error,
+}: {
+  days: SlotDay[];
+  heading: string;
+  value?: string;
+  onValueChange?: (startsAt: string) => void;
+  error?: string;
+}) {
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
+  const toggle = (dayKey: string) =>
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(dayKey)) next.delete(dayKey);
+      else next.add(dayKey);
+      return next;
+    });
+  return (
+    <RadioGroup
+      legend={heading}
+      legendHidden
+      name="slotStart"
+      value={value}
+      onValueChange={onValueChange}
+      error={error}
+      groups={days.map((day) => {
+        const open = expanded.has(day.dayKey);
+        const shown = open ? day.times : day.times.filter((time, index) => index < day.visible.length || time.startsAt === value);
+        return {
+          label: day.dayLabel,
+          options: shown.map((time) => ({
+            value: time.startsAt,
+            label: (
+              <>
+                <span className="sr-only">{day.dayLabelFull}, </span>
+                <span className="font-mono">{time.label}</span>
+              </>
+            ),
+          })),
+          footer:
+            day.hiddenCount > 0 ? (
+              <Button variant="secondary" className="mt-inline self-start" aria-expanded={open} onClick={() => toggle(day.dayKey)}>
+                {open ? "Pokaż mniej" : showMoreLabel(day.hiddenCount)}
+              </Button>
+            ) : null,
+        };
+      })}
+    />
+  );
+}
 
 /** Text mode of `SlotList`: one block per day, with its own „Pokaż więcej (k)”. */
 function SlotDays({ days }: { days: SlotDay[] }) {

@@ -79,11 +79,11 @@ npm run setup
 npm run dev
 ```
 
-`npm run setup` instaluje zależności, tworzy `docker-compose.yml` i `.env.example` (jeśli ich nie ma), uruchamia bazę, tworzy `.env.local` z szablonu i wykonuje migracje bazy (`npm run db:migrate`, z krótkim ponawianiem, gdy baza jeszcze startuje). Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie działa, kończy się czytelnym komunikatem.
+`npm run setup` instaluje zależności, sprawdza pliki `docker-compose.yml` i `.env.example` (są w repozytorium), tworzy `.env.local` z szablonu, uruchamia bazę i wykonuje migracje bazy (`npm run db:migrate`, z krótkim ponawianiem, gdy baza jeszcze startuje). Można go bezpiecznie uruchomić ponownie: pomija wykonane kroki, nie nadpisuje istniejących plików i nie restartuje działającej bazy. Gdy Docker nie jest zainstalowany albo nie działa, kończy się czytelnym komunikatem (plik `.env.local` jest już wtedy utworzony, a po ponownym uruchomieniu zostaje tylko baza i migracje).
 
 ### Kroki ręczne (alternatywa)
 
-Poniższe polecenia działają w PowerShellu. Pliki `docker-compose.yml` i `.env.example` utwórz wcześniej z treści w sekcjach [Baza danych (Docker)](#baza-danych-docker) i [Zmienne środowiskowe](#zmienne-środowiskowe).
+Poniższe polecenia działają w PowerShellu. Pliki `docker-compose.yml` i `.env.example` są w repozytorium.
 
 ```powershell
 # 1. Sklonuj repozytorium
@@ -110,26 +110,9 @@ Aplikacja będzie dostępna pod adresem [http://localhost:3000](http://localhost
 
 ## Baza danych (Docker)
 
-PostgreSQL uruchamiamy lokalnie przez Docker Compose. Plik `docker-compose.yml` nie jest w repozytorium. Tworzy go `npm run setup` z tej konfiguracji:
+PostgreSQL uruchamiamy lokalnie przez Docker Compose. Konfiguracja jest w pliku [`docker-compose.yml`](docker-compose.yml) w repozytorium: Postgres 17, kontener `devmentor-db`, użytkownik, hasło i baza `devmentor`, port `5432`, dane w wolumenie `pgdata`.
 
-```yaml
-services:
-  db:
-    image: postgres:17
-    container_name: devmentor-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: devmentor
-      POSTGRES_PASSWORD: devmentor
-      POSTGRES_DB: devmentor
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
-```
+> Drugi klon repozytorium w innym katalogu to osobny projekt Compose, ale z tą samą nazwą kontenera `devmentor-db` i tym samym portem. Jeśli `docker compose up -d` zgłasza konflikt nazwy, sprawdź `docker ps -a` i zatrzymaj albo usuń stary kontener.
 
 Przydatne polecenia:
 
@@ -179,19 +162,22 @@ Skrypty czytają `DATABASE_URL` z `.env.local` (zmienna ustawiona w środowisku 
 
 ## Zmienne środowiskowe
 
-Konfiguracja lokalna trafia do pliku `.env.local`, który nie jest commitowany. Szablon `.env.example`:
+Konfiguracja lokalna trafia do pliku `.env.local`, który nie jest commitowany. Szablon to plik [`.env.example`](.env.example) w repozytorium: opis każdej zmiennej (baza, adres aplikacji, Stripe w trybie testowym, `CRON_SECRET`, SMTP) jest w komentarzach w tym pliku. `npm run setup` kopiuje go do `.env.local`, jeśli ten jeszcze nie istnieje.
 
-```dotenv
-# Baza danych
-DATABASE_URL="postgresql://devmentor:devmentor@localhost:5432/devmentor"
+> `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon jest commitowany.
 
-# Adres aplikacji
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
+Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.** Klucze Stripe, `CRON_SECRET` i `SMTP_URL` nigdy nie mają tego prefiksu.
 
-> `.gitignore` ignoruje pliki `.env*` z wyjątkiem `.env.example` (reguła `!.env.example`), więc szablon można commitować.
+## Płatności i zapytania (E02)
 
-Zmienne z prefiksem `NEXT_PUBLIC_` trafiają do przeglądarki. **Nie trzymaj w nich sekretów.**
+Deweloper na `/m/{slug}` wybiera długość i termin, wpisuje imię i pytanie, płaci kartą w Stripe Checkout i wraca na prywatną stronę `/r/{token}`. Zapytanie trafia do mentora dopiero po wpłacie.
+
+- **Tylko tryb testowy Stripe.** Do lokalnych prób: klucze testowe w `.env.local`, webhook przez Stripe CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe` (podaje `whsec_…` do `STRIPE_WEBHOOK_SECRET`). Karty testowe: `4242 4242 4242 4242` (sukces), `4000 0000 0000 0002` (odmowa), `4000 0025 0000 3155` (3-D Secure).
+- **Zadania okresowe** (rekonsyliacja płatności, wygasanie zapytań bez decyzji `requests.lapseOverdue`, rozliczanie zakończonych sesji `sessions.settleEnded`, ponawianie zwrotów, wysyłka e-maili): lokalnie `npm run jobs` (co 60 s woła `POST /api/internal/jobs`); na hostingu cron co 5 min z nagłówkiem `Authorization: Bearer $CRON_SECRET`. `GET /api/internal/jobs` (ta sama autoryzacja) zwraca zdrowie: `stale: true`, gdy któreś zadanie nie biegło od 30 min, i `failedRefunds` — cel dla monitora.
+- **Sesja = czat tekstowy (#20, E03).** Zaakceptowane zapytanie ma czat na `/r/{token}` (deweloper) i `/mentor/requests/{id}` (mentor): pisać można tylko w terminie `[start, koniec)` wg zegara bazy, strona odpytuje serwer co 3 s, po terminie czat jest tylko do odczytu. Wiadomości (tabela `session_messages`) są niezmienne — ich czas to dowód dla reguły nieobecności.
+- **Rozliczenie po terminie (#21, R15 + D11).** Zadanie `sessions.settleEnded` (co 5 min) ustawia wynik zakończonej sesji: mentor nic nie napisał w terminie → `mentor_no_show` i pełny automatyczny zwrot (także gdy nikt nie pisał); pisał tylko mentor → `mentee_no_show`, płatność zostaje u mentora; obie strony → `held`. Deweloper dostaje e-mail przy obu nieobecnościach; spory — ręcznie w panelu Stripe.
+- **E-maile** idą przez outbox w bazie; bez `SMTP_URL` lądują w logu serwera (lokalne QA).
+- **Testy** używają fałszywego klienta Stripe (`tests/payments/fake-stripe.mjs`), a e2e — lokalnego fałszywego serwera Stripe (`tests/e2e/fake-stripe-server.mjs`, `STRIPE_API_BASE_URL` przyjmowane tylko dla localhost). Prawdziwe klucze nie są potrzebne.
 
 ## Mentorzy: zaproszenia i logowanie
 
@@ -222,7 +208,14 @@ npm run mentor:invite -- --help                   # pomoc
 | `/sign-in/[token]` | Logowanie jednorazowym linkiem. Samo otwarcie linku niczego nie zużywa. |
 | `/mentor` | Edytor strony mentora: szkic, publikacja, link do udostępnienia; baner „Nie masz dostępności”, gdy brak okien. Nawigacja: „Strona”, „Dostępność” i „Wyloguj”. |
 | `/mentor/availability` | Tygodniowe okna dostępności w strefie mentora (strefa z przeglądarki przy pierwszej wizycie), podgląd 10 najbliższych terminów. |
-| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min. Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
+| `/mentor/requests` | Zapytania mentora (#18): lista z licznikiem, „Zapytania” w nawigacji na wszystkich ekranach mentora. |
+| `/mentor/requests/[id]` | Szczegóły zapytania i decyzja mentora: akceptacja albo odmowa (zwrot automatyczny); link z e-maila `mentor_new_request`. |
+| `/m/[slug]` | Publiczna strona mentora (link do udostępnienia): imię, praca publiczna, opis, ceny 25/50 min, formularz zapytania opłaconego z góry (każdy wolny termin to wybór w formularzu, #17). Slug jest stały po publikacji. Szkic, nieznany slug, `/m` i `/m?search=…` → 404 „Nie ma takiej strony mentora” (sprawdzane w `proxy.ts`). Każda odpowiedź `/m/*` ma `noindex, nofollow`; aplikacja nigdzie nie listuje mentorów. |
+| `/r/[token]` | Prywatna strona zapytania dewelopera (powrót ze Stripe, link z e-maila): stan płatności i zapytania, termin, kwota, pytanie; stany accepted / declined / overdue / lapsed ze stanem zwrotu; przycisk „Anuluj i odzyskaj” (#19, także po starcie terminu, do akceptacji). Nieznany albo wygasły (30 dni po terminie) token → 404; `Referrer-Policy: no-referrer`, `noindex`. |
+| `GET/POST /api/r/session` | Czat sesji dewelopera (#20): token z linku `/r/{token}` tylko w nagłówku `X-Request-Token`; `GET ?after=<seq>` — nowe wiadomości + faza sesji, `POST {"body":"…"}` — wiadomość (tylko w terminie). |
+| `GET/POST /api/mentor/requests/[id]/session` | Czat sesji mentora (#20): mentor z ciasteczka sesji. |
+| `POST /api/webhooks/stripe` | Webhook płatności Stripe (podpis `Stripe-Signature`, tylko tryb testowy). |
+| `POST/GET /api/internal/jobs` | Zadania okresowe i ich zdrowie (`Authorization: Bearer $CRON_SECRET`). |
 
 ## Skrypty npm
 
@@ -238,6 +231,7 @@ npm run mentor:invite -- --help                   # pomoc
 | `npm run setup` | Instalator środowiska lokalnego (idempotentny, wykonuje też migracje) |
 | `npm run db:migrate` | Wykonanie oczekujących migracji bazy |
 | `npm run db:rollback` | Cofnięcie ostatniej migracji — tylko lokalnie / w testach |
+| `npm run jobs` | Lokalny scheduler zadań okresowych: co 60 s `POST /api/internal/jobs` (`-- --once` jeden raz) |
 | `npm run mentor:invite -- <email>` | Link zaproszenia mentora (tylko dla założycieli) |
 | `npm run mentor:sign-in-link -- <email>` | Jednorazowy link logowania dla istniejącego mentora (tylko dla założycieli) |
 

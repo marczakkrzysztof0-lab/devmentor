@@ -150,7 +150,7 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
     }
   });
 
-  test("akceptacja: /mentor zalogowany, nawigacja „Strona”, „Dostępność” + „Wyloguj” bez „Zapytania”, mentor i szkic w bazie (Z11)", async () => {
+  test("akceptacja: /mentor zalogowany, nawigacja „Zapytania”, „Strona”, „Dostępność” + „Wyloguj” (od #18; bez licznika, gdy nic nie czeka), mentor i szkic w bazie", async () => {
     const address = email("accept");
     const { context, page } = await acceptInBrowser(address);
     try {
@@ -161,11 +161,11 @@ describe("mentor: zaproszenie, logowanie linkiem, wylogowanie", { skip }, () => 
       await assertMainLandmark(page, { heading: "Twoja strona" });
       const nav = page.getByRole("navigation", { name: "Panel mentora" });
       const links = (await nav.getByRole("link").allInnerTexts()).map((text) => text.trim());
-      assert.deepEqual(links, ["Strona", "Dostępność"]);
+      assert.deepEqual(links, ["Zapytania", "Strona", "Dostępność"]);
       assert.equal(await nav.getByRole("link", { name: "Strona" }).getAttribute("aria-current"), "page");
       assert.equal(await nav.getByRole("button", { name: "Wyloguj" }).count(), 1);
-      assert.equal(await page.getByRole("link", { name: /Zapytania|zapyta/ }).count(), 0);
-      assert.equal(await page.getByText(/Zapytania/).count(), 0);
+      assert.equal(await nav.getByRole("link", { name: "Zapytania" }).getAttribute("href"), "/mentor/requests");
+      assert.equal(await page.getByText(/czeka(ją)? na decyzję/).count(), 0, "bez licznika, gdy nic nie czeka");
       assert.equal(await page.title(), "Twoja strona — DevMentor");
 
       const cookie = await sessionCookie(context);

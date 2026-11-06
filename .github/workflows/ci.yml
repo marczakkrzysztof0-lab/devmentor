@@ -36,6 +36,8 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Lesson 17: bundle size gate on the build output (.size-limit.json, brotli). Limits ≈ current size + 10%.
+      - run: npm run size
 
   test:
     runs-on: ubuntu-latest
@@ -65,6 +67,59 @@ jobs:
       - run: npm test
         env:
           DATABASE_URL: postgresql://devmentor:devmentor@localhost:5432/devmentor
+
+  # Lesson 12: integration (E2E) tests — Playwright on the production build (`next start`) with PostgreSQL.
+  # scripts/test-e2e.mjs creates a disposable dm_migtest_* schema per run; CI=true turns a missing DB into a failure.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: devmentor
+          POSTGRES_PASSWORD: devmentor
+          POSTGRES_DB: devmentor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devmentor -d devmentor"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://devmentor:devmentor@localhost:5432/devmentor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+      - run: npm run test:integration
+
+  # Lesson 17: a bug that came back despite review (PR #49) — e2e and labels that depend on the day they run.
+  # Frozen-clock check of slot radio names and day labels for boundary dates (1.11/11.11, DST in PL and the USA,
+  # month and year ends) + no ad-hoc date selectors in tests/e2e. TZ is set to an exotic zone on purpose: the result
+  # must not depend on the machine clock or zone. No database, no browser.
+  date-guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check:date-selectors
+      - run: node --test tests/availability/slot-radio-names.test.mjs tests/date-selectors.test.mjs
+        env:
+          TZ: Pacific/Kiritimati
 
   # Design system: values outside the tokens in packages/ui and app/ (A1, P10).
   tokens:

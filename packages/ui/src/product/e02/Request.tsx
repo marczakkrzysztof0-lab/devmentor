@@ -294,6 +294,19 @@ export function RequestStatusView({
       tone: "neutral",
     },
     cancelled: { title: refundRequested ? `Anulowane — zwrot ${amount} zlecony` : `Anulowane — zwrot ${amount} zostanie zlecony automatycznie`, tone: "neutral" },
+    // #21: the outcome follows the data — no money wording before the session is settled.
+    session_ended: { title: "Sesja zakończona — rozliczamy (zwykle do kilku minut)", tone: "waiting" },
+    held: { title: "Sesja odbyta", tone: "success" },
+    mentee_no_show: { title: "Brak Twojej wiadomości w czasie sesji — zgodnie z zasadami płatność zostaje u mentora", tone: "neutral" },
+    mentor_no_show: {
+      // A refund that finally failed (#24, 24 h or a dispute) is not „zlecony” any more: the line below says what to do.
+      title: refundStatus === "failed"
+        ? `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} nie powiódł się automatycznie`
+        : refundRequested
+        ? `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zlecony automatycznie`
+        : `Brak wiadomości od mentora w czasie sesji — zwrot ${amount} zostanie zlecony automatycznie`,
+      tone: "neutral",
+    },
   };
   const { title, tone } = map[status];
   const refund = refundText(refundStatus);
@@ -440,9 +453,7 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
       setPending(false);
     }
   };
-  if (problem === "accepted") {
-    return <Alert tone="info" title="Pytanie zostało właśnie zaakceptowane — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
-  }
+  if (problem === "accepted") return <CancelNotPossible justAccepted />;
   return (
     <section aria-label="Anulowanie" className="flex flex-col items-start gap-in-group">
       {problem === "network" ? <Alert tone="danger" title={NETWORK_ACTION_MESSAGE} /> : null}
@@ -461,8 +472,14 @@ export function CancelRequest({ amountMinor, currency = "PLN", action, onDone }:
   );
 }
 
-/** After acceptance: why there is no cancel button (#19 story 2). */
-export function CancelNotPossible() {
+/**
+ * After acceptance: why there is no cancel button (#19 story 2). `justAccepted`: the mentor accepted while this tab
+ * still showed the button (race, #19 story 3) — the page keeps saying so after it re-renders as accepted.
+ */
+export function CancelNotPossible({ justAccepted = false }: { justAccepted?: boolean }) {
+  if (justAccepted) {
+    return <Alert tone="info" title="Pytanie zostało właśnie zaakceptowane — sesja się odbędzie">Anulowanie ze zwrotem nie jest już możliwe.</Alert>;
+  }
   return <p className="text-muted">Pytanie zostało już przyjęte — anulowanie ze zwrotem nie jest już możliwe.</p>;
 }
 

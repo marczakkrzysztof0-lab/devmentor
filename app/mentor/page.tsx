@@ -3,7 +3,8 @@
 // zaproszenie…”, bez formularza, bez danych, bez rejestracji. Odczyt sesji i strony za <Suspense>
 // (cacheComponents) — granica obejmuje cały PageLayout, fallback ma własny PageLayout.
 //
-// Nawigacja E01 (L7, L10, Z8, Z11): „Strona”, „Dostępność”, „Wyloguj” — bez „Zapytania” i bez licznika.
+// Nawigacja (od E02 #18): „Zapytania” + licznik czekających na decyzję, „Strona”, „Dostępność”, „Wyloguj”
+// (wcześniej E01 bez „Zapytania”: L7, L10, Z8, Z11).
 // Bez wzmianki o wypłatach (Z36).
 //
 // Baner „Nie masz dostępności — nikt nie może wybrać terminu” (#15 story 3), gdy mentor nie ma żadnego okna —
@@ -15,6 +16,7 @@ import { connection } from "next/server";
 import { Skeleton } from "@devmentor/ui";
 import { AccessMessage, MentorNav, MentorPageForm, NoAvailabilityNotice, PageLayout } from "@devmentor/ui/product";
 import { loadMentorPageEditor } from "@/lib/mentor-page/editor";
+import { pendingDecisionCount } from "@/lib/requests/mentor-area";
 import { saveMentorPageAction, signOutAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -50,7 +52,7 @@ async function MentorArea() {
     );
   }
   return (
-    <PageLayout nav={<MentorNav current="page" sections={["page", "availability"]} signOutAction={signOutAction} />}>
+    <PageLayout nav={<MentorNav current="page" pendingCount={await pendingDecisionCount()} signOutAction={signOutAction} />}>
       <MentorPageForm
         initial={editor.initial}
         published={editor.published}

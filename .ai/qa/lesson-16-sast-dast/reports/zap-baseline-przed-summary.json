@@ -1,0 +1,56 @@
+[
+  {
+    "id": "10020",
+    "risk": "Medium (Medium)",
+    "name": "Missing Anti-clickjacking Header",
+    "count": 4
+  },
+  {
+    "id": "10038",
+    "risk": "Medium (High)",
+    "name": "Content Security Policy (CSP) Header Not Set",
+    "count": 8
+  },
+  {
+    "id": "10021",
+    "risk": "Low (Medium)",
+    "name": "X-Content-Type-Options Header Missing",
+    "count": 10
+  },
+  {
+    "id": "10037",
+    "risk": "Low (Medium)",
+    "name": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+    "count": 8
+  },
+  {
+    "id": "10063",
+    "risk": "Low (Medium)",
+    "name": "Permissions Policy Header Not Set",
+    "count": 10
+  },
+  {
+    "id": "90004",
+    "risk": "Low (Medium)",
+    "name": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
+    "count": 16
+  },
+  {
+    "id": "10049",
+    "risk": "Informational (Medium)",
+    "name": "Non-Storable Content",
+    "count": 19
+  },
+  {
+    "id": "10109",
+    "risk": "Informational (Medium)",
+    "name": "Modern Web Application",
+    "count": 6
+  },
+  {
+    "id": "10031",
+    "risk": "Informational (Low)",
+    "name": "User Controllable HTML Element Attribute (Potential XSS)",
+    "count": 1
+  }
+]

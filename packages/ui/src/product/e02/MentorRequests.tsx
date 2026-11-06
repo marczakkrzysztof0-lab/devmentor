@@ -24,7 +24,10 @@ export type MentorRequestItem = {
   lengthMinutes: SessionLength;
   slotStart: string;
   slotEnd: string;
-  status: Extract<RequestStatus, "awaiting_mentor" | "overdue" | "accepted" | "declined" | "lapsed" | "cancelled">;
+  status: Extract<
+    RequestStatus,
+    "awaiting_mentor" | "overdue" | "accepted" | "declined" | "lapsed" | "cancelled" | "session_ended" | "held" | "mentee_no_show" | "mentor_no_show"
+  >;
 };
 
 /** „Zdecyduj do jutra 12:30” / „Zdecyduj dziś do 12:30” / „Zdecyduj przed czw. 22.10, 12:30”. */
@@ -43,6 +46,11 @@ const STATUS_WORD: Record<MentorRequestItem["status"], { text: string; tone: Sta
   declined: { text: "Zakończone — odrzucone", tone: "neutral" },
   lapsed: { text: "Zakończone — przeterminowane", tone: "neutral" },
   cancelled: { text: "Zakończone — anulowane", tone: "neutral" },
+  // #21: session outcomes (R15 + D11).
+  session_ended: { text: "Sesja zakończona — rozliczamy", tone: "waiting" },
+  held: { text: "Zakończone — sesja odbyta", tone: "neutral" },
+  mentee_no_show: { text: "Zakończone — brak wiadomości od dewelopera (płatność zostaje)", tone: "neutral" },
+  mentor_no_show: { text: "Zakończone — brak Twojej wiadomości (zwrot dla dewelopera)", tone: "neutral" },
 };
 
 export type RequestListProps = {
@@ -70,8 +78,8 @@ export function RequestList({ requests, state = "ready", timeZone, now = new Dat
   const bySlot = (a: MentorRequestItem, b: MentorRequestItem) => a.slotStart.localeCompare(b.slotStart);
   const groups = [
     { id: "waiting", title: "Czeka na decyzję", items: requests.filter((r) => r.status === "awaiting_mentor" || r.status === "overdue").sort(bySlot) },
-    { id: "accepted", title: "Zaakceptowane", items: requests.filter((r) => r.status === "accepted").sort(bySlot) },
-    { id: "done", title: "Zakończone", items: requests.filter((r) => ["declined", "lapsed", "cancelled"].includes(r.status)).sort(bySlot).reverse() },
+    { id: "accepted", title: "Zaakceptowane", items: requests.filter((r) => r.status === "accepted" || r.status === "session_ended").sort(bySlot) },
+    { id: "done", title: "Zakończone", items: requests.filter((r) => ["declined", "lapsed", "cancelled", "held", "mentee_no_show", "mentor_no_show"].includes(r.status)).sort(bySlot).reverse() },
   ].filter((group) => group.items.length > 0);
 
   return (
@@ -191,8 +199,12 @@ export function RequestDecision({ request, timeZone, now = new Date(), onAccept,
           <StatusText tone="neutral" withIcon>
             {request.refundStatus ? "Zakończone — przeterminowane, zwrot zlecony" : "Zakończone — przeterminowane, zwrot zostanie zlecony automatycznie"}
           </StatusText>
-        ) : (
+        ) : status === "cancelled" ? (
           <StatusText tone="neutral" withIcon>Zakończone — zapytanie anulowane przez dewelopera</StatusText>
+        ) : (
+          <StatusText tone={STATUS_WORD[status].tone} withIcon>
+            {STATUS_WORD[status].text}
+          </StatusText>
         )}
       </header>
       <RequestSummary lengthMinutes={request.lengthMinutes} slotStart={request.slotStart} slotEnd={request.slotEnd} timeZone={timeZone} amountMinor={request.amountMinor} currency={request.currency} now={now} />

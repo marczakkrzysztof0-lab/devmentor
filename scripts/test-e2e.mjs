@@ -12,18 +12,25 @@
 //   5. czeka, aż serwer odpowie, i uruchamia `node --test` na plikach tests/e2e/*.e2e.mjs ze zmiennymi
 //      E2E_BASE_URL, E2E_DATABASE_URL (z search_path), E2E_SCHEMA;
 //   6. zawsze zatrzymuje serwer i usuwa schemat (także po błędzie i Ctrl+C).
+// Płatności (#24, #17): obok aplikacji startuje lokalny fałszywy Stripe (`tests/e2e/fake-stripe-server.mjs`);
+// aplikacja dostaje atrapy `sk_test_…` i `STRIPE_API_BASE_URL` na niego (tylko localhost), testy —
+// `E2E_FAKE_STRIPE_URL`. Żadnych prawdziwych kluczy ani ruchu do Stripe.
+// Zadania okresowe (#21): losowy `CRON_SECRET` na jeden przebieg (aplikacja i testy jako `E2E_CRON_SECRET`), żeby
+// e2e mogły wołać `POST /api/internal/jobs` jak cron hostingu; nigdzie niezapisywany.
 //
 // Przeglądarka: Chromium z cache Playwright (bez `playwright install`). Pod `next start` NODE_ENV=production,
 // więc ciasteczko sesji ma flagę Secure — Chromium przyjmuje je na http://localhost.
 //
 // Użycie: npm run test:e2e [-- <ścieżki plików .e2e.mjs>]    pomoc: npm run test:e2e -- --help
 import { spawn, spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, readdirSync } from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPool } from "../lib/db/pool.mjs";
 import { createTestSchema, databaseStatus, DATABASE_URL } from "../tests/db/harness.mjs";
+import { fakeStripeEnv, startFakeStripeServer } from "../tests/e2e/fake-stripe-server.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BUILD_ID = path.join(ROOT, ".next", "BUILD_ID");
@@ -31,6 +38,8 @@ const E2E_DIR = path.join(ROOT, "tests", "e2e");
 const NEXT_BIN = path.join(ROOT, "node_modules", "next", "dist", "bin", "next");
 const READY_TIMEOUT_MS = 60_000;
 const isCi = process.env.CI === "true";
+/** Nieudane usunięcie schematu testowego = niezerowy kod wyjścia (wyciek schematu ma być widoczny, nie tylko w logu). */
+let schemaCleanupFailed = false;
 
 export const HELP_TEXT = `Testy end-to-end (Playwright, Chromium) na buildzie produkcyjnym.
 
@@ -133,9 +142,15 @@ async function main(argv) {
   let schemaHandle;
   /** @type {import("node:child_process").ChildProcess | undefined} */
   let server;
+  /** @type {Awaited<ReturnType<typeof startFakeStripeServer>> | undefined} */
+  let fakeStripe;
   const cleanup = async () => {
     killTree(server);
-    await schemaHandle?.dispose().catch((error) => console.error("[e2e] nie udało się usunąć schematu:", error.message));
+    await fakeStripe?.close().catch(() => {});
+    await schemaHandle?.dispose().catch((error) => {
+      schemaCleanupFailed = true;
+      console.error("[e2e] nie udało się usunąć schematu:", error.message);
+    });
   };
   const onSignal = () => {
     void cleanup().finally(() => process.exit(130));
@@ -158,12 +173,21 @@ async function main(argv) {
       await probe.end();
     }
 
+    fakeStripe = await startFakeStripeServer();
+    const cronSecret = randomBytes(24).toString("hex");
     const port = await freePort();
     const baseUrl = `http://localhost:${port}`;
     console.log(`[e2e] schemat ${schemaHandle.schema}, serwer ${baseUrl}`);
     server = spawn(process.execPath, [NEXT_BIN, "start", "-p", String(port)], {
       cwd: ROOT,
-      env: { ...process.env, DATABASE_URL: appDatabaseUrl, NEXT_PUBLIC_APP_URL: baseUrl, NODE_ENV: "production" },
+      env: {
+        ...process.env,
+        ...fakeStripeEnv(fakeStripe.url),
+        CRON_SECRET: cronSecret,
+        DATABASE_URL: appDatabaseUrl,
+        NEXT_PUBLIC_APP_URL: baseUrl,
+        NODE_ENV: "production",
+      },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let serverLog = "";
@@ -187,6 +211,8 @@ async function main(argv) {
         E2E_BASE_URL: baseUrl,
         E2E_DATABASE_URL: appDatabaseUrl,
         E2E_SCHEMA: schemaHandle.schema,
+        E2E_FAKE_STRIPE_URL: fakeStripe.url,
+        E2E_CRON_SECRET: cronSecret,
       },
       stdio: "inherit",
     });
@@ -204,7 +230,7 @@ async function main(argv) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).then(
-    (code) => process.exit(code),
+    (code) => process.exit(code === 0 && schemaCleanupFailed ? 1 : code),
     (error) => {
       console.error(`[e2e] ${error instanceof Error ? error.message : error}`);
       process.exit(1);

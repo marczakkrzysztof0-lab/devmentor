@@ -1,0 +1,40 @@
+flowchart LR
+  subgraph internet [Niezaufane: internet]
+    Dev[Deweloper z linkiem /r/token]
+    Mentor[Mentor A z ciasteczkiem dm_session]
+    Other[Mentor B / obcy z linkiem]
+    Anon[Anonimowy użytkownik]
+  end
+  subgraph app [Zaufane: aplikacja Next.js]
+    Proxy(proxy.ts: /m, /r)
+    Pages(Strony i server actions)
+    ChatApi(API czatu /api/.../session)
+    Jobs(/api/internal/jobs)
+    Hook(/api/webhooks/stripe)
+  end
+  subgraph data [Zaufane: dane]
+    DB[(PostgreSQL: mentors, mentor_sessions, requests, payments, session_messages)]
+  end
+  subgraph ext [Półzaufane: dostawcy]
+    Stripe[Stripe Checkout / webhook]
+    Mail[SMTP: linki /r/, zaproszenia]
+    Cron[Harmonogram z CRON_SECRET]
+  end
+  Anon -->|"formularz zapytania, slug (T-11, T-07)"| Proxy
+  Dev -->|"token w ścieżce /r/ i w X-Request-Token (T-03, T-04)"| Proxy
+  Dev -->|"wiadomości czatu, anulowanie (T-03, T-06, T-10)"| ChatApi
+  Mentor -->|"ciasteczko sesji, decyzje, edytor (T-02, T-06, T-13)"| Pages
+  Mentor -->|"wiadomości czatu (T-01, T-06)"| ChatApi
+  Other -->|"podmienione id zapytania (T-01, T-02), link logowania (T-05)"| Pages
+  Other -->|"podmienione id zapytania (T-01)"| ChatApi
+  Proxy --> Pages
+  Pages -->|"zapytania z mentor_id z sesji (T-02)"| DB
+  ChatApi -->|"r.id + r.mentor_id / hash tokenu (T-01, T-03)"| DB
+  Pages -->|"Checkout bez treści pytania"| Stripe
+  Stripe -->|"zdarzenia podpisane (T-08)"| Hook
+  Hook --> DB
+  Cron -->|"Bearer CRON_SECRET (T-09)"| Jobs
+  Jobs --> DB
+  Pages -->|"linki z tokenami (T-04, T-05)"| Mail
+  classDef boundary stroke-dasharray: 5 5
+  class internet,app,data,ext boundary

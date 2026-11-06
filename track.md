@@ -117,3 +117,66 @@ Wszystkie ⚠ potwierdzone przez właściciela (rekord D12, `.ai/specs/research/
 - (faza 5) Dwa zapytania do bazy na wyświetlenie opublikowanej strony (proxy + strona). Wyścig „mentor cofa publikację między proxy a renderem” daje miękkie 404 (200 + noindex). Przy niedziałającej bazie `/m/*` zwraca 500.
 - (faza 6) Reguła F3 (6 + „Pokaż więcej”) dla terminów wybieralnych w formularzu zapytania należy do #17 — nie zrobione. Data w ukrytym tekście każdego terminu powtarza się w czytniku ekranu — do odsłuchu w QA.
 - QA ręczne `needs-qa` (SDLC, `risk-high`): przejście od linku zaproszenia do linku udostępnienia mierzone ręcznie (cel 20 min, D08) — po fazie 3.
+
+# Epik 02 — część 1 (lekcja 11)
+
+Tryb autonomiczny (`/om-auto-implement-spec` → `om-auto-create-pr`), gałąź `feat/e02-stripe-and-prepaid-request`, PR #40 (`Zamyka #24`, `Zamyka #17`, `Refs #9`). Start: 2026-10-27. Plan runu z postępem i decyzjami: `.ai/runs/2026-10-27-e02-stripe-and-prepaid-request.md`.
+
+Specyfikacje: `.ai/specs/2026-10-19-stripe-card-payment-refund-and-webhook.md` (#24, fundament płatności) → `.ai/specs/2026-10-19-prepaid-request-with-question.md` (#17).
+
+## Co powstało
+
+- `lib/payments` (#24): konfiguracja i strażnik trybu testowego (tylko `sk_test_`/`rk_test_`), `createPayment` / `openCheckout` / `syncCheckout` / `expireCheckout`, zwrot outbox + dzierżawa (`requestRefund` / `executeRefund`, ponowienia 1/5/15/60 min, 24 h → `failed`), webhook (`POST /api/webhooks/stripe`, podpis, `stripe_events`, zwroty, spory), rekonsyliacja, subskrybenci w transakcji. Migracja `0005_payments`.
+- `lib/jobs`: `POST/GET /api/internal/jobs` (Bearer `CRON_SECRET`, zdrowie `stale`/`failedRefunds`), `npm run jobs`.
+- `lib/requests` + `lib/email` (#17): walidacja, zajęte przedziały (busy na `/m/{slug}`), `startRequest` (blokada wiersza mentora), subskrybent płatności, outbox e-maili (log/SMTP), odczyt `/r/{token}` po hashu. Migracja `0006_requests`.
+- UI: formularz zapytania na `/m/[slug]` (DS `RequestForm`, F4 — godzina = radio), strona `/r/[token]` (stany płatności), `proxy.ts` (404 i `Referrer-Policy: no-referrer` dla `/r/*`). DS: F3 (6 + „Pokaż więcej”) także w trybie wybieralnym, `RadioGroup` z `footer`.
+- E2E z lokalnym fałszywym Stripe (`tests/e2e/fake-stripe-server.mjs`): pełny przepływ formularz → płatność → „Opłacone”, porzucenie, dwie karty, 404. Zrzuty: `.ai/runs/2026-10-27-e02-stripe-and-prepaid-request/screenshots/`.
+
+## Zasady, które doszły (dla kolejnych historii E02/E03)
+
+- Ruch pieniędzy tylko przez `lib/payments`; historie słuchają przez `lib/payments/subscribers.mjs` (w transakcji przejścia) i dopisują zadania w `lib/jobs/registry.mjs`.
+- Testy płatności: fałszywy klient (`tests/payments/fake-stripe.mjs`, migawki kluczy idempotencji, wstrzykiwanie błędów `afterEffect`), zegar sterowany w `deps.now`. Nigdy prawdziwe klucze — atrapy `sk_test_PLACEHOLDER…`.
+- Treść pytania nigdy w e-mailach, Stripe ani logach; błędy Stripe zapisywane jako kod + id żądania.
+
+## Siatka na koniec (lokalnie, 2026-10-27)
+
+`npm test` 587 ✔, `npm run test:e2e` 64 ✔, `npm run test:storybook:themes` 372 ✔; tsc (app + ui), lint, check:tokens, check:agents, build OK.
+
+## Otwarte punkty
+
+- Ręczne QA w trybie testowym Stripe (`stripe listen`, karty 4242/0002/3155, spór, przejście na czas ≤ 5 min, e-maile) — wymaga kluczy testowych; `needs-qa`, bez self-QA (risk-high).
+- Link w e-mailu do mentora `/mentor/requests/{id}` prowadzi do 404 do czasu #18. (zrobione w części 2, PR #46)
+- Anulowanie (#19), decyzja mentora i wygasanie (#18) — kolejne części epiku. (zrobione w części 2, PR #46)
+- `npm run build` ostrzega, że Next.js 16.4.0 ma znaną podatność — osobna aktualizacja zależności.
+- Lista terminów w formularzu jest długa przy szerokich oknach (14 dni × 6 + „Pokaż więcej”) — do obserwacji w pilocie.
+
+# Epik 02 — część 2 (lekcja 11, zadanie domowe)
+
+Tryb autonomiczny (`om-auto-create-pr-loop`), gałąź `feat/e02-mentor-decision-and-cancel`, PR #46 (stos na #40, baza `feat/e02-stripe-and-prepaid-request`; `Zamyka #18`, `Zamyka #19`, `Refs #9`). Start: 2026-10-27. Plan runu: `.ai/runs/2026-10-27-e02-mentor-decision-and-cancel/PLAN.md`.
+
+Specyfikacje: #18 (E02-S02, decyzja mentora i wygasanie) oraz #19 (E02-S03, anulowanie) — `.ai/specs/`.
+
+## Co powstało
+
+- #18: `lib/requests/mentor.mjs` (lista, licznik i szczegóły zapytań mentora, izolacja po `mentor_id`), `lib/requests/decision.mjs` (`acceptRequest` / `declineRequest`: jeden warunkowy UPDATE; odmowa z ponownego odczytu; zwrot `mentor_declined` + e-mail w transakcji, `executeRefund` po commicie), `lib/requests/lapse.mjs` (`lapseOverdue`, zadanie `requests.lapseOverdue` w `lib/jobs/registry.mjs` przed `payments.retryRefunds` i `email.sendDue`; `SKIP LOCKED`).
+- UI mentora: `lib/requests/mentor-area.ts` (DAL), `app/mentor/requests/page.tsx`, `app/mentor/requests/[id]/page.tsx`, `app/mentor/requests/actions.ts`; „Zapytania” z licznikiem w `MentorNav` na wszystkich ekranach mentora (koniec reguły E01 „bez Zapytania”).
+- `/r/{token}`: stany accepted / declined / overdue / lapsed ze stanem zwrotu; e-maile `request_accepted`, `request_declined`, `request_lapsed` (`lib/email/templates.mjs`).
+- #19: `lib/requests/cancel.mjs` (`cancelByToken`: po hashu tokenu, bez strażnika czasu — D05, zwrot `mentee_cancelled`), `app/r/[token]/actions.ts`, przycisk „Anuluj i odzyskaj” na `/r/` (także po starcie terminu), `CancelNotPossible` po akceptacji.
+- Testy: `tests/db/requests-{mentor,decision,lapse,cancel,cancel-race,view-states}.test.mjs`, `tests/requests/race.mjs`, e2e `tests/e2e/mentor-requests.e2e.mjs` i `tests/e2e/request-cancel.e2e.mjs`. Zrzuty: `.ai/runs/2026-10-27-e02-mentor-decision-and-cancel/screenshots/`. Bez migracji i bez nowych zmiennych środowiskowych.
+
+## Zasady, które doszły
+
+- Każde przejście z `awaiting_mentor` to jeden warunkowy UPDATE ze strażnikiem statusu; przegrany wyścigu klasyfikuje wynik z ponownego odczytu.
+- Co najwyżej jeden zwrot na zapytanie — przez idempotentne `requestRefund`; `executeRefund` dopiero po commicie.
+- Wyścigi (akceptacja / odmowa / wygaśnięcie / anulowanie) testuje `tests/requests/race.mjs`.
+
+## Siatka na koniec (lokalnie, 2026-10-27)
+
+`npm test` 642 ✔, `npm run test:e2e` 77 ✔; lint, tsc, build, check:agents OK.
+
+## Otwarte punkty
+
+- Ręczne QA w trybie testowym Stripe (akceptacja, odmowa, wygaśnięcie, anulowanie, zwroty, e-maile) — wymaga kluczy testowych.
+- Najpierw trzeba zmergować bazowy PR #40, potem przestawić #46 na `main`.
+- Czat (#20) opiera się na `requests.id` zaakceptowanego zapytania.
+- Link w e-mailu do mentora (`mentor_new_request`) `/mentor/requests/{id}` już działa.

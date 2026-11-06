@@ -154,16 +154,16 @@ describe("mentor: dostępność /mentor/availability i baner na /mentor", { skip
     assert.match(meta ?? "", /noindex/);
   });
 
-  test("/mentor: szkic przy pierwszej wizycie ma baner (Z21); nawigacja „Strona”, „Dostępność”, „Wyloguj”, bez „Zapytania”", async () => {
+  test("/mentor: szkic przy pierwszej wizycie ma baner (Z21); nawigacja „Zapytania”, „Strona”, „Dostępność”, „Wyloguj” (od #18)", async () => {
     const { page } = a;
     await openMentor(page);
     await page.getByText(NO_AVAILABILITY, { exact: true }).waitFor();
     assert.equal(await page.getByRole("link", { name: "Dodaj dostępność" }).getAttribute("href"), "/mentor/availability");
     assert.equal(await page.getByRole("textbox", { name: "Twój link" }).count(), 0, "szkic — bez panelu linku");
     const nav = page.getByRole("navigation", { name: "Panel mentora" });
-    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Strona", "Dostępność"]);
+    assert.deepEqual((await nav.getByRole("link").allInnerTexts()).map((t) => t.trim()), ["Zapytania", "Strona", "Dostępność"]);
     assert.equal(await nav.getByRole("button", { name: "Wyloguj" }).count(), 1);
-    assert.equal(await page.getByRole("link", { name: /Zapytania|zapyta/ }).count(), 0);
+    assert.equal(await page.getByText(/czeka(ją)? na decyzję/).count(), 0, "bez licznika, gdy nic nie czeka");
     assert.equal(await nav.getByRole("link", { name: "Dostępność" }).getAttribute("href"), "/mentor/availability");
   });
 

@@ -21,6 +21,11 @@ const REQUESTS: MentorRequestItem[] = [
   item("r2", "Ola", 50, warsaw("2026-10-22", "18:00"), "accepted"),
   item("r3", "Kuba", 25, warsaw("2026-10-15", "18:00"), "lapsed"),
   item("r4", "Ola", 25, warsaw("2026-10-13", "12:00"), "cancelled"),
+  // #21: session outcomes and a session waiting for settlement.
+  item("r5", "Kuba", 25, warsaw("2026-10-19", "12:30"), "session_ended"),
+  item("r6", "Ola", 25, warsaw("2026-10-12", "12:30"), "held"),
+  item("r7", "Kuba", 50, warsaw("2026-10-11", "18:00"), "mentee_no_show"),
+  item("r8", "Ola", 25, warsaw("2026-10-10", "12:30"), "mentor_no_show"),
 ];
 
 const MANY: MentorRequestItem[] = Array.from({ length: 30 }, (_, i) =>
