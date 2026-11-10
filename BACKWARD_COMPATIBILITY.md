@@ -1,6 +1,6 @@
 # Kompatybilność wsteczna – DevMentor
 
-Projekt jest przed wersją 1.0 i nie ma jeszcze zewnętrznych konsumentów. Większość powierzchni może się więc zmieniać swobodnie. Ten plik wymienia to, co już dziś jest kontraktem, i to, co nim zostanie, gdy powstanie.
+Od wydania 1.0.0 (2026-11-10) powierzchnie z tabeli poniżej są kontraktem: zmiana łamiąca wymaga opisanej ścieżki, wpisu w [UPGRADE_NOTES.md](UPGRADE_NOTES.md) z migracją i wycofaniem oraz wzmianki w [CHANGELOG.md](CHANGELOG.md). Wersje numerujemy semantycznie: zmiana łamiąca bez okresu przejściowego podbija wersję główną (2.0.0), nowa funkcja pomniejszą (1.1.0), poprawka łatkę (1.0.1). Ten plik wymienia to, co jest kontraktem dziś, i to, co nim zostanie, gdy powstanie.
 
 ## Chronione powierzchnie (dziś)
 
@@ -33,3 +33,4 @@ Projekt jest przed wersją 1.0 i nie ma jeszcze zewnętrznych konsumentów. Wię
 - Złamanie chronionej powierzchni bez opisanej ścieżki to **blocker** w review (`om-code-review`).
 - Skille implementujące muszą ostrzec, gdy zmiana narusza ten plik.
 - Gdy powstaje nowa powierzchnia z listy „przyszłe”, przenieś ją do tabeli „dziś” w tym samym PR.
+- PR ze zmianą schematu bazy, zmiennych środowiskowych albo konfiguracji Stripe/crona dopisuje sekcję w `UPGRADE_NOTES.md` dla najbliższego wydania (aktualizacja + wycofanie).
