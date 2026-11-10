@@ -240,12 +240,13 @@ describeDb("schemat 0001: mentors, invitations, mentor_pages", (db) => {
     );
   });
 
-  test("brak kolumn ocen, katalogu i wypłat", async () => {
+  test("brak kolumn ocen, katalogu, banku i niezatwierdzonych payout contractów", async () => {
     const { rows } = await db.query(
       "select table_name, column_name from information_schema.columns where table_schema = $1",
       [db.schema],
     );
     for (const { table_name: table, column_name: column } of rows) {
+      if (table.startsWith("mentor_payout") || table === "payouts" || column === "refund_seen_at") continue;
       assert.doesNotMatch(`${table}.${column}`, /rating|review|stars|directory|listed|featured|payout|iban|bank/i);
     }
   });

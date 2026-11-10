@@ -1,0 +1,116 @@
+{
+  "at": "2026-11-10T16:10:44.536Z",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "A: przed płatnością brak wzmianki o wypłatach",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: prośba o konfigurację jest widoczna przy 390 px",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: górna krawędź prośby mieści się w pierwszym widoku 844 px",
+      "ok": true,
+      "detail": "{\"x\":56,\"y\":226.1875,\"width\":302,\"height\":48}"
+    },
+    {
+      "name": "A: /mentor bez poziomego przewijania przy 390 px",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: zapytania działają przy widocznej prośbie",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: /mentor/payouts ma jeden landmark <main>",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: held widnieje jako oczekująca kwota 135 zł",
+      "ok": true,
+      "detail": "Wypłaty\nWypłaty nie są skonfigurowane — kwota czeka na wypłatę\n\nDane do wypłaty podajesz na stronie Stripe, nie w DevMentorze. Bez nich Stripe nie przeleje pieniędzy.\n\nDo wypłaty\n135 zł\nWypłacone do t"
+    },
+    {
+      "name": "A: /mentor/payouts zawiera nawigację Wyloguj",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: /mentor/payouts bez poziomego przewijania przy 390 px",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: porzucony onboarding pokazuje aktualny komunikat i przycisk dokończenia",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: po porzuceniu środki pozostają oczekujące",
+      "ok": true,
+      "detail": "held_for_payout"
+    },
+    {
+      "name": "B: ma własne konto pending i własne 135 zł",
+      "ok": true,
+      "detail": "Wypłaty\nKonfiguracja w Stripe nie jest dokończona — kwota czeka na wypłatę\n\nDokończ konfigurację danych do wypłaty na stronie Stripe.\n\nNa stronie Stripe nie wszystko zostało dokończone — dokończ, żeby"
+    },
+    {
+      "name": "B: porzucony onboarding pokazuje aktualny komunikat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B: cudzy return URL pokazuje wyłącznie stan B, bez danych A",
+      "ok": true,
+      "detail": "http://localhost:59715/mentor/payouts?stripe=return&account=acct_test_e2emwavzz565"
+    },
+    {
+      "name": "B: cudzy return URL nie tworzy ani nie zmienia konta A",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B: link onboardingu A nie ujawnia danych konta A",
+      "ok": true,
+      "detail": "http://127.0.0.1:59714/connect/acct_test_e2emwavzz565"
+    },
+    {
+      "name": "B: otwarcie linku onboardingu A nie zmienia konta A",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B: po otwarciu linku A nadal widzi własne 135 zł i konto pending",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: po powrocie konto wypłat jest gotowe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A: gotowe konto pokazuje held jako Do wypłaty",
+      "ok": true,
+      "detail": "Wypłaty\nWypłaty gotowe\n\nStripe przelewa środki na rachunek wskazany podczas konfiguracji.\n\nKonfiguracja na stronie Stripe zakończona\n\nWypłaty są gotowe.\nDo wypłaty\n0 zł\nWypłacone do tej pory\n135 zł\nWy"
+    },
+    {
+      "name": "A: zadanie wypłaciło 135 zł",
+      "ok": true,
+      "detail": "{\"recorded\":0,\"cancelled\":0,\"flagged\":0,\"transferred\":1,\"failed\":0,\"skipped\":0}"
+    },
+    {
+      "name": "Drugie uruchomienie zadania: nadal jeden transfer",
+      "ok": true,
+      "detail": "{\"count\":1,\"transfers\":[{\"id\":\"tr_test_e2emwaw1s9w25\",\"object\":\"transfer\",\"amount\":13500,\"currency\":\"pln\",\"destination\":\"acct_test_e2emwavzz565\",\"source_transaction\":\"ch_pi_test_e2emwavzwsd3\",\"amount_reversed\":0,\"metadata\":{\"payout_id\":\"c57b5a4d-f6fe-42ad-bc73-f951aa087d6b\",\"request_id\":\"38fbbdb2-979d-44bb-88df-d7c5be8d72ce\"}}]}"
+    }
+  ]
+}

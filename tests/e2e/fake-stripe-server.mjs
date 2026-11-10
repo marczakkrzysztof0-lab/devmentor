@@ -16,6 +16,8 @@ export function startFakeStripeServer({ port = 0 } = {}) {
   const sessions = new Map();
   /** @type {Map<string, any>} */
   const refunds = new Map();
+  const accounts = new Map();
+  const transfers = new Map();
   /** @type {Map<string, string>} */
   const idempotency = new Map();
   let base = "";
@@ -37,6 +39,10 @@ export function startFakeStripeServer({ port = 0 } = {}) {
     const parts = url.pathname.split("/").filter(Boolean);
     const form = req.method === "POST" ? await readBody(req) : new URLSearchParams();
     const key = req.headers["idempotency-key"];
+
+    if (parts[0] === "__test" && parts[1] === "transfers" && req.method === "GET") {
+      return json(res, 200, { count: transfers.size, transfers: [...transfers.values()] });
+    }
 
     // ---- strona płatności (zamiast checkout.stripe.com)
     if (parts[0] === "pay" && parts[1] && sessions.has(parts[1])) {
@@ -60,6 +66,26 @@ export function startFakeStripeServer({ port = 0 } = {}) {
 <h1>${amount} ${session.currency.toUpperCase()}</h1><p>${session.product_name}</p>
 <form method="post" action="/pay/${session.id}/complete"><button type="submit">Zapłać (test)</button></form>
 <p><a href="${session.cancel_url}">Wróć</a></p></body></html>`);
+    }
+
+    if (parts[0] === "connect" && accounts.has(parts[1])) {
+      const account = accounts.get(parts[1]);
+      if (req.method === "POST" && parts[2] === "complete") {
+        account.payouts_enabled = true;
+        account.details_submitted = true;
+        account.capabilities.transfers = "active";
+        res.writeHead(303, { location: account.return_url });
+        return res.end();
+      }
+      if (req.method === "POST" && parts[2] === "back") {
+        res.writeHead(303, { location: account.refresh_url });
+        return res.end();
+      }
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      return res.end(`<!doctype html><html lang="pl"><meta charset="utf-8"><title>Stripe test</title>
+<h1>Konfiguracja wypłat</h1>
+<form method="post" action="/connect/${account.id}/complete"><button>Dokończ konfigurację (test)</button></form>
+<form method="post" action="/connect/${account.id}/back"><button>Wróć</button></form></html>`);
     }
 
     if (parts[0] !== "v1") return error(res, 404, "resource_missing");
@@ -102,6 +128,68 @@ export function startFakeStripeServer({ port = 0 } = {}) {
       }
     }
 
+    if (parts[1] === "accounts" && parts.length === 2 && req.method === "POST") {
+      if (key && idempotency.has(key)) return json(res, 200, accounts.get(idempotency.get(key)));
+      const account = {
+        id: id("acct"),
+        object: "account",
+        payouts_enabled: false,
+        details_submitted: false,
+        capabilities: { transfers: "pending", card_payments: "pending" },
+        metadata: { mentor_id: form.get("metadata[mentor_id]") },
+        return_url: null,
+        refresh_url: null,
+      };
+      accounts.set(account.id, account);
+      if (key) idempotency.set(key, account.id);
+      return json(res, 200, account);
+    }
+    if (parts[1] === "accounts" && parts[2] && req.method === "GET") {
+      return accounts.has(parts[2])
+        ? json(res, 200, accounts.get(parts[2]))
+        : error(res, 404, "resource_missing");
+    }
+    if (parts[1] === "account_links" && req.method === "POST") {
+      const account = accounts.get(form.get("account"));
+      if (!account) return error(res, 404, "resource_missing");
+      account.return_url = form.get("return_url");
+      account.refresh_url = form.get("refresh_url");
+      return json(res, 200, { object: "account_link", url: `${base}/connect/${account.id}` });
+    }
+    if (parts[1] === "payment_intents" && parts[2] && req.method === "GET") {
+      const session = [...sessions.values()].find((item) => item.payment_intent === parts[2]);
+      return session
+        ? json(res, 200, { id: parts[2], latest_charge: `ch_${parts[2]}` })
+        : error(res, 404, "resource_missing");
+    }
+    if (parts[1] === "transfers" && req.method === "GET") {
+      const destination = url.searchParams.get("destination");
+      return json(res, 200, {
+        object: "list",
+        data: [...transfers.values()].filter((transfer) => transfer.destination === destination),
+        has_more: false,
+      });
+    }
+    if (parts[1] === "transfers" && req.method === "POST") {
+      if (key && idempotency.has(key)) return json(res, 200, transfers.get(idempotency.get(key)));
+      const transfer = {
+        id: id("tr"),
+        object: "transfer",
+        amount: Number(form.get("amount")),
+        currency: form.get("currency"),
+        destination: form.get("destination"),
+        source_transaction: form.get("source_transaction"),
+        amount_reversed: 0,
+        metadata: {
+          payout_id: form.get("metadata[payout_id]"),
+          request_id: form.get("metadata[request_id]"),
+        },
+      };
+      transfers.set(transfer.id, transfer);
+      if (key) idempotency.set(key, transfer.id);
+      return json(res, 200, transfer);
+    }
+
     // ---- Refunds
     if (parts[1] === "refunds") {
       if (req.method === "GET" && parts.length === 2) {
@@ -127,7 +215,7 @@ export function startFakeStripeServer({ port = 0 } = {}) {
     server.listen(port, "127.0.0.1", () => {
       const address = /** @type {import("node:net").AddressInfo} */ (server.address());
       base = `http://127.0.0.1:${address.port}`;
-      resolve({ url: base, sessions, refunds, close: () => new Promise((done) => server.close(() => done(undefined))) });
+      resolve({ url: base, sessions, refunds, accounts, transfers, close: () => new Promise((done) => server.close(() => done(undefined))) });
     });
   });
 }

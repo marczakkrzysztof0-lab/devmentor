@@ -31,7 +31,9 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
   const sessions = new Map();
   /** @type {Map<string, any>} */
   const refunds = new Map();
-  /** @type {Map<string, { params: string, result: any }>} */
+  const accounts = new Map();
+  const transfers = new Map();
+  /** @type {Map<string, { params: string, result?: any, error?: Error }>} */
   const idempotency = new Map();
   /** @type {Map<string, Array<{ error: Error, afterEffect: boolean }>>} */
   const failures = new Map();
@@ -48,13 +50,20 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
     await wait();
     const queue = failures.get(method) ?? [];
     const failure = queue.shift();
-    if (failure && !failure.afterEffect) throw failure.error;
     const key = options?.idempotencyKey;
+    if (failure && !failure.afterEffect) {
+      // Stripe caches received errors (except 409/429); network errors have no status and are not cached.
+      if (key && Number.isFinite(failure.error?.statusCode) && failure.error.statusCode !== 409 && failure.error.statusCode !== 429) {
+        idempotency.set(key, { params: JSON.stringify(params), error: failure.error });
+      }
+      throw failure.error;
+    }
     // Jak Stripe: odpowiedź na klucz idempotencji to migawka z chwili pierwszego wykonania.
     let snapshot;
     if (key && idempotency.has(key)) {
       const saved = idempotency.get(key);
       if (saved.params !== JSON.stringify(params)) throw stripeError({ statusCode: 400, type: "StripeIdempotencyError", code: "idempotency_error" });
+      if (saved.error) throw saved.error;
       snapshot = saved.result;
     } else {
       const result = effect();
@@ -76,6 +85,54 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
     [...refunds.values()].filter((r) => r.payment_intent === paymentIntent && r.status !== "failed" && r.status !== "canceled").reduce((sum, r) => sum + r.amount, 0);
 
   const stripe = {
+    accounts: {
+      create: (params, options) => call("accounts.create", params, options, () => {
+        const item = {
+          id: next("acct"),
+          object: "account",
+          payouts_enabled: false,
+          details_submitted: false,
+          capabilities: { card_payments: "pending", transfers: "pending" },
+          metadata: { ...params.metadata },
+        };
+        accounts.set(item.id, item);
+        return item;
+      }),
+      retrieve: (id) => call("accounts.retrieve", { id }, undefined, () => {
+        if (!accounts.has(id)) throw stripeError({ statusCode: 404, code: "resource_missing" });
+        return accounts.get(id);
+      }),
+    },
+    accountLinks: {
+      create: (params) => call("accountLinks.create", params, undefined, () => ({
+        url: `https://connect.stripe.test/setup/${params.account}`,
+      })),
+    },
+    transfers: {
+      create: (params, options) => call("transfers.create", params, options, () => {
+        const transfer = {
+          id: next("tr"),
+          object: "transfer",
+          ...params,
+          metadata: { ...params.metadata },
+          amount_reversed: 0,
+        };
+        transfers.set(transfer.id, transfer);
+        return transfer;
+      }),
+      list: (params) => call("transfers.list", params, undefined, () => ({
+        object: "list",
+        data: [...transfers.values()].filter((transfer) => transfer.destination === params.destination),
+        has_more: false,
+      })),
+    },
+    paymentIntents: {
+      retrieve: (id) => call("paymentIntents.retrieve", { id }, undefined, () => {
+        const session = [...sessions.values()].find((item) => item.payment_intent === id);
+        if (!session) throw stripeError({ statusCode: 404, code: "resource_missing" });
+        return { id, latest_charge: `ch_${id}` };
+      }),
+    },
     checkout: {
       sessions: {
         create: (params, options) =>
@@ -144,6 +201,8 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
     calls,
     sessions,
     refunds,
+    accounts,
+    transfers,
     /** Ustawia stan zwrotów tworzonych od teraz (`succeeded` | `pending`). */
     setRefundStatus(status) {
       state.refundStatus = status;
@@ -189,6 +248,14 @@ export function createFakeStripe({ delayMs = 0 } = {}) {
       const id = next("re");
       refunds.set(id, { id, object: "refund", status, amount, currency: "pln", payment_intent: paymentIntent, metadata: {} });
       return clone(refunds.get(id));
+    },
+    setAccount(id, { payouts_enabled = false, transfers: transfersState = "pending" } = {}) {
+      const item = accounts.get(id);
+      Object.assign(item, {
+        payouts_enabled,
+        capabilities: { ...item.capabilities, transfers: transfersState },
+      });
+      return clone(item);
     },
   };
 }

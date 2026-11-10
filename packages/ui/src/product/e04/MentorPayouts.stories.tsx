@@ -6,8 +6,8 @@ import { narrow } from "../../../.storybook/helpers";
 import { phone } from "../../../.storybook/screens";
 import { MentorPayouts, type OpenStripeResult, type PayoutSession, type SessionPayoutStatus } from "./MentorPayouts";
 
-// Agent test (lekcja 06): /mentor/payouts (#22, E04-S01) built only from the design system.
-// Example data: Anna K.'s prices from the brief/specs (150 zł / 280 zł); no backend.
+// /mentor/payouts (#22, E04-S01) built from the design system.
+// Example data: Anna K.'s prices from the brief/specs (150 zł / 280 zł).
 
 const session = (id: string, menteeName: string, lengthMinutes: 25 | 50, date: string, time: string, payoutStatus: SessionPayoutStatus): PayoutSession => {
   const slotStart = warsaw(date, time);
@@ -22,10 +22,10 @@ const session = (id: string, menteeName: string, lengthMinutes: 25 | 50, date: s
   };
 };
 
-const ON_HOLD = [session("s1", "Kuba", 25, "2026-10-15", "18:00", "on_hold"), session("s2", "Ola", 50, "2026-10-13", "12:00", "on_hold")];
+const ON_HOLD = [session("s1", "Kuba", 25, "2026-10-15", "18:00", "held_for_payout"), session("s2", "Ola", 50, "2026-10-13", "12:00", "held_for_payout")];
 const MIXED = [
-  session("s1", "Kuba", 25, "2026-10-15", "18:00", "scheduled"),
-  session("s2", "Ola", 50, "2026-10-13", "12:00", "in_transit"),
+  session("s1", "Kuba", 25, "2026-10-15", "18:00", "held_for_payout"),
+  session("s2", "Ola", 50, "2026-10-13", "12:00", "transferring"),
   session("s3", "Kuba", 25, "2026-10-06", "18:00", "paid"),
 ];
 const MANY = Array.from({ length: 40 }, (_, i) =>
@@ -35,20 +35,20 @@ const MANY = Array.from({ length: 40 }, (_, i) =>
     i % 3 ? 25 : 50,
     `2026-${i < 18 ? "10" : "09"}-${String(1 + (i % 18)).padStart(2, "0")}`,
     i % 2 ? "18:00" : "12:30",
-    i < 6 ? "scheduled" : i < 8 ? "in_transit" : "paid",
+    i < 6 ? "held_for_payout" : i < 8 ? "transferring" : "paid",
   ),
 );
 const sum = (items: PayoutSession[], paid: boolean) =>
   items.filter((s) => (s.payoutStatus === "paid") === paid).reduce((total, s) => total + s.amountMinor, 0);
 
 const meta = {
-  title: "Product/E04 Mentor payout (draft)/Screens",
+  title: "Product/E04 Mentor payouts/Screens",
   component: MentorPayouts,
   tags: ["!autodocs"],
   parameters: { layout: "fullscreen" },
   args: {
     hasPaidRequest: true,
-    setupStatus: "not_started",
+    setupStatus: "none",
     sessions: ON_HOLD,
     owedMinor: sum(ON_HOLD, false),
     paidOutMinor: 0,
@@ -114,18 +114,31 @@ export const OpenNoNetwork: Story = {
     await expect(await canvas.findByRole("alert")).toHaveTextContent("Brak połączenia z internetem");
   },
 };
-export const InProgress: Story = { name: "S10 Payouts · Stripe is verifying", args: { setupStatus: "pending" } };
+export const PendingAbandoned: Story = { name: "S10 Payouts · onboarding abandoned", args: { setupStatus: "pending", detailsSubmitted: false } };
+export const PendingVerifying: Story = { name: "S10 Payouts · Stripe is verifying", args: { setupStatus: "pending", detailsSubmitted: true } };
 export const Ready: Story = {
   name: "S10 Payouts · ready",
   args: { setupStatus: "ready", sessions: MIXED, owedMinor: sum(MIXED, false), paidOutMinor: sum(MIXED, true) },
 };
-export const ActionRequired: Story = {
-  name: "S10 Payouts · Stripe asks for more information",
-  args: { setupStatus: "action_required" },
+export const ReadyWithHeldPayout: Story = {
+  name: "S10 Payouts · ready with a session due for payout",
+  args: { setupStatus: "ready", sessions: [session("s1", "Kuba", 25, "2026-10-15", "18:00", "held_for_payout")], owedMinor: 15000 },
+};
+export const FailedPayout: Story = {
+  name: "S10 Payouts · payout failed",
+  args: { setupStatus: "ready", sessions: [session("s1", "Kuba", 25, "2026-10-15", "18:00", "failed")], owedMinor: 15000 },
+};
+export const TransferringPayout: Story = {
+  name: "S10 Payouts · transfer in progress",
+  args: { setupStatus: "ready", sessions: [session("s1", "Kuba", 25, "2026-10-15", "18:00", "transferring")], owedMinor: 15000 },
+};
+export const CancelledPayout: Story = {
+  name: "S10 Payouts · cancelled request",
+  args: { setupStatus: "ready", sessions: [session("s1", "Kuba", 25, "2026-10-15", "18:00", "cancelled")], owedMinor: 0 },
 };
 export const ReturnCompleted: Story = {
   name: "S10 Payouts · back from Stripe, completed",
-  args: { setupStatus: "pending", returnFrom: "completed" },
+  args: { setupStatus: "pending", detailsSubmitted: true, returnFrom: "completed" },
 };
 export const ReturnCompletedReady: Story = {
   name: "S10 Payouts · back from Stripe, ready at once",
@@ -133,11 +146,15 @@ export const ReturnCompletedReady: Story = {
 };
 export const ReturnInterrupted: Story = {
   name: "S10 Payouts · back from Stripe, interrupted",
-  args: { setupStatus: "not_started", returnFrom: "interrupted" },
+  args: { setupStatus: "none", returnFrom: "interrupted" },
+};
+export const ReturnInterruptedWithSubmittedDetails: Story = {
+  name: "S10 Payouts · interrupted after submitting details",
+  args: { setupStatus: "pending", detailsSubmitted: true, returnFrom: "interrupted" },
 };
 export const Many: Story = {
   name: "S10 Payouts · 40 sessions",
   args: { setupStatus: "ready", sessions: MANY, owedMinor: sum(MANY, false), paidOutMinor: sum(MANY, true) },
 };
 export const Phone: Story = { name: "S10 Payouts · phone 375 px", decorators: [phone] };
-export const Narrow: Story = { name: "S10 Payouts · 320 px", decorators: [narrow], args: { setupStatus: "action_required", returnFrom: "interrupted" } };
+export const Narrow: Story = { name: "S10 Payouts · 320 px", decorators: [narrow], args: { setupStatus: "pending", returnFrom: "interrupted" } };
