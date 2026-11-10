@@ -60,7 +60,7 @@ Wpadka w samej próbie: przy pierwszym smoke 1.0 nie zatrzymał się serwer 0.1.
 
 ## 5. Wydanie
 
-1. PR wydaniowy z „Fixes” (issue wydania, #10, #11), zielone CI, scalenie do `main`.
+1. PR wydaniowy #62 z „Fixes #10, #11” (osobnego issue wydania nie założyliśmy: zapis na GitHubie zablokował klasyfikator, a epiki wystarczają), zielone CI, scalenie do `main`.
 2. Tag `v1.0.0` (z adnotacją) na commicie scalenia, push tagów `v0.1.0` i `v1.0.0`.
 3. GitHub Release `v1.0.0` z wpisem 1.0.0 z `CHANGELOG.md` i odnośnikiem do `UPGRADE_NOTES.md`; `v0.1.0` jako release historyczny (nie „latest”).
 4. Odtworzenie poprzedniej wersji: `git checkout v0.1.0` → sprawdzone w krokach 6–7.
