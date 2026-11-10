@@ -2,21 +2,64 @@
   "version": 1,
   "baseBranch": "auto",
   "tracker": "github",
-  "browser": { "provider": "playwright" },
+  "browser": {
+    "provider": "playwright"
+  },
   "validation": {
-    "commands": ["npm run lint", "npm test", "npm run build"]
+    "commands": [
+      "npm run lint",
+      "npm test",
+      "npm run build"
+    ]
   },
   "labels": {
     "enabled": true,
-    "pipeline": ["review", "changes-requested", "qa", "qa-failed", "merge-queue", "blocked", "do-not-merge"],
-    "category": ["bug", "feature", "refactor", "security", "dependencies", "documentation"],
-    "meta": ["needs-qa", "skip-qa", "qa-approved", "qa-self-verified", "in-progress", "ci-monitoring"],
-    "priority": ["priority-low", "priority-medium", "priority-high", "priority-extreme"],
-    "risk": ["risk-low", "risk-medium", "risk-high"]
+    "pipeline": [
+      "review",
+      "changes-requested",
+      "qa",
+      "qa-failed",
+      "merge-queue",
+      "blocked",
+      "do-not-merge"
+    ],
+    "category": [
+      "bug",
+      "feature",
+      "refactor",
+      "security",
+      "dependencies",
+      "documentation"
+    ],
+    "meta": [
+      "needs-qa",
+      "skip-qa",
+      "qa-approved",
+      "qa-self-verified",
+      "in-progress",
+      "ci-monitoring"
+    ],
+    "priority": [
+      "priority-low",
+      "priority-medium",
+      "priority-high",
+      "priority-extreme"
+    ],
+    "risk": [
+      "risk-low",
+      "risk-medium",
+      "risk-high"
+    ]
   },
   "qaGate": true,
-  "ci": { "maxWaitMinutes": 15 },
-  "engine": { "loopStepThreshold": 20, "executorTier": "standard", "stepReview": "final" },
+  "ci": {
+    "maxWaitMinutes": 15
+  },
+  "engine": {
+    "loopStepThreshold": 20,
+    "executorTier": "standard",
+    "stepReview": "final"
+  },
   "paths": {
     "runs": ".ai/runs",
     "analysis": ".ai/analysis",
@@ -27,5 +70,132 @@
     "qa": ".ai/qa"
   },
   "reviewChecklist": null,
-  "closeKeywords": ["zamyka", "naprawia", "rozwiązuje"]
+  "closeKeywords": [
+    "zamyka",
+    "naprawia",
+    "rozwiązuje"
+  ],
+  "agentHarness": {
+    "version": 1,
+    "preset": "custom",
+    "host": "claude",
+    "delivery": {
+      "mode": "stage-only",
+      "issueClaim": "hold"
+    },
+    "retry": {
+      "maxAttempts": 4,
+      "backoffMs": 5000,
+      "backoffMultiplier": 2,
+      "timeoutEscalation": 1.5,
+      "maxTimeoutMs": 2400000
+    },
+    "models": {
+      "codex": {
+        "adapter": "command",
+        "family": "openai",
+        "model": "gpt-5.6-sol",
+        "reasoningEffort": "xhigh",
+        "roles": [
+          "worker",
+          "reviewer"
+        ],
+        "timeoutMs": 1200000,
+        "workerSecurity": {
+          "network": "disabled",
+          "remoteWrites": "disabled",
+          "refWrites": "disabled",
+          "enforcedBy": "codex-workspace-write-sandbox"
+        },
+        "commands": {
+          "probe": [
+            "codex",
+            "--version"
+          ],
+          "review": [
+            "codex",
+            "exec",
+            "--ignore-user-config",
+            "--ignore-rules",
+            "--ephemeral",
+            "--config",
+            "model_reasoning_effort={reasoningEffort}",
+            "--sandbox",
+            "read-only",
+            "--cd",
+            "{worktree}",
+            "--model",
+            "{model}",
+            "--output-schema",
+            "{schemaFile}",
+            "-"
+          ],
+          "worker": [
+            "codex",
+            "exec",
+            "--ignore-user-config",
+            "--ignore-rules",
+            "--ephemeral",
+            "--config",
+            "model_reasoning_effort={reasoningEffort}",
+            "--sandbox",
+            "workspace-write",
+            "--cd",
+            "{worktree}",
+            "--model",
+            "{model}",
+            "-"
+          ]
+        }
+      }
+    },
+    "profiles": {
+      "standard": {
+        "workers": [],
+        "reviewers": [],
+        "reviewPolicy": {
+          "mode": "advisory"
+        }
+      },
+      "optimized": {
+        "workers": [
+          "codex"
+        ],
+        "reviewers": [],
+        "reviewPolicy": {
+          "mode": "advisory"
+        }
+      },
+      "multi": {
+        "workers": [],
+        "reviewers": [
+          "codex"
+        ],
+        "maxParallel": 2,
+        "maxInputBytes": 700000,
+        "reviewPolicy": {
+          "mode": "all-required",
+          "requiredReviewers": [
+            "codex"
+          ]
+        }
+      },
+      "multi-optimized": {
+        "workers": [
+          "codex"
+        ],
+        "reviewers": [
+          "codex"
+        ],
+        "maxParallel": 2,
+        "maxInputBytes": 700000,
+        "reviewPolicy": {
+          "mode": "all-required",
+          "requiredReviewers": [
+            "codex"
+          ]
+        }
+      }
+    }
+  }
 }

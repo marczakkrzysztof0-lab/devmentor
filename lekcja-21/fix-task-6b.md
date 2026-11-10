@@ -1,0 +1,13 @@
+You are the IMPLEMENTER of the mentor-payouts feature (current working directory). Spec: `.ai/specs/2026-11-09-mentor-payouts.md`. Review findings with evidence and suggested fixes: `lekcja-21/reviews/code-r2-claude.json` (Claude F1..F13) and `lekcja-21/reviews/code-r2-codex.json` (Codex F1..F3). No new dependencies, no commits, never print `.env*`. UI text stays Polish. Follow the repo formatting of neighbouring files (2-space indent, one statement per line, JSDoc on exported/helper functions like neighbouring modules). Other workers edit other files in parallel: touch ONLY the files listed below.
+
+Files you may touch: packages/ui/src/product/e04/MentorPayouts.tsx, packages/ui/src/product/e04/MentorPayouts.stories.tsx, packages/ui/src/product/e04/PayoutSetupPrompt.tsx, packages/ui/src/product/e04/PayoutSetupPrompt.stories.tsx, app/mentor/page.tsx, app/mentor/payouts/page.tsx, app/mentor/payouts/ (new client wrapper file allowed), lib/payouts/server.ts.
+
+Fix:
+- Claude F3: held_for_payout wording depends on setupStatus: not ready → "Wstrzymane — czeka na dane do wypłaty" (attention), ready → "Do wypłaty" (neutral). Add stories: ready with a held_for_payout row, a failed row, a cancelled row.
+- Claude F7: in pending + detailsSubmitted keep "Stripe sprawdza dane" but drop "Nic nie trzeba robić" and keep a SECONDARY button "Dokończ konfigurację w Stripe" (Stripe may ask for more data) next to "Odśwież stan". Wording must not contradict the /mentor prompt.
+- Claude F8: on /mentor pass the payout prompt / payouts link through MentorPageForm's notice slot together with NoAvailabilityNotice (check the component in packages/ui/src/product/e01/Mentor.tsx; if notice accepts one node, wrap both in a fragment) so it renders right after the h1 and above the form. Remove the dead "oczekują na dane do wypłaty" branch. Update the file header comment (remove "Bez wzmianki o wypłatach (Z36)", describe the new order).
+- Claude F9: packages/ui must not import next. Remove useRouter from MentorPayouts (make onRefresh required or render nothing without it); create a small "use client" wrapper in app/mentor/payouts/ that renders MentorPayouts with onRefresh = router.refresh() and use it from page.tsx.
+- Claude F13 (part): remove the duplicate story (PendingAbandoned vs ActionRequired identical args) and the stale "Agent test (lekcja 06) … no backend" header.
+- Codex F1: in lib/payouts/server.ts nothing to change unless the summary shape changes; do not touch summary.mjs (another worker).
+
+Done when: npx.cmd tsc --noEmit -p . clean, npm.cmd run typecheck:ui pass, npm.cmd run lint 0 errors. Do NOT run build, e2e or the full npm test; the orchestrator runs the full gate after all workers. Report what you changed and results.

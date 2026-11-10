@@ -1,10 +1,6 @@
 "use client";
 
-// E04 · #22 — the mentor's payouts screen (/mentor/payouts). Agent test of the design system:
-// composed only from existing primitives, product components and tokens. Not exported (test rule 4).
-// No spec for #22 exists; copy and states follow the brief (D07, R13) and the E02 examples.
-// DRAFT from the agent test — not exported; needs spec #22 (What is missing). Updated after the test:
-// DescriptionList (A1), MentorNav without current (A2), attention tone (B1), hosted redirect pattern (A4).
+// E04 · #22 — payout summary screen, composed from existing product components and semantic tokens.
 
 import { Button } from "../../components/button/Button";
 import { CopyField } from "../../components/copy-field/CopyField";
@@ -21,10 +17,10 @@ import { PageLayout } from "../shared/PageLayout";
 import type { LoadState, SessionLength } from "../shared/types";
 
 /** Payout setup at the payment provider (Stripe hosted onboarding, #25). */
-export type PayoutSetupStatus = "not_started" | "pending" | "ready" | "action_required";
+export type PayoutSetupStatus = "none" | "pending" | "ready";
 
 /** Payout state of one completed session. */
-export type SessionPayoutStatus = "on_hold" | "scheduled" | "in_transit" | "paid";
+export type SessionPayoutStatus = "held_for_payout" | "transferring" | "paid" | "cancelled" | "failed";
 
 export type PayoutSession = {
   id: string;
@@ -58,14 +54,16 @@ export type MentorPayoutsProps = {
   now?: Date;
   shareUrl: string;
   pendingCount?: number;
+  detailsSubmitted?: boolean;
+  signOutAction?: () => Promise<void>;
   onOpenStripe: () => Promise<OpenStripeResult>;
   /** Sends the browser to Stripe; default `window.location.assign`. */
   onRedirect?: (url: string) => void;
-  onRefresh?: () => void;
+  onRefresh: () => void;
 };
 
 const SETUP: Record<PayoutSetupStatus, { text: string; tone: StatusTone; body: string }> = {
-  not_started: {
+  none: {
     text: "Wypłaty nie są skonfigurowane — kwota czeka na wypłatę",
     tone: "attention",
     body: "Dane do wypłaty podajesz na stronie Stripe, nie w DevMentorze. Bez nich Stripe nie przeleje pieniędzy.",
@@ -73,31 +71,26 @@ const SETUP: Record<PayoutSetupStatus, { text: string; tone: StatusTone; body: s
   pending: {
     text: "Stripe sprawdza dane — wypłaty ruszą po weryfikacji",
     tone: "waiting",
-    body: "Nic nie trzeba robić. Stan zmieni się na tej stronie, gdy Stripe skończy.",
+    body: "Stan zmieni się na tej stronie, gdy Stripe skończy sprawdzać dane.",
   },
   ready: {
-    text: "Wypłaty skonfigurowane — Stripe przelewa pieniądze na konto podane w Stripe",
+    text: "Wypłaty gotowe",
     tone: "success",
-    body: "Dane do wypłaty zmienisz w panelu Stripe.",
-  },
-  action_required: {
-    text: "Stripe prosi o uzupełnienie danych — wypłaty są wstrzymane",
-    tone: "attention",
-    body: "Brakujące informacje zobaczysz na stronie Stripe. Kwota czeka do czasu ich uzupełnienia.",
+    body: "Stripe przelewa środki na rachunek wskazany podczas konfiguracji.",
   },
 };
 
 const SESSION_WORD: Record<SessionPayoutStatus, { text: string; tone: StatusTone }> = {
-  on_hold: { text: "Wstrzymane — czeka na dane do wypłaty", tone: "attention" },
-  scheduled: { text: "Do wypłaty", tone: "neutral" },
-  in_transit: { text: "Wypłata w drodze", tone: "neutral" },
+  held_for_payout: { text: "Wstrzymane — czeka na dane do wypłaty", tone: "attention" },
+  transferring: { text: "Wypłata w toku", tone: "neutral" },
   paid: { text: "Wypłacone", tone: "success" },
+  cancelled: { text: "Zwrócone deweloperowi — bez wypłaty", tone: "neutral" },
+  failed: { text: "Wypłata wstrzymana — wyjaśniamy", tone: "danger" },
 };
 
 const ACTION_LABEL: Record<PayoutSetupStatus, string | null> = {
-  not_started: "Skonfiguruj wypłaty w Stripe",
-  action_required: "Uzupełnij dane w Stripe",
-  pending: null,
+  none: "Skonfiguruj wypłaty w Stripe",
+  pending: "Dokończ konfigurację w Stripe",
   ready: null,
 };
 
@@ -114,12 +107,14 @@ export function MentorPayouts({
   now = new Date(),
   shareUrl,
   pendingCount = 0,
+  detailsSubmitted = false,
+  signOutAction,
   onOpenStripe,
   onRedirect = (url) => window.location.assign(url),
   onRefresh,
 }: MentorPayoutsProps) {
   // A2: „Wypłaty” is not a navigation item yet (What is missing) → no current item.
-  const nav = <MentorNav pendingCount={pendingCount} />;
+  const nav = <MentorNav pendingCount={pendingCount} signOutAction={signOutAction} />;
   const heading = <h1 className="text-heading-page font-strong">Wypłaty</h1>;
 
   if (state === "loading")
@@ -138,9 +133,7 @@ export function MentorPayouts({
           kind="error"
           title="Nie udało się wczytać wypłat — odśwież"
           action={
-            <Button variant="secondary" onClick={onRefresh}>
-              Odśwież
-            </Button>
+            <RefreshButton onRefresh={onRefresh} label="Odśwież" />
           }
         >
           Kwoty i dane do wypłaty się nie zmieniły.
@@ -161,8 +154,10 @@ export function MentorPayouts({
       </PageLayout>
     );
 
-  const setup = SETUP[setupStatus];
-  const actionLabel = ACTION_LABEL[setupStatus];
+  const setup = setupStatus === "pending" && !detailsSubmitted
+    ? { text: "Konfiguracja w Stripe nie jest dokończona — kwota czeka na wypłatę", tone: "attention" as const, body: "Dokończ konfigurację danych do wypłaty na stronie Stripe." }
+    : SETUP[setupStatus];
+  const actionLabel = setupStatus === "pending" && detailsSubmitted ? ACTION_LABEL.pending : ACTION_LABEL[setupStatus];
   const byNewest = (a: PayoutSession, b: PayoutSession) => b.slotStart.localeCompare(a.slotStart);
   const groups = [
     { id: "owed", title: "Do wypłaty", items: sessions.filter((s) => s.payoutStatus !== "paid").sort(byNewest) },
@@ -187,10 +182,12 @@ export function MentorPayouts({
             {returnFrom === "completed"
               ? setupStatus === "ready"
                 ? "Wypłaty są gotowe."
-                : setupStatus === "action_required"
-                  ? "Stripe potrzebuje jeszcze kilku informacji — szczegóły poniżej."
-                  : "Stripe je teraz sprawdza. Stan zobaczysz na tej stronie."
-              : "Dane podane do tej pory zostały w Stripe. Dokończysz konfigurację przyciskiem poniżej; nic nie zostało pobrane."}
+                : detailsSubmitted
+                  ? "Stripe je teraz sprawdza. Stan zobaczysz na tej stronie."
+                  : "Dokończ konfigurację danych do wypłaty na stronie Stripe."
+              : detailsSubmitted
+                ? "Dane są już w Stripe, ale konfiguracja nie została zakończona. Wróć do Stripe, aby ją dokończyć."
+                : "Dane podane do tej pory zostały w Stripe. Dokończysz konfigurację przyciskiem poniżej; nic nie zostało pobrane."}
           </HostedReturnNotice>
         ) : null}
 
@@ -202,16 +199,16 @@ export function MentorPayouts({
           ]}
         />
 
-        {actionLabel ? (
+        {setupStatus === "pending" && detailsSubmitted ? (
+          <div className="flex flex-wrap items-start gap-in-group">
+            <RefreshButton onRefresh={onRefresh} label="Odśwież stan" />
+            <HostedRedirectAction label="Dokończ konfigurację w Stripe" variant="secondary" provider="Stripe" open={onOpenStripe} onRedirect={onRedirect} unchanged="Dane do wypłaty i kwoty się nie zmieniły." />
+          </div>
+        ) : actionLabel ? (
           <HostedRedirectAction label={actionLabel} provider="Stripe" open={onOpenStripe} onRedirect={onRedirect} unchanged="Dane do wypłaty i kwoty się nie zmieniły." />
-        ) : setupStatus === "ready" ? (
-          <HostedRedirectAction label="Otwórz panel wypłat w Stripe" provider="Stripe" variant="secondary" open={onOpenStripe} onRedirect={onRedirect} unchanged="Dane do wypłaty i kwoty się nie zmieniły." />
-        ) : (
-          // B2/D1: nothing to do while Stripe checks the data → no primary action, only a secondary refresh.
+        ) : setupStatus === "ready" ? null : (
           <div>
-            <Button variant="secondary" onClick={onRefresh}>
-              Odśwież stan
-            </Button>
+            <RefreshButton onRefresh={onRefresh} label="Odśwież stan" />
           </div>
         )}
       </section>
@@ -229,7 +226,11 @@ export function MentorPayouts({
               </h2>
               <List aria-labelledby={`payout-group-${group.id}`}>
                 {group.items.map((s) => {
-                  const word = SESSION_WORD[s.payoutStatus];
+                  const word = s.payoutStatus === "held_for_payout"
+                    ? setupStatus === "ready"
+                      ? { text: "Do wypłaty", tone: "neutral" as const }
+                      : { text: "Wstrzymane — czeka na dane do wypłaty", tone: "attention" as const }
+                    : SESSION_WORD[s.payoutStatus];
                   return (
                     <ListRow
                       key={s.id}
@@ -250,4 +251,9 @@ export function MentorPayouts({
       )}
     </PageLayout>
   );
+}
+
+/** Secondary action to reload payout status. */
+function RefreshButton({ onRefresh, label }: { onRefresh: () => void; label: string }) {
+  return <Button variant="secondary" onClick={onRefresh}>{label}</Button>;
 }

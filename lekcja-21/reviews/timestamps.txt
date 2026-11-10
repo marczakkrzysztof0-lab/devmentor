@@ -1,0 +1,50 @@
+R1 start 2026-11-10T07:39:02+01:00
+claude r1 exit 1 2026-11-10T07:39:21+01:00
+codex r1 exit 0 2026-11-10T07:41:10+01:00
+R1 judged+fixed 2026-11-10T07:47:02+01:00; R2 start
+codex r2 exit 0 2026-11-10T07:47:50+01:00
+R2 judged+fixed 2026-11-10T07:51:47+01:00; R3 start
+codex r3 exit 0 2026-11-10T07:52:48+01:00
+R3 judged+fixed 2026-11-10T07:55:40+01:00
+IMPL start 2026-11-10T08:01:54+01:00
+IMPL codex exit 0 2026-11-10T08:45:42+01:00
+VALIDATION-1 start 2026-11-10T08:45:52+01:00
+VALIDATION-1 end, CR1 start 2026-11-10T08:50:12+01:00
+codex cr1 exit 0 2026-11-10T08:51:32+01:00
+CR1 judged 2026-11-10T08:53:58+01:00; FIX1 start
+FIX1 codex exit 0 2026-11-10T09:22:04+01:00
+FIX2 (2a code, 2b tests parallel) start 2026-11-10T09:23:23+01:00
+FIX2a exit 0 2026-11-10T09:51:52+01:00
+FIX2b (re)start 2026-11-10T09:52:16+01:00 — pierwszy start nie wystartował (drugi proces w tle)
+FIX2b exit 0 2026-11-10T10:00:04+01:00
+FIX3 t1 start 2026-11-10T10:01:18+01:00
+FIX3 t2 start 2026-11-10T10:01:20+01:00
+FIX3 t3 start 2026-11-10T10:01:21+01:00
+FIX3 t4 start 2026-11-10T10:01:22+01:00
+FIX3 t4 exit 0 2026-11-10T10:14:04+01:00
+FIX3 t2 exit 0 2026-11-10T10:15:32+01:00
+FIX3 t1 exit 0 2026-11-10T10:15:34+01:00
+FIX3 t3 exit 0 2026-11-10T10:15:36+01:00
+FIX4 start 2026-11-10T10:16:09+01:00
+16:15 fix5 start
+16:21 fix5 end rc=0
+16:25 CR2 start
+16:28 CR2 codex end
+16:32 fix6a start
+16:32 fix6b start
+16:32 fix6c start
+16:35 fix6b end rc=0
+16:36 fix6b2 start
+16:37 fix6c end rc=0
+16:37 fix6c2 start
+16:41 fix6b2 end rc=0
+16:42 fix6c2 end rc=0
+16:43 fix6a end rc=0
+16:53 CR3 start; fix7 start
+16:55 CR3 codex end rc=0
+16:58 fix7 end rc=0
+16:58 fix8a fix8b start
+17:03 fix8b end rc=0
+17:03 fix8a end rc=0
+17:04 val5 start
+17:12 val5 end

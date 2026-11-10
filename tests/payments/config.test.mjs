@@ -31,6 +31,7 @@ test("poprawna konfiguracja: wartości przepisane, apiBaseUrl null", () => {
   assert.deepEqual(readPaymentsConfig(baseEnv()), {
     secretKey: SECRET,
     webhookSecret: WEBHOOK,
+    connectWebhookSecret: null,
     currencies: ["PLN"],
     commissionBps: 1000,
     apiBaseUrl: null,

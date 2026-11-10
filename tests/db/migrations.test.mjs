@@ -12,6 +12,7 @@ const TABLES_0004 = ["availability_windows"];
 const TABLES_0005 = ["job_runs", "payments", "stripe_events"];
 const TABLES_0006 = ["outbound_emails", "requests"];
 const TABLES_0007 = ["session_messages"];
+const TABLES_0009 = ["mentor_payout_accounts", "payouts"];
 const ALL_MIGRATIONS = [
   "0001_mentors_invitations_pages",
   "0002_mentor_sign_in",
@@ -21,6 +22,7 @@ const ALL_MIGRATIONS = [
   "0006_requests",
   "0007_session_messages",
   "0008_session_outcomes",
+  "0009_mentor_payouts",
 ];
 
 // Kolumna requests.settled_at z 0008 (true, gdy istnieje).
@@ -38,6 +40,7 @@ const UP_TO_0004 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0
 const UP_TO_0005 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0004, ...TABLES_0005);
 const UP_TO_0006 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0004, ...TABLES_0005, ...TABLES_0006);
 const UP_TO_0007 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0004, ...TABLES_0005, ...TABLES_0006, ...TABLES_0007);
+const UP_TO_0009 = () => withHistory(...TABLES_0001, ...TABLES_0002, ...TABLES_0004, ...TABLES_0005, ...TABLES_0006, ...TABLES_0007, ...TABLES_0009);
 
 async function tablesIn(db, schema) {
   const { rows } = await db.query(
@@ -78,13 +81,13 @@ describeDb(
       assert.deepEqual(await tablesIn(db, db.schema), []);
     });
 
-    test("up wykonuje 0001–0008: wszystkie tabele (i historia pgmigrations), kolumny cen i strefa mentora", async () => {
+    test("up wykonuje 0001–0009: wszystkie tabele (i historia pgmigrations), kolumny cen i strefa mentora", async () => {
       const applied = await db.migrate("up");
       assert.deepEqual(
         applied.map((m) => m.name),
         ALL_MIGRATIONS,
       );
-      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
+      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0009());
       assert.deepEqual(await priceColumnsIn(db), COLUMNS_0003);
       assert.equal(await hasTimeZoneColumn(db), true);
     });
@@ -95,6 +98,12 @@ describeDb(
 
     test("ponowne up nie ma nic do zrobienia", async () => {
       assert.deepEqual(await db.migrate("up"), []);
+    });
+
+    test("down o jeden krok cofa tylko 0009: znika payout schema", async () => {
+      const reverted = await db.migrate("down", 1);
+      assert.deepEqual(reverted.map((m) => m.name), ["0009_mentor_payouts"]);
+      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
     });
 
     test("down o jeden krok cofa tylko 0008: znika requests.settled_at, tabele zostają", async () => {
@@ -224,9 +233,9 @@ describeDb(
       const applied = await db.migrate("up");
       assert.deepEqual(
         applied.map((m) => m.name),
-        ["0005_payments", "0006_requests", "0007_session_messages", "0008_session_outcomes"],
+        ["0005_payments", "0006_requests", "0007_session_messages", "0008_session_outcomes", "0009_mentor_payouts"],
       );
-      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
+      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0009());
     });
 
     test("down do zera usuwa wszystkie tabele", async () => {
@@ -242,7 +251,7 @@ describeDb(
 
     test("ponowne up odtwarza schemat", async () => {
       await db.migrate("up");
-      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0007());
+      assert.deepEqual(await tablesIn(db, db.schema), UP_TO_0009());
       assert.deepEqual(await priceColumnsIn(db), COLUMNS_0003);
       assert.equal(await hasTimeZoneColumn(db), true);
       assert.deepEqual(await tablesIn(db, "public"), publicBefore);

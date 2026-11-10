@@ -5,19 +5,28 @@
 //
 // Nawigacja (od E02 #18): „Zapytania” + licznik czekających na decyzję, „Strona”, „Dostępność”, „Wyloguj”
 // (wcześniej E01 bez „Zapytania”: L7, L10, Z8, Z11).
-// Bez wzmianki o wypłatach (Z36).
 //
 // Baner „Nie masz dostępności — nikt nie może wybrać terminu” (#15 story 3), gdy mentor nie ma żadnego okna —
-// także na szkicu przy pierwszej wizycie (L20, Z21). Kolejność w DOM (P4, Z40): nagłówek → baner → panel linku
-// → formularz; z oknami banera nie ma i panel linku jest pierwszy (`MentorPageForm notice`).
+// także na szkicu przy pierwszej wizycie (L20, Z21). Kolejność w DOM: nagłówek → komunikaty o wypłatach i dostępności
+// → panel linku → formularz (`MentorPageForm notice`).
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { Skeleton } from "@devmentor/ui";
-import { AccessMessage, MentorNav, MentorPageForm, NoAvailabilityNotice, PageLayout } from "@devmentor/ui/product";
+import {
+  AccessMessage,
+  MentorNav,
+  MentorPageForm,
+  NoAvailabilityNotice,
+  PageLayout,
+  PayoutSetupPrompt,
+} from "@devmentor/ui/product";
+import { PayoutsReadyLine } from "../../packages/ui/src/product/e04/PayoutSetupPrompt";
 import { loadMentorPageEditor } from "@/lib/mentor-page/editor";
 import { pendingDecisionCount } from "@/lib/requests/mentor-area";
 import { saveMentorPageAction, signOutAction } from "./actions";
+import { loadCurrentPayoutPrompt } from "@/lib/payouts/server";
+import { startPayoutOnboardingAction } from "./payouts/actions";
 
 export const metadata: Metadata = {
   title: "Twoja strona — DevMentor",
@@ -51,6 +60,7 @@ async function MentorArea() {
       </PageLayout>
     );
   }
+  const payoutSummary = await loadCurrentPayoutPrompt();
   return (
     <PageLayout nav={<MentorNav current="page" pendingCount={await pendingDecisionCount()} signOutAction={signOutAction} />}>
       <MentorPageForm
@@ -60,7 +70,13 @@ async function MentorArea() {
         shareUrl={editor.shareUrl}
         baseUrl={editor.baseUrl}
         currencyLabel={editor.currencyLabel}
-        notice={editor.hasWindows ? undefined : <NoAvailabilityNotice />}
+        notice={
+          <>
+            {payoutSummary?.askForPayouts ? <PayoutSetupPrompt action={startPayoutOnboardingAction} /> : null}
+            {payoutSummary?.hasPaidRequest && payoutSummary.accountState === "ready" ? <PayoutsReadyLine /> : null}
+            {!editor.hasWindows ? <NoAvailabilityNotice /> : null}
+          </>
+        }
         action={saveMentorPageAction}
       />
     </PageLayout>

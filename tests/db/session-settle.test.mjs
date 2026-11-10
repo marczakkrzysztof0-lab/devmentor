@@ -182,12 +182,14 @@ describeDb("rozliczenie sesji (#21)", (db) => {
     await job(ctx, afterAll(ctx, list));
     const before = await row(s.id);
     assert.equal(before.status, "mentor_no_show");
+    await db.migrate("down", 1); // cofnięcie 0009; bez payouts w tym teście jest odwracalne
     await assert.rejects(db.migrate("down", 1), /istnieją rozliczone sesje/);
+    await db.migrate("up", 1); // pozostaw schemat na wersji bieżącej dla kolejnych testów
     const after = await row(s.id);
     assert.equal(after.status, "mentor_no_show");
     assert.equal(new Date(after.settled_at).getTime(), new Date(before.settled_at).getTime());
     const { rows } = await db.query("select name from pgmigrations order by run_on desc, id desc limit 1");
-    assert.equal(rows[0].name, "0008_session_outcomes");
+    assert.equal(rows[0].name, "0009_mentor_payouts");
   });
 
   test("widoki: przed rozliczeniem „session_ended” (mentor i /r/), po — wynik; lista mentora pokazuje rozliczone", async () => {
