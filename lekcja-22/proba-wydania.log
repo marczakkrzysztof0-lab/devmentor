@@ -1,0 +1,37 @@
+
+=== 0. Czysta baza devmentor_l22_rel
+
+=== 1. Stan produkcyjny 0.1.0: kod v0.1.0 (v0.1.0), npm run db:migrate
+✔ Wykonano migracje: 0001_mentors_invitations_pages, 0002_mentor_sign_in, 0003_mentor_page_prices, 0004_availability, 0005_payments, 0006_requests, 0007_session_messages, 0008_session_outcomes
+  pgmigrations: 0001_mentors_invitations_pages 0002_mentor_sign_in 0003_mentor_page_prices 0004_availability 0005_payments 0006_requests 0007_session_messages 0008_session_outcomes
+  dane: mentors=1 payments=1 requests=1
+
+=== 2. Aktualizacja: kod v1.0.0 (branch wydania e25b842), npm run db:migrate
+✔ Wykonano migracje: 0009_mentor_payouts
+  pgmigrations: 0001_mentors_invitations_pages 0002_mentor_sign_in 0003_mentor_page_prices 0004_availability 0005_payments 0006_requests 0007_session_messages 0008_session_outcomes 0009_mentor_payouts
+  refund_seen_at: 1, tabele wypłat: 2
+  dane: mentors=1 payments=1 requests=1
+  symulacja: wypłata z próbą transferu (attempts=1)
+  payouts: 1
+
+=== 3. Wycofanie przy próbie wypłaty: kod v1.0.0, npm run db:rollback (oczekiwana odmowa)
+Error executing:
+    RAISE EXCEPTION '0009 down: payout attempt may have moved money';
+error: 0009 down: payout attempt may have moved money
+  kod wyjścia: 0
+  pgmigrations: 0001_mentors_invitations_pages 0002_mentor_sign_in 0003_mentor_page_prices 0004_availability 0005_payments 0006_requests 0007_session_messages 0008_session_outcomes 0009_mentor_payouts
+  payouts: 1
+
+=== 4. Kod v0.1.0 na schemacie 0009 (ścieżka awaryjna: cofamy tylko kod)
+✔ Brak migracji do wykonania.
+  kod wyjścia db:migrate v0.1.0: 0
+
+=== 5. Wycofanie bez prób wypłat: usuwamy symulowaną wypłatę, kod v1.0.0, npm run db:rollback
+✔ Cofnięto migracje: 0009_mentor_payouts
+  pgmigrations: 0001_mentors_invitations_pages 0002_mentor_sign_in 0003_mentor_page_prices 0004_availability 0005_payments 0006_requests 0007_session_messages 0008_session_outcomes
+  refund_seen_at: 0, tabele wypłat: 0
+  dane: mentors=1 payments=1 requests=1
+
+=== 6. Kod v0.1.0 po wycofaniu: db:migrate (nic do zrobienia)
+✔ Brak migracji do wykonania.
+  pgmigrations: 0001_mentors_invitations_pages 0002_mentor_sign_in 0003_mentor_page_prices 0004_availability 0005_payments 0006_requests 0007_session_messages 0008_session_outcomes

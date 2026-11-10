@@ -1,0 +1,33 @@
+=== 7. Aplikacja z taga v0.1.0 na wycofanej bazie (0001–0008)
+  build v010: kod 0
+  GET / → 200
+  GET /m/nie-ma-takiego-mentora → 404
+  GET /mentor → 200
+  GET /mentor/payouts → 404
+
+=== 8. Powrót w przód: kod v1.0.0, db:migrate, aplikacja
+  UWAGA: smoke poniżej jest NIEWAŻNY: serwer v0.1.0 z kroku 7 nie został zatrzymany, next start v1.0.0 padł na EADDRINUSE, a curl trafił w v0.1.0. Powtórka na porcie 3023 w kroku 8b.
+✔ Wykonano migracje: 0009_mentor_payouts
+  ostatnia migracja: 0009_mentor_payouts
+  build v100: kod 0
+  GET / → 200
+  GET /m/nie-ma-takiego-mentora → 404
+  GET /mentor → 200
+  GET /mentor/payouts → 404
+
+=== 9. Kod wyjścia odmowy wycofania (wypłata z attempts=1)
+  db:rollback kod wyjścia: 1
+  ostatnia migracja: 0009_mentor_payouts, payouts: 1
+
+=== 8b. Powtórka smoke v1.0.0 na porcie 3023 (baza 0001–0009)
+  GET / → 200
+  GET /m/nie-ma-takiego-mentora → 404
+  GET /mentor → 200
+  GET /mentor/payouts → 200   (strona „tylko z zaproszeniem” bez sesji; w v0.1.0 tej trasy nie ma → 404)
+
+=== 10. Kod v0.1.0 na schemacie 0009 z wypłatą (ścieżka awaryjna: cofamy tylko kod), port 3024
+  GET / → 200
+  GET /m/nie-ma-takiego-mentora → 404
+  GET /mentor → 200
+  GET /mentor/payouts → 404
+  błędy w logu serwera: 0
